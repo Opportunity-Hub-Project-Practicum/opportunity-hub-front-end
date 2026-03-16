@@ -1,4 +1,4 @@
-import { Briefcase, ArrowRight, Phone, MapPin } from "lucide-react";
+import { Briefcase, ArrowRight, MapPin } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();

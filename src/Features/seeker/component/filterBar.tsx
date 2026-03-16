@@ -8,7 +8,7 @@ interface FilterBarProps {
 
 export default function FilterBar({ viewType, setViewType }: FilterBarProps) {
   const [sortBy, setSortBy] = useState("latest");
-  const [itemsPerPage, setItemsPerPage] = useState("12");
+  // const [itemsPerPage, setItemsPerPage] = useState("12");
 
   return (
     <div className="w-full bg-white px-4 md:px-6 lg:px-8 py-4 border-b border-slate-200">
