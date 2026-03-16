@@ -1,11 +1,11 @@
-import TopBar from "../../../component/topBar";
-import SearchBar from "../../../component/searchBar";
-import Card from "../../../component/cardGrid";
-import CardList from "../../../component/cardList";
-import aba from "../../assets/aba.png";
-import Footer from "../../../component/footer";
-import FilterBar from "../../../component/filterBar";
-import Pagination from "../../../component/pagination";
+import TopBar from "../component/topBar";
+import SearchBar from "../component/searchBar";
+import Card from "../component/cardGrid";
+import CardList from "../component/cardList";
+import aba from "../../../assets/aba.png";
+import Footer from "../../../globalComponents/footer";
+import FilterBar from "../component/filterBar";
+import Pagination from "../component/pagination";
 import { useState } from "react";
 export default function SeekerHomePage() {
     const [viewType, setViewType] = useState("grid");
