@@ -23,7 +23,7 @@ export default function DetailHeader({
     location,
     phone,
     email,
-    daysRemaining,
+    //daysRemaining,
     expiryDate,
     onBookmark,
     onApply,

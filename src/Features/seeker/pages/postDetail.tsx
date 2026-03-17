@@ -1,5 +1,5 @@
 import TopBar from "../component/topBar";
-import { useParams } from "react-router-dom";
+//import { useParams } from "react-router-dom";
 import aba from "../../../assets/aba.png";
 import Footer from "../../../globalComponents/footer";
 import CardGrid from "../component/cardGrid";
@@ -13,7 +13,7 @@ import {
     Twitter,
     Instagram,
     Youtube,
-    Share2,
+    // Share2,
     Flag,
     Bookmark,
     ArrowRight,
@@ -25,7 +25,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function PostDetail() {
-    const { jobId } = useParams<{ jobId: string }>();
+    // const { jobId } = useParams<{ jobId: string }>();
     const [isBookmarked, setIsBookmarked] = useState(false);
     const navigate = useNavigate();
 
