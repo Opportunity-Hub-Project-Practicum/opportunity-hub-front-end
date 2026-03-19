@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name: Auto Assign
 
 on:
@@ -20,3 +21,27 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           assignees: raksa-lab
           numOfAssignee: 1
+=======
+name: Auto Assign
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Auto assign issue
+        uses: pozil/auto-assign-issue@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          assignees: raksa-lab
+          numOfAssignee: 1
+>>>>>>> f25e005b32f2ba53796ad6db9448eb67e4690e47

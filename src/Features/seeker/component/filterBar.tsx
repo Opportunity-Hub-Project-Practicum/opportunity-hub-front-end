@@ -17,7 +17,7 @@ export default function FilterBar({ viewType, setViewType }: FilterBarProps) {
           {/* Left Section - Sort */}
           <div className="flex items-center gap-3">
             <span className="text-sm text-slate-600">Sort by:</span>
-            
+
             {/* Sort Dropdown */}
             <div className="relative">
               <select
@@ -42,38 +42,34 @@ export default function FilterBar({ viewType, setViewType }: FilterBarProps) {
               {/* Grid View */}
               <button
                 onClick={() => setViewType("grid")}
-                className={`flex items-center justify-center p-2 transition-colors ${
-                  viewType === "grid"
+                className={`flex items-center justify-center p-2 transition-colors ${viewType === "grid"
                     ? "bg-white"
                     : "bg-white hover:bg-slate-50"
-                }`}
+                  }`}
               >
                 <Grid3x3
                   size={18}
-                  className={`${
-                    viewType === "grid"
+                  className={`${viewType === "grid"
                       ? "text-slate-900"
                       : "text-slate-500"
-                  }`}
+                    }`}
                 />
               </button>
 
               {/* List View */}
               <button
                 onClick={() => setViewType("list")}
-                className={`flex items-center justify-center p-2 transition-colors border-l border-slate-200 ${
-                  viewType === "list"
+                className={`flex items-center justify-center p-2 transition-colors border-l border-slate-200 ${viewType === "list"
                     ? "bg-slate-100"
                     : "bg-white hover:bg-slate-50"
-                }`}
+                  }`}
               >
                 <List
                   size={18}
-                  className={`${
-                    viewType === "list"
+                  className={`${viewType === "list"
                       ? "text-slate-900"
                       : "text-slate-500"
-                  }`}
+                    }`}
                 />
               </button>
             </div>
@@ -81,4 +77,5 @@ export default function FilterBar({ viewType, setViewType }: FilterBarProps) {
         </div>
       </div>
     </div>
-  )};
+  )
+};

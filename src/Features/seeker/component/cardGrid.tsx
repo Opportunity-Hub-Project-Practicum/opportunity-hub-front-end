@@ -6,7 +6,7 @@ interface CardGridProps {
   companyName: string;
   location: string;
   jobTitle: string;
-  duration: string;
+  salary: string;
   jobType: string;
   daysRemaining: number;
   onBookmark?: () => void;
@@ -17,7 +17,7 @@ export default function CardGrid({
   companyName,
   location,
   jobTitle,
-  duration,
+  salary,
   jobType,
   daysRemaining,
   onBookmark,
@@ -59,9 +59,9 @@ export default function CardGrid({
 
         {/* Job Details */}
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          <p className="text-slate-600">{duration}</p>
-          <span className="inline-block h-0.5 w-0.5 rounded-full bg-slate-400"></span>
           <p className="text-slate-600">{jobType}</p>
+          <span className="inline-block h-0.5 w-0.5 rounded-full bg-slate-400"></span>
+          <p className="text-slate-600">{salary}</p>
           <span className="inline-block h-0.5 w-0.5 rounded-full bg-slate-400"></span>
           <div className="flex items-center gap-0.5">
             <Calendar size={12} className="text-slate-400" />
@@ -71,7 +71,7 @@ export default function CardGrid({
       </div>
 
       {/* Bookmark Button */}
-      <div className="flex items-center">
+      <div className="flex items-center justify-end ">
         <button
           onClick={handleBookmark}
           className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors"
