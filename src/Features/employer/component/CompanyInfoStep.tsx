@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { Upload, Facebook, Instagram, Plus, X, Bold, Italic, Underline, Strikethrough, Link, List, ListOrdered } from 'lucide-react'
-import { FormData } from '../App'
+import type { FormData } from '../App'
 
 interface CompanyInfoStepProps {
   formData: FormData
@@ -130,8 +130,8 @@ export function CompanyInfoStep({ formData, updateFormData, onNext }: CompanyInf
                     onChange={(e) => updateSocialLink(index, 'platform', e.target.value)}
                     className="appearance-none border border-gray-200 rounded-lg px-3 py-2.5 pr-8 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    {socialPlatforms.map(p => (
-                      <option key={p} value={p}>{p}</option>
+                    {socialPlatforms.map((platform) => (
+                      <option key={platform} value={platform}>{platform}</option>
                     ))}
                   </select>
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">

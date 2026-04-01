@@ -1,5 +1,5 @@
 import { Mail } from 'lucide-react'
-import { FormData } from '../App'
+import type { FormData } from '../App'
 
 interface ContactStepProps {
   formData: FormData

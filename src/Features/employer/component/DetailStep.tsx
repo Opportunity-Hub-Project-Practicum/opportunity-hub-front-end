@@ -1,5 +1,5 @@
 import { Bold, Italic, Underline, Strikethrough, Link, List, ListOrdered, Calendar, Globe, ChevronDown } from 'lucide-react'
-import { FormData } from '../App'
+import type { FormData } from '../App'
 
 interface DetailStepProps {
   formData: FormData
