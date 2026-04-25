@@ -8,7 +8,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { Layout } from "../component/Layout";
+import { Layout } from "../components/Layout";
 
 const postedJobs = [
   {

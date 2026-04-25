@@ -1,14 +1,14 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Applications from "./Features/employer/pages/Applications";
-import Index from "./Features/employer/pages/Index";
-import MyJobs from "./Features/employer/pages/MyJobs";
-import NotFound from "./Features/employer/pages/NotFound";
-import Placeholder from "./Features/employer/pages/Placeholder";
-import PostJob from "./Features/employer/pages/PostJob";
-import SavedCandidates from "./Features/employer/pages/SavedCandidates";
-import Settings from "./Features/employer/pages/Settings";
-import PostDetail from "./Features/seeker/pages/postDetail";
-import SeekerHomePage from "./Features/seeker/pages/seekerHomePage";
+import Applications from "./features/employer/pages/Applications";
+import Index from "./features/employer/pages/Index";
+import MyJobs from "./features/employer/pages/MyJobs";
+import NotFound from "./features/employer/pages/NotFound";
+import Placeholder from "./features/employer/pages/Placeholder";
+import PostJob from "./features/employer/pages/PostJob";
+import SavedCandidates from "./features/employer/pages/SavedCandidates";
+import Settings from "./features/employer/pages/Settings";
+import PostDetail from "./features/seeker/pages/postDetail";
+import SeekerHomePage from "./features/seeker/pages/seekerHomePage";
 
 function App() {
   return (

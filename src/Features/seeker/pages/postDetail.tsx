@@ -1,8 +1,8 @@
-import TopBar from "../component/topBar";
+import TopBar from "../components/topBar";
 //import { useParams } from "react-router-dom";
 import aba from "../../../assets/aba.png";
-import Footer from "../../../globalComponents/footer";
-import CardGrid from "../component/cardGrid";
+import Footer from "@/components/shared/footer";
+import CardGrid from "../components/cardGrid";
 import {
     Calendar,
     Timer,

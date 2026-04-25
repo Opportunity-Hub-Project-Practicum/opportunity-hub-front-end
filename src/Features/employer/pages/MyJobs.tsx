@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { Layout } from "../component/Layout";
+import { Layout } from "../components/Layout";
 
 type JobTypeFilter = "all" | "job" | "volunteer";
 type JobStatusFilter = "all" | "active" | "expired";

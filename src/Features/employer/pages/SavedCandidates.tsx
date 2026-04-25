@@ -9,7 +9,7 @@ import {
   Users,
 } from "lucide-react";
 
-import { Layout } from "../component/Layout";
+import { Layout } from "../components/Layout";
 
 type CandidateType = "all" | "job" | "volunteer";
 

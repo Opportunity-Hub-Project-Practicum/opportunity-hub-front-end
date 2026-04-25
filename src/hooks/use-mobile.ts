@@ -1,1 +1,1 @@
-export { useIsMobile } from "../Features/employer/hooks/use-mobile";
+export { useIsMobile } from "../features/employer/hooks/use-mobile";

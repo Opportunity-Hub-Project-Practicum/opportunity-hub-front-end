@@ -20,17 +20,17 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { Layout } from "../component/Layout";
-import { Input } from "../component/input";
+import { Layout } from "../components/Layout";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../component/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../component/tabs";
-import { Textarea } from "../component/textarea";
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 
 type SettingsTab = "company-info" | "detail" | "account-setting";
 

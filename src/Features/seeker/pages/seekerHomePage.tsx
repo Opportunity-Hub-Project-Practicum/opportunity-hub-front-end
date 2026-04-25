@@ -1,11 +1,11 @@
-import TopBar from "../component/topBar";
-import SearchBar from "../component/searchBar";
-import Card from "../component/cardGrid";
-import CardList from "../component/cardList";
+import TopBar from "../components/topBar";
+import SearchBar from "../components/searchBar";
+import Card from "../components/cardGrid";
+import CardList from "../components/cardList";
 import aba from "../../../assets/aba.png";
-import Footer from "../../../globalComponents/footer";
-import FilterBar from "../component/filterBar";
-import Pagination from "../component/pagination";
+import Footer from "@/components/shared/footer";
+import FilterBar from "../components/filterBar";
+import Pagination from "../components/pagination";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 export default function SeekerHomePage() {
