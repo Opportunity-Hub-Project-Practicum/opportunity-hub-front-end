@@ -1,73 +1,59 @@
-# React + TypeScript + Vite
+# Opportunity Hub Front-End
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern job portal application built with React, TypeScript, and Vite.
 
-Currently, two official plugins are available:
+## 🏗️ Project Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The project follows a **Feature-Based Architecture** to ensure scalability and maintainability, especially for future API integrations.
 
-## React Compiler
-
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+src/
+├── api/                  # Global API configurations and base client
+├── assets/               # Shared static assets (images, icons)
+├── components/           
+│   ├── ui/               # Base UI components (shadcn/ui style)
+│   └── shared/           # Business components used across multiple features
+├── features/             # Domain-driven modules
+│   ├── admin/            # Admin-related logic and pages
+│   ├── employer/         # Employer dashboard and job posting
+│   │   ├── api/          # Employer-specific API calls
+│   │   ├── components/   # Employer-only components
+│   │   ├── hooks/        # Employer-specific logic
+│   │   └── pages/        # Employer-related screens
+│   └── seeker/           # Job seeker portal
+│       ├── api/
+│       ├── components/
+│       ├── pages/
+│       └── ...
+├── hooks/                # Global reusable hooks
+├── layouts/              # Layout wrapper components
+├── lib/                  # Shared utilities and configurations
+├── routes/               # Centralized routing setup
+└── types/                # Global TypeScript definitions
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🚀 Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+2.  **Start development server:**
+    ```bash
+    npm run dev
+    ```
+
+3.  **Build for production:**
+    ```bash
+    npm run build
+    ```
+
+## 🛠️ Tech Stack
+
+- **Framework:** React 19
+- **Build Tool:** Vite
+- **Styling:** Tailwind CSS
+- **Routing:** React Router 7
+- **UI Components:** Radix UI primitives
+- **Icons:** Lucide React
