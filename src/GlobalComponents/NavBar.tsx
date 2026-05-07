@@ -10,7 +10,7 @@ export default function PublicNavBar() {
     return (
         <div className=" flex justify-between page-container ">
             <div className="flex gap-2 sm:gap-2 md:gap-10 justify-center items-center">
-                <h1 className="whitespace-nowrap"><Link to='/'>Opportunity Hub</Link></h1>
+                <h1 className="whitespace-nowrap text-big text-primary"><Link to='/'>Opportunity Hub</Link></h1>
                 <nav className={mode === 'employer' ? "hidden" : ""}>
                     <ul className="flex gap-5">
                         <li className="whitespace-nowrap"><Link to='/postList'>Opportunities</Link></li>

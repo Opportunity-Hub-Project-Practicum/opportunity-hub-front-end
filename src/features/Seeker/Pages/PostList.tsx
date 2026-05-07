@@ -1,11 +1,11 @@
 import SearchBar from "../Components/searchBar";
-import CardGrid from "../Components/CardGrid";
-import CardList from "../Components/CardList";
+import CardGrid from "../Components/card/CardGrid";
+import CardList from "../Components/card/CardList";
 import FilterBox from "../Components/FilterBox";
 import { useContext, useEffect, useState } from "react";
 import { Posts, getOrganizationById, formatSalary } from "../../../services/postService";
 import { opportunityTypeContext } from "../../../contexts/Context";
-import { Link } from "react-router-dom";
+
 
 export default function PostList() {
     const [viewType, setViewType] = useState('grid');
@@ -58,17 +58,18 @@ export default function PostList() {
                         {searchResults.map(item => {
                             const organization = getOrganizationById(item.employer_id);
                             return (
-                                <Link key={item.id} to={`/postDetail/${item.id}`}>
-                                    <CardList
-                                        organizationName={organization?.name || 'Unknown'}
-                                        title={item.title}
-                                        engagementType={item.work_place_type}
-                                        location={item.location}
-                                        salary={formatSalary(item)}
-                                        remainingDays={item.closed_date}
-                                        image={organization?.image}
-                                    />
-                                </Link>
+
+                                <CardList
+                                    id={item.id}
+                                    organizationName={organization?.name || 'Unknown'}
+                                    title={item.title}
+                                    engagementType={item.work_place_type}
+                                    location={item.location}
+                                    salary={formatSalary(item)}
+                                    remainingDays={item.closed_date}
+                                    image={organization?.image}
+                                />
+
                             );
                         })}
                     </div>

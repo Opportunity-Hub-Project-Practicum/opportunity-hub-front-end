@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 export default function SignUpSeeker() {
+    const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [formData, setFormData] = useState({
@@ -133,6 +135,7 @@ export default function SignUpSeeker() {
 
                             {/* Submit Button */}
                             <button
+                                onClick={() => navigate('/')}
                                 type="submit"
                                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 mt-6 transition-colors"
                             >

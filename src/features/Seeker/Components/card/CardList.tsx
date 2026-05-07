@@ -1,6 +1,8 @@
 import { Bookmark, MapPin, Calendar, DollarSign, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 interface CardListProps {
+    id: number;
     organizationName: string;
     title: string;
     engagementType: string;
@@ -12,10 +14,10 @@ interface CardListProps {
 }
 
 
-export default function CardList({ organizationName, title, engagementType, location, salary, remainingDays, image, onBookmark }: CardListProps) {
+export default function CardList({ id, organizationName, title, engagementType, location, salary, remainingDays, image, onBookmark }: CardListProps) {
     const [bookmark, setBookmark] = useState(false);
     const handleBookmark = () => {
-        setBookmark(!Bookmark);
+        setBookmark(!bookmark);
         onBookmark?.();
     };
     return (<>
@@ -28,9 +30,9 @@ export default function CardList({ organizationName, title, engagementType, loca
                         <span className="rounded-2xl bg-subPrimary px-2 text-primaryDark w-fit text-sm">{engagementType}</span>
                     </div>
                     <div className="flex gap-2 flex-wrap">
-                        {location && <span className="flex text-small justify-center items-center text-gray-500" ><MapPin color="blue" size={15} />{location}</span>}
-                        {salary && <span className="flex text-small justify-center items-center text-gray-500"><DollarSign color="blue" size={15} />{salary}</span>}
-                        {remainingDays && <span className="flex text-small justify-center items-center text-gray-500 "><Calendar color="blue" size={15} />{remainingDays}</span>}
+                        {location && <span className="flex text-small justify-center items-center text-gray-500" ><MapPin className="text-primary" size={15} />{location}</span>}
+                        {salary && <span className="flex text-small justify-center items-center text-gray-500"><DollarSign className="text-primary" size={15} />{salary}</span>}
+                        {remainingDays && <span className="flex text-small justify-center items-center text-gray-500 "><Calendar className="text-primary" size={15} />{remainingDays}</span>}
                     </div>
                 </div>
             </div>
@@ -38,7 +40,9 @@ export default function CardList({ organizationName, title, engagementType, loca
                 <button onClick={handleBookmark} className="cursor-pointer">
                     <Bookmark className={bookmark ? "fill-yellow-400 text-yellow-400" : "text-gray-500"} />
                 </button>
-                <button className="btn-primary-white text-primaryDark hover:text-white flex flex-nowrap items-center gap-1 justify-center">Apply Now<ArrowRight /></button>
+                <Link to={`/postDetail/${id}`}
+
+                    className="btn-primary-white text-primaryDark hover:text-white flex flex-nowrap items-center gap-1 justify-center">Apply Now<ArrowRight /></Link>
             </div>
         </div>
     </>);

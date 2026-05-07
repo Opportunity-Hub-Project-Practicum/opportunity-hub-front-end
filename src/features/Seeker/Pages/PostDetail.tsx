@@ -3,8 +3,8 @@ import { Posts, getOrganizationById, formatSalary } from "../../../services/post
 import { ArrowLeft, Bookmark, ArrowRight, Link2Icon, Calendar, Clock, GraduationCap, DollarSign, MapPin, Briefcase, Star } from 'lucide-react';
 import BackButton from '../Components/BackButton';
 import { useState } from 'react';
-import CardCompany from '../Components/CardCompany';
-import CardGrid from '../Components/CardGrid';
+import CardCompany from '../Components/card/CardCompany';
+import CardGrid from '../Components/card/CardGrid';
 
 
 export default function PostDetail() {

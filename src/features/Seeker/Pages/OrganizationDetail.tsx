@@ -1,8 +1,8 @@
 import BackButton from "../Components/BackButton";
 import { useParams } from "react-router-dom";
 import { Organizations, Posts, formatSalary } from "../../../services/postService";
-import CardCompany from "../Components/CardCompany";
-import CardGrid from "../Components/CardGrid";
+import CardCompany from "../Components/card/CardCompany";
+import CardGrid from "../Components/card/CardGrid";
 import { useState } from "react";
 
 export default function OrganizationDetail() {
@@ -20,7 +20,7 @@ export default function OrganizationDetail() {
     return (
         <div className="page-container flex flex-col mb-5">
             <BackButton />
-            <div className="p-5 rounded-lg flex gap-5 border border-gray-200 shadow-gray-200">
+            <div className="p-5 rounded-lg flex gap-5 border shadow-gray-200  border-slate-100 bg-white shadow-sm hover:shadow-md transition-shadow">
                 <img
                     className='rounded-lg w-15 h-15'
                     src={organization.image} alt="" />
@@ -49,6 +49,7 @@ export default function OrganizationDetail() {
                     <CardCompany organization={organization} />
                 </div>
             </section>
+            <hr className="border-t border-gray-600 my-5" />
             <section className="flex flex-col">
                 <div className="flex justify-between mb-5">
                     <span className="text-big">Open Positions</span>

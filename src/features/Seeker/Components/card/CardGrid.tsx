@@ -24,7 +24,7 @@ export default function CardGrid({
     };
 
     return (
-        <div className="w-full rounded-lg border border-slate-100 bg-white p-2.5 shadow-sm hover:shadow-md transition-shadow">
+        <div className="w-full rounded-lg border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
             {/* Company Header */}
             <div className="mb-2.5 flex gap-2.5">
                 {/* Company Logo */}
@@ -32,13 +32,13 @@ export default function CardGrid({
                     <img
                         src={image}
                         alt={organizationName}
-                        className="h-12 w-12 rounded-lg object-cover shrink-0"
+                        className="h-15 w-15 rounded-lg object-cover shrink-0 border"
                     />
                 )}
 
                 {/* Company Info */}
                 <div className="flex flex-col gap-0.5">
-                    <p className="text-xs font-medium text-slate-900">{organizationName}</p>
+                    <p className=" font-medium text-slate-900">{organizationName}</p>
                     <div className="flex items-center gap-0.5">
                         <MapPin size={14} className="text-slate-500" />
                         <p className="text-xs text-slate-500">{location}</p>
@@ -63,7 +63,7 @@ export default function CardGrid({
                     </div>
                 </div>
             </Link>
-            <br />
+
             {/* Bookmark Button */}
             <div className="flex items-center justify-end ">
                 <button
