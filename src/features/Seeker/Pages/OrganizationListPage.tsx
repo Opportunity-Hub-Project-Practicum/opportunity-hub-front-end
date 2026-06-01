@@ -4,6 +4,7 @@ import FilterBox from "../Components/FilterBox";
 import { useState } from "react";
 import { Organizations, Posts } from "../../../services/postService";
 import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../../routes/path";
 
 export default function OrganizationList() {
     const [viewType, setViewType] = useState('grid')
@@ -69,7 +70,8 @@ export default function OrganizationList() {
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => navigate(`/organizationDetail/${org.id}`)}
+
+                                            onClick={() => navigate(ROUTES.HOME.ORGANIZATION_DETAIL(org.id))}
                                             className="btn-primary-blue flex flex-nowrap justify-center items-center gap-2"
                                         >
                                             Open Position

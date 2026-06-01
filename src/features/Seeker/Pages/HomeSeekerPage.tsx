@@ -5,6 +5,8 @@ import CardGrid from "../Components/card/CardGrid";
 import { Link } from "react-router-dom";
 import heroimg from "../../../assets/heroimg.png"
 import howOurWebWork from '../../../assets/howOurWebWork.png';
+import { ROUTES } from "../../../routes/path";
+
 export default function HomeSeeker() {
 
 
@@ -150,7 +152,7 @@ export default function HomeSeeker() {
             </section>
             <section className="page-container ">
                 <div className="flex justify-between"> <span className="text-big ">Feature Volunteer</span>
-                    <span className="text-primary underline"><Link to='/postList'>Views more</Link></span></div>
+                    <span className="text-primary underline"><Link to={ROUTES.HOME.POST_LIST}>Views more</Link></span></div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 justify-between gap-5 lg:gap-10 my-5">
                     {Posts.filter(post => post.type === 'volunteer').slice(0.6).map(item => {

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../routes/path";
+
 export default function SignUpSeeker() {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
@@ -25,6 +27,7 @@ export default function SignUpSeeker() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        navigate(ROUTES.HOME.ROOT)
         console.log("Form submitted:", formData);
     };
 
@@ -35,14 +38,14 @@ export default function SignUpSeeker() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
                 {/* Left Section - Form */}
                 <div>
-                    <h1 className="p-5 text-big text-primary"><Link to='/'>Opportunity Hub</Link></h1><div className="flex flex-col px-5 py-10 lg:px-10 lg:py-15 bg-white">
+                    <h1 className="p-5 text-big text-primary"><Link to={ROUTES.HOME.ROOT}>Opportunity Hub</Link></h1><div className="flex flex-col px-5 py-10 lg:px-10 lg:py-15 bg-white">
                         {/* Heading */}
 
                         <div className="mb-8">
                             <h1 className="text-3xl font-bold text-slate-900 mb-2">Create account.</h1>
                             <p className="text-sm text-slate-600">
                                 Already have account?{" "}
-                                <span className="text-blue-600 font-semibold cursor-pointer"><Link to='/logInSeeker'>Log In</Link></span>
+                                <span className="text-blue-600 font-semibold cursor-pointer"><Link to={ROUTES.AUTH.LOGIN}>Log In</Link></span>
                             </p>
                         </div>
 
@@ -135,7 +138,7 @@ export default function SignUpSeeker() {
 
                             {/* Submit Button */}
                             <button
-                                onClick={() => navigate('/')}
+                                onClick={handleSubmit}
                                 type="submit"
                                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 mt-6 transition-colors"
                             >

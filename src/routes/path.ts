@@ -1,0 +1,52 @@
+export const ROUTES = {
+    AUTH: {
+        SIGNUP_SEEKER: "/signUpSeeker",
+        LOGIN: "/loginPage",
+        SIGNUP_EMPLOYER: "/accountSetup",
+      
+    },
+
+    HOME: {
+        ROOT: "/",
+        HOME_EMPLOYER: "/HomeEmployer",
+        ORGANIZATION_LIST: "/organizationList",
+        POST_LIST: "/postList",
+        POST_DETAIL_ROUTE: "/postDetail/:id",
+        POST_DETAIL: (id: string|number) => `/postDetail/${id}`,
+        ORGANIZATION_DETAIL_ROUTE: "/organizationDetail/:id",
+        ORGANIZATION_DETAIL: (id: string|number) => `/organizationDetail/${id}`,
+    },
+
+    SEEKER: {
+        ROOT: "/seeker",
+        OVERVIEW: "overviewActivity",
+        APPLIED: "applied",
+        FAVORITE: "favorite",
+        ALERT: "alert",
+        SETTING: "setting",
+    },
+
+    EMPLOYER: {
+        ROOT: "/employer",
+        OVERVIEW: "overview",
+        MY_JOBS: "myJobs",
+        POST_APPLICATION: "postApplication",
+        SAVE_CANDIDATE: "saveCandidate",
+        SAVE_CANDIDATE_DETAIL_ROUTE: "saveCandidate/:favouriteId",
+        SAVE_CANDIDATE_DETAIL: (favouriteId: string | number) => `saveCandidate/${favouriteId}`,
+        SETTING: "setting",
+        MY_JOB_VIEW_APPLICATION :"myJobViewApplication"
+    },
+
+    ADMIN: {
+      ROOT: '/admin',
+      OVERVIEW:'overview',
+      ALL_POST:'allPost',
+      MANAGE_USER:'manageUser',
+      PROFILE:'profile',
+      REPORTED:'reported',
+      ALL_EMPLOYER:'allEmployer'
+       
+
+    },
+};

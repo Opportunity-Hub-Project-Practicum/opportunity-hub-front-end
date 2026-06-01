@@ -8,13 +8,14 @@ import {
     Settings,
     ChevronRight,
 } from "lucide-react";
+import { ROUTES } from "../../../routes/path";
 
 const menuItems = [
-    { key: 'overviewActivity', label: 'Overview', Icon: LayoutDashboard },
-    { key: 'applied', label: 'Applied Jobs', Icon: BriefcaseBusiness },
-    { key: 'favorite', label: 'Favorites', Icon: Heart },
-    { key: 'alert', label: 'Job Alerts', Icon: Bell },
-    { key: 'setting', label: 'Settings', Icon: Settings },
+    { key: ROUTES.SEEKER.OVERVIEW, label: 'Overview', Icon: LayoutDashboard },
+    { key: ROUTES.SEEKER.APPLIED, label: 'Applied Jobs', Icon: BriefcaseBusiness },
+    { key: ROUTES.SEEKER.FAVORITE, label: 'Favorites', Icon: Heart },
+    { key: ROUTES.SEEKER.ALERT, label: 'Job Alerts', Icon: Bell },
+    { key: ROUTES.SEEKER.SETTING, label: 'Settings', Icon: Settings },
 ];
 
 export default function SideBarSeeker() {
@@ -23,7 +24,7 @@ export default function SideBarSeeker() {
 
     const handleClick = (item: string) => {
         setcolumn(item);
-        navigate(`/${item.toLowerCase()}`);
+        navigate(item);
     };
 
     return (

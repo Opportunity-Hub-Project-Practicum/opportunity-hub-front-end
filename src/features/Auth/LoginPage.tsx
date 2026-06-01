@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
-export default function LogInSeeker() {
+import { ROUTES } from "../../routes/path";
+import { userMode } from "../../contexts/Context";
+export default function LoginPage() {
+    const mode = useContext(userMode);
+    const storedMode = localStorage.getItem('userMode') as 'employer' | 'seeker' | null;
+    const activeMode = storedMode ?? mode;
     const [showPassword, setShowPassword] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -31,14 +36,14 @@ export default function LogInSeeker() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
                 {/* Left Section - Form */}
                 <div>
-                    <h1 className="p-5 text-big text-primary"><Link to='/'>Opportunity Hub</Link></h1><div className="flex flex-col px-5 py-10 lg:px-10 lg:py-15 bg-white">
+                    <h1 className="p-5 text-big text-primary"><Link to={ROUTES.HOME.ROOT}>Opportunity Hub</Link></h1><div className="flex flex-col px-5 py-10 lg:px-10 lg:py-15 bg-white">
                         {/* Heading */}
 
                         <div className="mb-8">
                             <h1 className="text-3xl font-bold text-slate-900 mb-2">Log In</h1>
                             <p className="text-sm text-slate-600">
                                 Don't have an account?{" "}
-                                <span className="text-blue-600 font-semibold cursor-pointer"><Link to='/signUpSeeker'>Sign UP</Link></span>
+                                <span className="text-blue-600 font-semibold cursor-pointer"><Link to={activeMode === 'employer' ? ROUTES.AUTH.SIGNUP_EMPLOYER : ROUTES.AUTH.SIGNUP_SEEKER}>Sign UP</Link></span>
                             </p>
                         </div>
 

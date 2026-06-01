@@ -5,7 +5,7 @@ import { userMode, setUserMode, opportunityTypeContext, setOpportunityTypeContex
 import { useState } from "react";
 
 export default function HomeLayout() {
-    const [mode, setMode] = useState<UserMode>('seeker');
+    const [mode, setMode] = useState<UserMode>(() => (localStorage.getItem('userMode') as UserMode | null) ?? 'seeker');
     const [oppType, setOppType] = useState<OpportunityType>('job');
     return (
         <userMode.Provider value={mode}>

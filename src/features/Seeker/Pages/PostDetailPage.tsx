@@ -5,11 +5,19 @@ import BackButton from '../Components/BackButton';
 import { useState } from 'react';
 import CardCompany from '../Components/card/CardCompany';
 import CardGrid from '../Components/card/CardGrid';
+import ReportModal from '../Components/modal/ReportModal';
 
+interface ReportEntry {
+    postId: number;
+    report: string;
+    createdAt: string;
+}
 
 export default function PostDetail() {
     const { id } = useParams<{ id: string }>();
     const [isBookmarked, setIsBookmarked] = useState(false);
+    const [isReport, setIsReport] = useState(false);
+    const [reportingPost, setReportingPost] = useState<ReportEntry[]>([]);
 
 
     const post = Posts.find(p => p.id === parseInt(id || '0'));
@@ -20,6 +28,18 @@ export default function PostDetail() {
 
     const organization = getOrganizationById(post.employer_id);
     const isVolunteer = post.type === 'volunteer';
+
+    const handleReportSubmit = (report: string) => {
+        setReportingPost((prev) => [
+            ...prev,
+            {
+                postId: post.id,
+                report,
+                createdAt: new Date().toISOString(),
+            },
+        ]);
+        setIsReport(false);
+    };
 
     // Overview items configuration
     const getOverviewItems = () => {
@@ -145,7 +165,9 @@ export default function PostDetail() {
                         {/* Company Info */}
                         <CardCompany organization={organization} />
 
-                        <button className='bg-red-600 text-white rounded-lg p-2'>Report Post</button>
+                        <button
+                            onClick={() => { setIsReport(true) }}
+                            className='bg-red-600 text-white rounded-lg p-2'>Report Post</button>
                     </div>
                 </div>
             </section>
@@ -180,7 +202,21 @@ export default function PostDetail() {
                         );
                     })}
                 </div>
-            </section></>
+            </section>
+            {isReport && (
+                <ReportModal
+                    onClose={() => setIsReport(false)}
+                    onSubmit={handleReportSubmit}
+                />
+            )}
+
+            {reportingPost.length > 0 && (
+                <div className='page-container pb-6 text-sm text-gray-500'>
+                    Saved reports: {reportingPost.length}
+                </div>
+            )}
+        </>
 
     );
+
 }

@@ -1,0 +1,115 @@
+eslint.config.js
+index.html
+note.local
+package.json
+README.md
+tsconfig.app.json
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+public/
+src/
+  App.tsx
+  index.css
+  main.tsx
+  assets/
+  contexts/
+    Context.ts
+  features/
+    Admin/
+      Components/
+      hooks/
+      libs/
+      Pages/
+        AllEmployer.tsx
+        AllPost.tsx
+        LoginPage.tsx
+        ManageUserPage.tsx
+        Profile.tsx
+        Reposrted.tsx
+      services/
+    Auth/
+      LoginPage.tsx
+      SignUpEmployerPage.tsx
+      SignUpPage.tsx
+    Employer/
+      Components/
+        ApplicationForm.tsx
+        CompanyInfoAndDetail.tsx
+        NavBar.tsx
+        PostJobForm.tsx
+        PostVolunteerForm.tsx
+        SideBar.tsx
+        card/
+          AddColumnModal.tsx
+          ApplicationCard.tsx
+          candidateFavCard.tsx
+          CongratPost.tsx
+          KanbanColumn.tsx
+      hooks/
+      libs/
+      Pages/
+        HomeEmployer.tsx
+        MyJobPage.tsx
+        MyJobViewApplicationPage.tsx
+        OverviewPage.tsx
+        PostApplicationPage.tsx
+        SaveCandidatePage.tsx
+        SettingPage.tsx
+      services/
+        postApplicationService.ts
+    Seeker/
+      Components/
+        BackButton.tsx
+        FilterBox.tsx
+        NavBarSeeker.tsx
+        searchBar.tsx
+        SideBarSeeker.tsx
+        card/
+          CardCompany.tsx
+          CardGrid.tsx
+          CardList.tsx
+          CardOrganization.tsx
+        modal/
+          Education.tsx
+          ReportModal.tsx
+          WorkExperienceForm.tsx
+      hooks/
+        useSearch.ts
+      libs/
+        uploadFile.tsx
+      Pages/
+        AlertPage.tsx
+        AppliedPage.tsx
+        FavoritePage.tsx
+        HomeSeekerPage.tsx
+        OrganizationDetailPage.tsx
+        OrganizationListPage.tsx
+        OverviewActivityPage.tsx
+        PostDetailPage.tsx
+        PostListPage.tsx
+        SettingPage.tsx
+  GlobalComponents/
+    footer.tsx
+    NavBar.tsx
+    PageNotFound.tsx
+    Pagination.tsx
+    Password.tsx
+    SearchBox.tsx
+    socialLink.tsx
+    textAreaBox.tsx
+  globalHooks/
+  Layouts/
+    AdminLayout.tsx
+    EmployerLayout.tsx
+    HomeLayout.tsx
+    SeekerLayout.tsx
+  routes/
+    loaders.tsx
+    path.ts
+    route.tsx
+    routeConfig.tsx
+  services/
+    mockJobPortalApi.ts
+    mockJobPortalApiExample.tsx
+    postService.ts

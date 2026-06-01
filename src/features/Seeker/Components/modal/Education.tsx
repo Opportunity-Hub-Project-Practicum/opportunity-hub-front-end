@@ -126,7 +126,7 @@ const InputField: React.FC<{
 
 // ── Main Component ───────────────────────────────────────────────
 
-const EducationModal: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
+const EducationModal: React.FC<{ onClose?: () => void; onSave?: (data: EducationData) => void }> = ({ onClose, onSave }) => {
     const [formData, setFormData] = useState<EducationData>(EMPTY_FORM);
     const [errors, setErrors] = useState<FormErrors>({});
     const [submitted, setSubmitted] = useState(false);
@@ -149,7 +149,7 @@ const EducationModal: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             return;
         }
         // TODO: send formData to API or parent component
-        console.log('Submitted Education:', formData);
+        onSave?.(formData);
         setSubmitted(true);
         setFormData(EMPTY_FORM);
         setErrors({});

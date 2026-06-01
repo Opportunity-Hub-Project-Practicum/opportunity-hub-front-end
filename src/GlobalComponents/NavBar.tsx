@@ -1,11 +1,19 @@
 import { setUserMode, userMode } from "../contexts/Context";
 import { useContext } from "react";
 import { Link } from "react-router-dom";
+import { ROUTES } from "../routes/path";
+import { useNavigate } from "react-router-dom";
 export default function PublicNavBar() {
+    const navigate = useNavigate();
     const mode = useContext(userMode);
     const setMode = useContext(setUserMode);
+
     const handleToggleMode = () => {
-        setMode(mode === 'seeker' ? 'employer' : 'seeker');
+        const nextMode = mode === 'seeker' ? 'employer' : 'seeker';
+        localStorage.setItem('userMode', nextMode);
+        setMode(nextMode);
+        navigate(nextMode === 'employer' ? ROUTES.HOME.HOME_EMPLOYER : ROUTES.HOME.ROOT)
+
     };
     return (
         <div className=" flex justify-between page-container ">
@@ -23,7 +31,7 @@ export default function PublicNavBar() {
                     onClick={handleToggleMode}
 
                 >{mode}</button>
-                <button className="btn-primary-white "><Link to='/signUpSeeker'>Sign In</Link></button></div>
+                <button className="btn-primary-white "><Link to={ROUTES.AUTH.LOGIN}>Sign In</Link></button></div>
         </div>
     );
 }

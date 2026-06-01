@@ -1,4 +1,4 @@
-interface Organization {
+export interface Organization {
     year_establishment?: number;
     organization_type?: string;
     team_size?: string;
