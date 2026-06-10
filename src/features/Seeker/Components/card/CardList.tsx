@@ -10,12 +10,13 @@ interface CardListProps {
     salary: string;
     remainingDays: string;
     image?: string;
+    isBookmarked?: boolean;
     onBookmark?: () => void;
 }
 
 
-export default function CardList({ id, organizationName, title, engagementType, location, salary, remainingDays, image, onBookmark }: CardListProps) {
-    const [bookmark, setBookmark] = useState(false);
+export default function CardList({ id, organizationName, title, engagementType, location, salary, remainingDays, image, isBookmarked = false, onBookmark }: CardListProps) {
+    const [bookmark, setBookmark] = useState(isBookmarked);
     const handleBookmark = () => {
         setBookmark(!bookmark);
         onBookmark?.();

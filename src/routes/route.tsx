@@ -13,7 +13,7 @@ export function ProtectedRoute({ component: Component, requiredRole }: Protected
   const userRole = localStorage.getItem('userRole'); // or from context
 
   if (requiredRole && userRole !== requiredRole) {
-    return <Navigate to="/logInSeeker" />;
+    return <Navigate to="/loginPage" replace />;
   }
 
   return <Component />;

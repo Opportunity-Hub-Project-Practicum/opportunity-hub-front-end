@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { DollarSign } from "lucide-react";
+import { CheckCircle2, DollarSign, XCircle } from "lucide-react";
 import { ROUTES } from "../../../routes/path";
-import { Span } from "@tiptap/pm/changeset";
 import SearchBox from "../../../GlobalComponents/SearchBox";
 
 type Post = {
@@ -13,7 +12,7 @@ type Post = {
     workPlaceType: string;
     salary?: string;
     closeDate: string;
-    status: "open" | "closed";
+    status: "Active" | "Ban";
     applications: number;
     type: "job" | "volunteer";
 };
@@ -27,7 +26,7 @@ const mockPosts: Post[] = [
         workPlaceType: "Remote",
         salary: "$1,500 - $2,500",
         closeDate: "2026-06-30",
-        status: "open",
+        status: "Active",
         applications: 23,
         type: "job",
     },
@@ -39,7 +38,7 @@ const mockPosts: Post[] = [
         workPlaceType: "Hybrid",
         salary: "$2,000 - $3,000",
         closeDate: "2026-07-15",
-        status: "closed",
+        status: "Ban",
         applications: 14,
         type: "job",
     },
@@ -50,7 +49,7 @@ const mockPosts: Post[] = [
         image: "https://placehold.co/60x60",
         workPlaceType: "On-site",
         closeDate: "2026-08-10",
-        status: "open",
+        status: "Active",
         applications: 45,
         type: "volunteer",
     },
@@ -61,7 +60,7 @@ const mockPosts: Post[] = [
         image: "https://placehold.co/60x60",
         workPlaceType: "Remote",
         closeDate: "2026-09-01",
-        status: "open",
+        status: "Active",
         applications: 18,
         type: "volunteer",
     },
@@ -69,27 +68,11 @@ const mockPosts: Post[] = [
 
 export default function AllPostPage() {
     const [activeTab, setActiveTab] = useState<"job" | "volunteer">("job");
-    const [posts, setPosts] = useState<Post[]>(mockPosts);
+    const posts: Post[] = mockPosts;
 
     const currentItems = posts.filter(
         (post) => post.type === activeTab
     );
-
-    const handleClosePost = (id: string) => {
-        setPosts((prev) =>
-            prev.map((post) =>
-                post.id === id
-                    ? {
-                        ...post,
-                        status:
-                            post.status === "open"
-                                ? "closed"
-                                : "open",
-                    }
-                    : post
-            )
-        );
-    };
 
     return (
         <div className="space-y-4">
@@ -162,22 +145,28 @@ export default function AllPostPage() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={() => handleClosePost(item.id)}
-                        className={`cursor-pointer flex font-medium ${item.status === "open"
-                            ? "text-green-600"
-                            : "text-red-600"
-                            }`}
-                    >
-                        {item.status}
-                    </button>
+                    <div className="flex items-center pl-2">
+                        {item.status === "Active" ? (
+                            <span className="inline-flex items-center space-x-1.5 text-sm text-[#28A745] font-medium">
+                                <CheckCircle2 className="h-4 w-4" />
+                                <span>Active</span>
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center space-x-1.5 text-sm text-[#DC3545] font-medium">
+                                <XCircle className="h-4 w-4" />
+                                <span>Ban</span>
+                            </span>
+                        )}
+                    </div>
 
                     <div className="flex justify-start  text-gray-600">
                         {item.applications}
                     </div>
 
-                    <Link to={''}
-                        className="flex items-center justify-between pl-4">
+                    <Link
+                        to={ROUTES.HOME.POST_DETAIL(item.id)}
+                        className="flex items-center justify-between pl-4"
+                    >
                         <span
                             className="bg-slate-200 text-blue-600 text-sm font-semibold px-5 py-2.5 rounded-sm hover:bg-slate-200 transition-colors"
                         >

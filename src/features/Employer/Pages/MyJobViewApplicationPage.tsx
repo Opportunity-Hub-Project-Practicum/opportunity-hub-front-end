@@ -1,179 +1,287 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { Link, useNavigate, useParams } from "react-router-dom"
 import ApplicationForm from "../Components/ApplicationForm"
-import KanbanColumn from "../Components/card/KanbanColumn"
+import KanbanBoardColumn from "../Components/card/KanbanColumn"
 import AddColumnModal from "../Components/card/AddColumnModal"
-
-export type Application = {
-    id: string
-    userName: string
-    role: string
-    appliedDate: string
-    url_Cv: string
-    image?: string
-}
-
-export type Column = {
-    id: string
-    name: string
-    fixed: boolean
-}
+import { ROUTES } from "../../../routes/path"
+import { formatApiError } from "../../../services/apiClient"
+import {
+    applyDropUpdateToApplication,
+    buildCardsByColumn,
+    buildDropUpdate,
+    buildKanbanColumns,
+    isSameColumnPlacement,
+    moveCardBetweenColumns,
+} from "../lib/employerApplicationMappers"
+import {
+    fetchEmployerPostApplications,
+    updateEmployerApplicationStatus,
+} from "../services/employerApplicationService"
+import {
+    createManagementColumn,
+    deleteManagementColumn,
+    fetchManagementColumns,
+    updateManagementColumn,
+} from "../services/managementColumnService"
+import { fetchEmployerPosts } from "../services/employerPostService"
+import type { KanbanApplication, KanbanColumn } from "../types/employerApplication"
 
 export default function MyJobViewApplicationPage() {
-    const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null)
+    const navigate = useNavigate()
+    const { postId } = useParams<{ postId: string }>()
+    const [postTitle, setPostTitle] = useState<string>("")
+    const [columns, setColumns] = useState<KanbanColumn[]>([])
+    const [selectedApplication, setSelectedApplication] = useState<KanbanApplication | null>(null)
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-    const [editingColumn, setEditingColumn] = useState<Column | null>(null)
+    const [editingColumn, setEditingColumn] = useState<KanbanColumn | null>(null)
     const [dragCardId, setDragCardId] = useState<string | null>(null)
     const [dragSrcColId, setDragSrcColId] = useState<string | null>(null)
+    const [cardsByColumn, setCardsByColumn] = useState<Record<string, KanbanApplication[]>>({})
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+    const [statusError, setStatusError] = useState<string | null>(null)
+    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
 
-    const [columns, setColumns] = useState<Column[]>([
-        { id: "col-all", name: "All applications", fixed: true },
-        { id: "col-reject", name: "Reject", fixed: true },
-        { id: "col-hire", name: "Hire", fixed: true },
-    ])
+    const loadBoard = useCallback(async () => {
+        if (!postId) {
+            return
+        }
 
-    const [cardsByColumn, setCardsByColumn] = useState<Record<string, Application[]>>({
-        "col-all": [
-            {
-                id: "app-001",
-                userName: "Sokha Meas",
-                role: "Frontend Developer",
-                appliedDate: "2026-05-21",
-                url_Cv: "#",
-            },
-            {
-                id: "app-002",
-                userName: "Dara Kim",
-                role: "UI Designer",
-                appliedDate: "2026-05-19",
-                url_Cv: "#",
-            },
-        ],
-        "col-reject": [],
-        "col-hire": [],
-    })
+        setLoading(true)
+        setError(null)
 
-    // ── Column management ─────────────────────────────────────────────────────
+        try {
+            const [applications, managementColumns, posts] = await Promise.all([
+                fetchEmployerPostApplications(postId),
+                fetchManagementColumns(),
+                fetchEmployerPosts(),
+            ])
 
-    function handleAddColumn(name: string) {
-        const id = `col-${Date.now()}`
-        setColumns((prev) => [...prev, { id, name, fixed: false }])
-        setCardsByColumn((prev) => ({ ...prev, [id]: [] }))
+            const post = posts.find((item) => String(item.post_id) === String(postId))
+            setPostTitle(post?.post_title ?? `Post #${postId}`)
+            setColumns(buildKanbanColumns(managementColumns))
+            setCardsByColumn(buildCardsByColumn(applications, managementColumns))
+        } catch (loadError) {
+            setError(formatApiError(loadError))
+            setColumns([])
+            setCardsByColumn({})
+        } finally {
+            setLoading(false)
+        }
+    }, [postId])
+
+    useEffect(() => {
+        if (!postId) {
+            navigate(`${ROUTES.EMPLOYER.ROOT}/${ROUTES.EMPLOYER.MY_JOBS}`, { replace: true })
+            return
+        }
+
+        void loadBoard()
+    }, [loadBoard, navigate, postId])
+
+    async function handleAddColumn(name: string) {
+        setStatusError(null)
+
+        try {
+            await createManagementColumn(name)
+            await loadBoard()
+        } catch (createError) {
+            setStatusError(formatApiError(createError))
+        }
     }
 
-    function handleRenameColumn(colId: string, name: string) {
-        setColumns((prev) =>
-            prev.map((col) => (col.id === colId ? { ...col, name } : col))
-        )
+    async function handleRenameColumn(column: KanbanColumn, name: string) {
+        if (!column.columnId) {
+            return
+        }
+
+        setStatusError(null)
+
+        try {
+            await updateManagementColumn(column.columnId, name)
+            await loadBoard()
+        } catch (renameError) {
+            setStatusError(formatApiError(renameError))
+        }
     }
 
-    function handleDeleteColumn(colId: string) {
-        const cards = cardsByColumn[colId] ?? []
-        setCardsByColumn((prev) => {
-            const next = { ...prev }
-            // Move cards to "All applications" before deleting
-            next["col-all"] = [...(next["col-all"] ?? []), ...cards]
-            delete next[colId]
-            return next
-        })
-        setColumns((prev) => prev.filter((col) => col.id !== colId))
-    }
+    async function handleDeleteColumn(column: KanbanColumn) {
+        if (!column.columnId) {
+            return
+        }
 
-    // ── Drag & drop ───────────────────────────────────────────────────────────
+        setStatusError(null)
+
+        try {
+            await deleteManagementColumn(column.columnId)
+            await loadBoard()
+        } catch (deleteError) {
+            setStatusError(formatApiError(deleteError))
+        }
+    }
 
     function handleDragStart(cardId: string, srcColId: string) {
         setDragCardId(cardId)
         setDragSrcColId(srcColId)
     }
 
-    function handleDrop(targetColId: string) {
-        if (!dragCardId || !dragSrcColId || dragSrcColId === targetColId) return
+    async function handleDrop(targetColId: string) {
+        if (!postId || !dragCardId || !dragSrcColId || dragSrcColId === targetColId) {
+            return
+        }
 
-        setCardsByColumn((prev) => {
-            const srcCards = prev[dragSrcColId] ?? []
-            const card = srcCards.find((c) => c.id === dragCardId)
-            if (!card) return prev
-            return {
-                ...prev,
-                [dragSrcColId]: srcCards.filter((c) => c.id !== dragCardId),
-                [targetColId]: [...(prev[targetColId] ?? []), card],
-            }
-        })
+        const dropUpdate = buildDropUpdate(targetColId)
+        if (!dropUpdate) {
+            return
+        }
 
+        const sourceCards = cardsByColumn[dragSrcColId] ?? []
+        const card = sourceCards.find((item) => item.id === dragCardId)
+        if (!card || isSameColumnPlacement(card.raw, targetColId)) {
+            setDragCardId(null)
+            setDragSrcColId(null)
+            return
+        }
+
+        const previousCardsByColumn = cardsByColumn
+        const updatedApplication = applyDropUpdateToApplication(card.raw, dropUpdate)
+
+        setCardsByColumn((prev) => moveCardBetweenColumns(
+            prev,
+            dragCardId,
+            dragSrcColId,
+            targetColId,
+            updatedApplication,
+        ))
         setDragCardId(null)
         setDragSrcColId(null)
+        setStatusError(null)
+        setIsUpdatingStatus(true)
+
+        try {
+            await updateEmployerApplicationStatus(postId, card.applicationId, dropUpdate)
+        } catch (updateError) {
+            setCardsByColumn(previousCardsByColumn)
+            setStatusError(formatApiError(updateError))
+        } finally {
+            setIsUpdatingStatus(false)
+        }
     }
 
-    const isView = selectedApplicationId !== null
+    const isView = selectedApplication !== null
 
     return (
         <div className="p-4">
-            {/* Top bar */}
-            <div className="flex items-center justify-between mb-4">
-                <h1 className="text-lg font-medium text-gray-800">Applications</h1>
+            <div className="mb-4 flex items-center justify-between gap-4">
+                <div>
+                    <Link
+                        to={`${ROUTES.EMPLOYER.ROOT}/${ROUTES.EMPLOYER.MY_JOBS}`}
+                        className="text-sm text-[#0A65CC] hover:underline"
+                    >
+                        Back to My Jobs
+                    </Link>
+                    <h1 className="mt-1 text-lg font-medium text-gray-800">
+                        Applications{postTitle ? ` — ${postTitle}` : ""}
+                    </h1>
+                </div>
+
                 <button
+                    type="button"
                     onClick={() => setIsAddModalOpen(true)}
-                    className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded-lg transition-colors"
+                    className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-600"
                 >
                     <span className="text-base leading-none">+</span>
                     Add column
                 </button>
             </div>
 
-            {/* Board */}
-            <div className="flex gap-4 overflow-x-auto pb-4 items-start">
-                {columns.map((col) => (
-                    <KanbanColumn
-                        key={col.id}
-                        column={col}
-                        cards={cardsByColumn[col.id] ?? []}
-                        onViewCv={(applicationId) => setSelectedApplicationId(applicationId)}
-                        onEdit={(col) => setEditingColumn(col)}
-                        onDelete={handleDeleteColumn}
-                        onDragStart={handleDragStart}
-                        onDrop={handleDrop}
-                        draggingCardId={dragCardId}
-                    />
-                ))}
-            </div>
+            {loading && (
+                <div className="py-10 text-sm text-[#767F8C]">Loading applications...</div>
+            )}
 
-            {/* CV modal */}
-            {isView && (
+            {!loading && error && (
+                <div className="py-10 text-sm text-red-600">{error}</div>
+            )}
+
+            {!loading && !error && (
+                <>
+                    {statusError && (
+                        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                            {statusError}
+                        </div>
+                    )}
+
+                    {isUpdatingStatus && (
+                        <div className="mb-4 text-sm text-[#767F8C]">Updating application status...</div>
+                    )}
+
+                    <div className="flex items-start gap-4 overflow-x-auto pb-4">
+                        {columns.map((col) => (
+                            <KanbanBoardColumn
+                                key={col.id}
+                                column={col}
+                                cards={cardsByColumn[col.id] ?? []}
+                                onViewCv={(applicationId) => {
+                                    const card = Object.values(cardsByColumn)
+                                        .flat()
+                                        .find((item) => item.id === applicationId)
+                                    setSelectedApplication(card ?? null)
+                                }}
+                                onEdit={(column) => setEditingColumn(column)}
+                                onDelete={(columnId) => {
+                                    const column = columns.find((item) => item.id === columnId)
+                                    if (column) {
+                                        void handleDeleteColumn(column)
+                                    }
+                                }}
+                                onDragStart={handleDragStart}
+                                onDrop={handleDrop}
+                                draggingCardId={dragCardId}
+                            />
+                        ))}
+                    </div>
+                </>
+            )}
+
+            {isView && postId && (
                 <div className="fixed inset-0 z-50 overflow-y-auto">
-                    <div className="min-h-screen flex items-center justify-center p-4">
+                    <div className="flex min-h-screen items-center justify-center p-4">
                         <div
-                            className="bg-black/40 fixed inset-0"
-                            onClick={() => setSelectedApplicationId(null)}
+                            className="fixed inset-0 bg-black/40"
+                            onClick={() => setSelectedApplication(null)}
                         />
-                        <div className="w-full max-w-4xl mx-auto relative z-10">
+                        <div className="relative z-10 mx-auto w-full max-w-4xl">
                             <ApplicationForm
                                 isOpen={isView}
-                                applicationId={selectedApplicationId}
-                                onClose={() => setSelectedApplicationId(null)}
+                                application={selectedApplication}
+                                postId={postId}
+                                onClose={() => setSelectedApplication(null)}
+                                onStatusUpdated={loadBoard}
                             />
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Add column modal */}
             <AddColumnModal
                 isOpen={isAddModalOpen}
                 title="Add column"
                 initialValue=""
                 onConfirm={(name) => {
-                    handleAddColumn(name)
+                    void handleAddColumn(name)
                     setIsAddModalOpen(false)
                 }}
                 onClose={() => setIsAddModalOpen(false)}
             />
 
-            {/* Rename column modal */}
             <AddColumnModal
                 isOpen={editingColumn !== null}
                 title="Rename column"
                 initialValue={editingColumn?.name ?? ""}
                 onConfirm={(name) => {
-                    if (editingColumn) handleRenameColumn(editingColumn.id, name)
+                    if (editingColumn) {
+                        void handleRenameColumn(editingColumn, name)
+                    }
                     setEditingColumn(null)
                 }}
                 onClose={() => setEditingColumn(null)}

@@ -1,10 +1,10 @@
 import { useState } from "react"
 import { ArrowRight, Download, Edit2, Trash2 } from "lucide-react"
-import type { Application, Column } from "../../Pages/MyJobViewApplicationPage"
+import type { KanbanApplication, KanbanColumn as Column } from "../../types/employerApplication"
 
 interface KanbanColumnProps {
     column: Column
-    cards: Application[]
+    cards: KanbanApplication[]
     draggingCardId: string | null
     onViewCv: (applicationId: string) => void
     onEdit: (column: Column) => void
@@ -186,7 +186,7 @@ export default function KanbanColumn({
                                     className="flex w-fit items-center gap-1.5 text-xs text-[#5E6670] transition-colors hover:text-primary"
                                 >
                                     <ArrowRight size={14} />
-                                    View CV
+                                    View Application
                                 </button>
                                 <span className="text-xs text-[#767F8C]">
                                     Applied: {app.appliedDate}

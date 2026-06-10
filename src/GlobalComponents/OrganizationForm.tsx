@@ -16,6 +16,9 @@ export type SocialLink = {
 }
 
 export type EmployerData = {
+    fullName: string
+    password: string
+    confirmPassword: string
     companyName: string
     location: string
     phoneNumber: string
@@ -45,6 +48,9 @@ export type EmployerFormProps = {
 // ─── Default state ────────────────────────────────────────────────────────────
 
 const DEFAULT_DATA: EmployerData = {
+    fullName: "",
+    password: "",
+    confirmPassword: "",
     companyName: "",
     location: "",
     phoneNumber: "",
@@ -160,6 +166,19 @@ export default function OrganizationForm({ initialData, onChange, companyInfoTab
                             </div>
                         </div>
 
+                        <div className="grid grid-cols-2 gap-6 w-full mt-4">
+                            <div className="flex flex-col gap-2 md:col-span-2">
+                                <span>Your full name</span>
+                                <input
+                                    value={employerData.fullName}
+                                    onChange={(e) => updateField("fullName", e.target.value)}
+                                    type="text"
+                                    placeholder="Full name"
+                                    className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
+                                />
+                            </div>
+                        </div>
+
                         {/* Company Name + Location */}
                         <div className="grid grid-cols-2 gap-6 w-full mt-4">
                             <div className="flex flex-col gap-2">
@@ -203,6 +222,30 @@ export default function OrganizationForm({ initialData, onChange, companyInfoTab
                                     onChange={(e) => updateField("email", e.target.value)}
                                     type="email"
                                     placeholder="This will be your main email"
+                                    className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <span>Password</span>
+                                <input
+                                    type="password"
+                                    value={employerData.password}
+                                    onChange={(e) => updateField("password", e.target.value)}
+                                    placeholder="Password"
+                                    autoComplete="new-password"
+                                    required
+                                    className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
+                                />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <span>Confirm password</span>
+                                <input
+                                    type="password"
+                                    value={employerData.confirmPassword}
+                                    onChange={(e) => updateField("confirmPassword", e.target.value)}
+                                    placeholder="Confirm password"
+                                    autoComplete="new-password"
+                                    required
                                     className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
                                 />
                             </div>

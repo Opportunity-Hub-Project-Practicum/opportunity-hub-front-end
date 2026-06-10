@@ -1,89 +1,58 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import FavCandidateCard from "../Components/card/candidateFavCard";
 import SearchBox from "../../../GlobalComponents/SearchBox";
+import { formatApiError } from "../../../services/apiClient";
 import {
-    deleteFavouriteCandidate,
-    fetchFavouriteCandidates,
-    MOCK_USERS,
-    type FavouriteCandidate,
-} from "../../../services/mockJobPortalApi";
-import { Posts } from "../../../services/postService";
-
-type SavedCandidateItem = {
-    favourite: FavouriteCandidate;
-    candidateName: string;
-    candidateAvatar: string;
-    postTitle: string;
-};
-
-const toSavedCandidateItem = (favourite: FavouriteCandidate): SavedCandidateItem => {
-    const candidate = MOCK_USERS.find((user) => user.id === favourite.candidateId);
-    const post = favourite.postId
-        ? Posts.find((item) => item.id === favourite.postId)
-        : undefined;
-
-    return {
-        favourite,
-        candidateName: candidate?.fullName ?? `Candidate #${favourite.candidateId}`,
-        candidateAvatar: candidate?.avatarUrl ?? "",
-        postTitle: post?.title ?? "Unknown post",
-    };
-};
+    filterFavoriteCandidates,
+    mapFavoriteCandidateToCardItem,
+} from "../lib/favoriteCandidateMappers";
+import {
+    fetchFavoriteCandidates,
+    removeFavoriteCandidate,
+} from "../services/favoriteCandidateService";
+import type { FavoriteCandidateApi } from "../types/favoriteCandidate";
 
 export default function SaveCandidatePage() {
     const [search, setSearch] = useState("");
-    const [items, setItems] = useState<SavedCandidateItem[]>([]);
+    const [favorites, setFavorites] = useState<FavoriteCandidateApi[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
+
+    const loadSavedCandidates = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await fetchFavoriteCandidates();
+            setFavorites(response);
+        } catch (loadError) {
+            setError(formatApiError(loadError));
+            setFavorites([]);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
-        let isMounted = true;
+        void loadSavedCandidates();
+    }, [loadSavedCandidates]);
 
-        const loadSavedCandidates = async () => {
-            setLoading(true);
-            setError(null);
+    const items = useMemo(
+        () => filterFavoriteCandidates(favorites, search).map(mapFavoriteCandidateToCardItem),
+        [favorites, search],
+    );
 
-            try {
-                const response = await fetchFavouriteCandidates({
-                    employerId: 1,
-                    search,
-                    pageSize: 50,
-                    delayMs: 400,
-                });
+    const handleRemove = async (favoriteCandidateId: number) => {
+        setActionError(null);
 
-                if (!response.ok) {
-                    throw new Error(response.error.message);
-                }
-
-                if (!isMounted) return;
-
-                setItems(response.data.items.map(toSavedCandidateItem));
-            } catch (loadError) {
-                if (!isMounted) return;
-                setError(
-                    loadError instanceof Error
-                        ? loadError.message
-                        : "Failed to load saved candidates."
-                );
-            } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
-            }
-        };
-
-        loadSavedCandidates();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [search]);
-
-    const handleRemove = async (favouriteId: number) => {
-        const response = await deleteFavouriteCandidate(favouriteId);
-
-        if (response.ok) {
-            setItems((prev) => prev.filter((item) => item.favourite.id !== favouriteId));
+        try {
+            await removeFavoriteCandidate(favoriteCandidateId);
+            setFavorites((prev) =>
+                prev.filter((item) => item.favorite_candidate_id !== favoriteCandidateId),
+            );
+        } catch (removeError) {
+            setActionError(formatApiError(removeError));
         }
     };
 
@@ -93,6 +62,7 @@ export default function SaveCandidatePage() {
 
             {loading && <p className="text-gray-500">Loading saved candidates...</p>}
             {error && <p className="text-red-600">{error}</p>}
+            {actionError && <p className="text-red-600">{actionError}</p>}
 
             {!loading && !error && items.length === 0 && (
                 <p className="text-gray-500">No saved candidates yet.</p>
@@ -101,13 +71,13 @@ export default function SaveCandidatePage() {
             <div className="flex flex-col gap-2">
                 {items.map((item) => (
                     <FavCandidateCard
-                        key={item.favourite.id}
-                        id={item.favourite.id}
-                        name={item.candidateName}
-                        image={item.candidateAvatar}
-                        postTitle={item.postTitle}
+                        key={item.favoriteCandidateId}
+                        id={item.favoriteCandidateId}
+                        name={item.name}
+                        image={item.image}
+                        subtitle={item.subtitle}
                         isBookmarked
-                        onBookmark={() => handleRemove(item.favourite.id)}
+                        onBookmark={() => void handleRemove(item.favoriteCandidateId)}
                     />
                 ))}
             </div>

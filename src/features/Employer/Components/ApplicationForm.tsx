@@ -1,248 +1,382 @@
+import { useEffect, useState } from "react";
 import {
-    Star, UserPlus, Cake, MapPin,
-    Briefcase, GraduationCap, Download, Globe, Phone, Mail, FileText,
     ArrowLeft,
-} from 'lucide-react';
+    Briefcase,
+    Cake,
+    Download,
+    FileText,
+    Globe,
+    GraduationCap,
+    Mail,
+    Phone,
+    Star,
+    UserPlus,
+} from "lucide-react";
+import { formatApiError } from "../../../services/apiClient";
+import { resolveAssetUrl } from "../lib/resolveAssetUrl";
+import {
+    addFavoriteCandidate,
+    fetchFavoriteCandidates,
+    removeFavoriteCandidate,
+} from "../services/favoriteCandidateService";
+import { updateEmployerApplicationStatus } from "../services/employerApplicationService";
+import { formatDisplayDate, formatLabel } from "../../Seeker/lib/seekerProfileFormatters";
+import { fetchPublicSeekerProfile } from "../../Seeker/services/seekerPublicService";
+import type { KanbanApplication } from "../types/employerApplication";
+import type { SeekerProfileApi } from "../../Seeker/types/seekerProfile";
 
-
-interface ApplicationFormProp {
-    isOpen: boolean,
-    applicationId?: string | null,
-    onClose: () => void
+interface ApplicationFormProps {
+    isOpen: boolean;
+    application: KanbanApplication | null;
+    postId: string | number;
+    onClose: () => void;
+    onStatusUpdated: () => Promise<void> | void;
 }
 
+export default function ApplicationForm({
+    isOpen,
+    application,
+    postId,
+    onClose,
+    onStatusUpdated,
+}: ApplicationFormProps) {
+    const [profile, setProfile] = useState<SeekerProfileApi | null>(null);
+    const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+    const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+    const [favoriteCandidateId, setFavoriteCandidateId] = useState<number | null>(null);
+    const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+    const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-export default function ApplicationForm(
-    { isOpen, applicationId, onClose }: ApplicationFormProp
-) {
-    if (!isOpen) {
-        return null
+    useEffect(() => {
+        const seekerRef = application?.seekerUuid ?? application?.seekerId;
+        if (!isOpen || seekerRef == null) {
+            setProfile(null);
+            setFavoriteCandidateId(null);
+            setFavoriteMessage(null);
+            return;
+        }
+
+        let isMounted = true;
+
+        const loadApplicationDetails = async () => {
+            setIsLoadingProfile(true);
+            setError(null);
+            setFavoriteMessage(null);
+
+            try {
+                const [profileResponse, favorites] = await Promise.all([
+                    fetchPublicSeekerProfile(seekerRef),
+                    fetchFavoriteCandidates(),
+                ]);
+
+                if (!isMounted) {
+                    return;
+                }
+
+                setProfile(profileResponse?.profile ?? null);
+
+                const matchedFavorite = favorites.find(
+                    (favorite) => favorite.seeker_id === application.seekerId,
+                );
+                setFavoriteCandidateId(matchedFavorite?.favorite_candidate_id ?? null);
+            } catch (loadError) {
+                if (!isMounted) {
+                    return;
+                }
+                setError(formatApiError(loadError));
+            } finally {
+                if (isMounted) {
+                    setIsLoadingProfile(false);
+                }
+            }
+        };
+
+        void loadApplicationDetails();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [application?.seekerId, application?.seekerUuid, isOpen]);
+
+    if (!isOpen || !application) {
+        return null;
     }
+
+    const displayName = profile?.full_name ?? application.userName;
+    const displayEmail = application.seekerEmail ?? profile?.email ?? "Not provided";
+    const cvUrl = resolveAssetUrl(application.raw.cv_resume_file ?? profile?.cv_resume);
+    const phoneNumber = profile?.seeker_phone_number
+        ?? profile?.contacts?.find((contact) => contact.category === "phone")?.value
+        ?? "Not provided";
+    const website = profile?.personal_web_url
+        ?? profile?.contacts?.find((contact) => contact.category === "web_url")?.value
+        ?? null;
+    const latestEducation = profile?.educations?.[0];
+    const latestExperience = profile?.work_experiences?.[0];
+
+    const handleToggleFavorite = async () => {
+        setIsFavoriteLoading(true);
+        setError(null);
+        setFavoriteMessage(null);
+
+        try {
+            if (favoriteCandidateId) {
+                await removeFavoriteCandidate(favoriteCandidateId);
+                setFavoriteCandidateId(null);
+                setFavoriteMessage("Candidate removed from shortlist.");
+                return;
+            }
+
+            const favorite = await addFavoriteCandidate(application.seekerId);
+            setFavoriteCandidateId(favorite.favorite_candidate_id);
+            setFavoriteMessage("Candidate saved to shortlist.");
+        } catch (toggleError) {
+            setError(formatApiError(toggleError));
+        } finally {
+            setIsFavoriteLoading(false);
+        }
+    };
+
+    const handleStatusUpdate = async (status: "rejected" | "hired" | "pending") => {
+        setIsUpdatingStatus(true);
+        setError(null);
+
+        try {
+            await updateEmployerApplicationStatus(postId, application.applicationId, {
+                status,
+                current_column_id: null,
+            });
+            await onStatusUpdated();
+            onClose();
+        } catch (updateError) {
+            setError(formatApiError(updateError));
+        } finally {
+            setIsUpdatingStatus(false);
+        }
+    };
+
     return (
-        <div className="w-full bg-slate-200 p-8 rounded-lg border border-slate-200  overflow-y-auto">
-            <button className='mb-5'
-                onClick={onClose}
-            ><ArrowLeft /></button>
-            {applicationId && (
-                <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Application ID: {applicationId}
-                </p>
+        <div className="w-full overflow-y-auto rounded-lg border border-slate-200 bg-slate-200 p-8">
+            <button className="mb-5" onClick={onClose} type="button">
+                <ArrowLeft />
+            </button>
+
+            {error && (
+                <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                    {error}
+                </div>
             )}
-            {/* Profile Header Block */}
-            <div className="w-full flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-[#E4E5E8] mb-8">
+
+            {favoriteMessage && (
+                <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                    {favoriteMessage}
+                </div>
+            )}
+
+            <div className="mb-8 flex w-full flex-col items-start justify-between gap-6 border-b border-[#E4E5E8] pb-6 md:flex-row md:items-center">
                 <div className="flex items-center space-x-4">
-                    {/* Avatar Placeholder */}
-                    <div className="w-16 h-16 bg-[#767F8C] rounded-full shrink-0" />
+                    {profile?.profile_img ? (
+                        <img
+                            src={resolveAssetUrl(profile.profile_img)}
+                            alt={displayName}
+                            className="h-16 w-16 shrink-0 rounded-full object-cover"
+                        />
+                    ) : (
+                        <div className="h-16 w-16 shrink-0 rounded-full bg-[#767F8C]" />
+                    )}
                     <div>
-                        <h1 className="text-xl font-semibold ">Esther Howard</h1>
-                        <p className="text-sm text-[#5E6670]">Website Designer (UI/UX)</p>
+                        <h1 className="text-xl font-semibold">{displayName}</h1>
+                        <p className="text-sm text-[#5E6670]">
+                            {latestExperience?.job_title ?? application.role}
+                        </p>
+                        <p className="text-xs text-[#767F8C]">
+                            Applied: {application.appliedDate || "Not provided"}
+                        </p>
                     </div>
                 </div>
 
-                {/* Header CTA Action Buttons */}
-                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <button type="button" className="p-3 bg-[#E8F1FC] text-primary rounded-md hover:bg-[#D4E6FC] transition-colors" title="Bookmark candidate">
-                        <Star className="h-5 w-5 fill-none stroke-2" />
+                <div className="flex w-full flex-wrap items-center gap-3 md:w-auto">
+                    <button
+                        type="button"
+                        disabled={isFavoriteLoading || isUpdatingStatus}
+                        onClick={() => void handleToggleFavorite()}
+                        title={favoriteCandidateId ? "Remove from shortlist" : "Save to shortlist"}
+                        className={`inline-flex flex-1 items-center justify-center gap-2 rounded-md border px-5 py-3 text-sm font-semibold transition-colors disabled:opacity-60 md:flex-none ${
+                            favoriteCandidateId
+                                ? "border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100"
+                                : "border-primary text-primary hover:bg-blue-50"
+                        }`}
+                    >
+                        <Star
+                            className={`h-4 w-4 ${favoriteCandidateId ? "fill-yellow-400 text-yellow-400" : ""}`}
+                        />
+                        <span>{favoriteCandidateId ? "Saved" : "Save Candidate"}</span>
                     </button>
 
-                    <button type="button" className="flex-1 md:flex-none inline-flex items-center justify-center px-5 py-3 border border-primary  text-primary  rounded-md text-sm font-semibold hover:bg-blue-50 transition-colors">
-                        Add To Waiting
-                    </button>
+                    {application.status !== "pending" && (
+                        <button
+                            type="button"
+                            disabled={isUpdatingStatus}
+                            onClick={() => void handleStatusUpdate("pending")}
+                            className="inline-flex flex-1 items-center justify-center rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition-colors hover:bg-blue-50 disabled:opacity-60 md:flex-none"
+                        >
+                            Move to Pending
+                        </button>
+                    )}
 
-                    <button type="button" className="flex-1 md:flex-none inline-flex items-center justify-center px-5 py-3 bg-[#E02424] text-white rounded-md text-sm font-semibold hover:bg-red-700 transition-colors">
-                        Reject
-                    </button>
+                    {application.status !== "rejected" && (
+                        <button
+                            type="button"
+                            disabled={isUpdatingStatus}
+                            onClick={() => void handleStatusUpdate("rejected")}
+                            className="inline-flex flex-1 items-center justify-center rounded-md bg-[#E02424] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-60 md:flex-none"
+                        >
+                            Reject
+                        </button>
+                    )}
 
-                    <button type="button" className="flex-1 md:flex-none inline-flex items-center justify-center space-x-2 px-5 py-3 bg-primary  text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition-colors">
-                        <UserPlus className="h-4 w-4" />
-                        <span>Hire Candidates</span>
-                    </button>
+                    {application.status !== "hired" && (
+                        <button
+                            type="button"
+                            disabled={isUpdatingStatus}
+                            onClick={() => void handleStatusUpdate("hired")}
+                            className="inline-flex flex-1 items-center justify-center space-x-2 rounded-md bg-primary px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-60 md:flex-none"
+                        >
+                            <UserPlus className="h-4 w-4" />
+                            <span>Hire Candidate</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {/* Main Two-Column Layout Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
+            {isLoadingProfile && (
+                <p className="mb-6 text-sm text-[#767F8C]">Loading candidate profile...</p>
+            )}
 
-                {/* Left Column: Biography & Cover Letter (Spans 2 columns) */}
-                <div className="lg:col-span-2 space-y-8">
-
-                    {/* Biography Block */}
+            <div className="grid w-full grid-cols-1 gap-8 lg:grid-cols-3">
+                <div className="space-y-8 lg:col-span-2">
                     <div className="space-y-3">
-                        <h3 className="text-sm font-bold uppercase tracking-wider ">Biography</h3>
-                        <p className="text-sm text-gray-600 leading-relaxed">
-                            I've been passionate about graphic design and digital art from an early age with a keen interest in Website and Mobile Application User Interfaces. I can create high-quality and aesthetically pleasing designs in a quick turnaround time. Check out the portfolio section of my profile to see samples of my work and feel free to discuss your designing needs. I mostly use Adobe Photoshop, Illustrator, XD and Figma. *Website User Experience and Interface (UI/UX) Design - for all kinds of Professional and Personal websites. *Mobile Application User Experience and Interface Design - for all kinds of iOS/Android and Hybrid Mobile Applications. *Wireframe Designs.
+                        <h3 className="text-sm font-bold uppercase tracking-wider">Biography</h3>
+                        <p className="text-sm leading-relaxed text-gray-600">
+                            {profile?.biography ?? "Biography is not available for this candidate."}
                         </p>
                     </div>
 
                     <hr className="border-[#E4E5E8]" />
 
-                    {/* Cover Letter Block */}
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-bold uppercase tracking-wider">Cover Letter</h3>
-                        <div className="text-sm text-gray-600 space-y-4 leading-relaxed">
-                            <p>Dear Sir,</p>
-                            <p>
-                                I am writing to express my interest in the fourth grade instructional position that is currently available in the Fort Wayne Community School System. I learned of the opening through a notice posted on JobZone, IPFW's job database. I am confident that my academic background and curriculum development skills would be successfully utilized in this teaching position.
-                            </p>
-                            <p>
-                                I have just completed my Bachelor of Science degree in Elementary Education and have successfully completed Praxis I and Praxis II. During my student teaching experience, I developed and initiated a three-week curriculum sequence on animal species and earth resources. This collaborative unit involved working with three other third grade teachers within my team, and culminated in a field trip to the Indianapolis Zoo Animal Research Unit.
-                            </p>
-                            <div className="pt-2 space-y-1">
-                                <p>Sincerely,</p>
-                                <p className="font-medium ">Esther Howard</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr className="border-slate-200" />
-
-                    {/* Social Links Sub-Section */}
                     <div className="space-y-3">
-                        <p className="text-sm font-medium ">Follow me Social Media</p>
-                        <div className="flex items-center space-x-2.5">
-                            <a href="#" className="p-2.5 bg-slate-200 text-gray-600 rounded hover:bg-blue-600 hover:text-white transition-colors">
-                                <Star className="h-4 w-4 fill-current stroke-none" />
-                            </a>
-                            <a href="#" className="p-2.5 bg-blue-600 text-white rounded hover:opacity-90 transition-opacity">
-                                <Star className="h-4 w-4 fill-current stroke-none" />
-                            </a>
-                            <a href="#" className="p-2.5 bg-slate-200 text-[#474C54] rounded hover:bg-blue-600 hover:text-white transition-colors">
-                                <Star className="h-4 w-4 fill-current stroke-none" />
-                            </a>
-                            <a href="#" className="p-2.5 bg-slate-200 text-[#474C54] rounded hover:bg-blue-600 hover:text-white transition-colors">
-                                {/* Simulated Reddit/Custom icon using generic standard shapes */}
-                                <span className="font-bold text-xs px-0.5">r/</span>
-                            </a>
-                            <a href="#" className="p-2.5 bg-slate-200 text-[#474C54] rounded hover:bg-blue-600 hover:text-white transition-colors">
-                                <Mail className="h-4 w-4" />
-                            </a>
-                            <a href="#" className="p-2.5 bg-slate-200 text-[#474C54] rounded hover:bg-[#DC3545] hover:text-white transition-colors">
-                                <Star className="h-4 w-4" />
-                            </a>
-                        </div>
+                        <h3 className="text-sm font-bold uppercase tracking-wider">Experience</h3>
+                        {latestExperience ? (
+                            <div className="space-y-1 text-sm text-gray-600">
+                                <p className="font-medium text-[#18191C]">{latestExperience.job_title}</p>
+                                <p>{latestExperience.company_name}</p>
+                                <p>{latestExperience.year_of_experience} years experience</p>
+                            </div>
+                        ) : (
+                            <p className="text-sm text-gray-600">
+                                Experience details are not available.
+                            </p>
+                        )}
                     </div>
-
                 </div>
 
-                {/* Right Column: Informational Sidebar Cards */}
                 <div className="space-y-6">
-
-                    {/* Box 1: Core Candidate Demographics Grid */}
-                    <div className="bg-white border border-[#E8F1FC] rounded-lg p-6 grid grid-cols-2 gap-y-6 gap-x-4">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-6 rounded-lg border border-[#E8F1FC] bg-white p-6">
                         <div className="space-y-1">
                             <div className="text-[#0A65CC]"><Cake className="h-5 w-5 stroke-[1.8]" /></div>
-                            <p className="text-[11px] uppercase text-gray-600 font-medium tracking-wide pt-1">Date of Birth</p>
-                            <p className="text-sm font-medium ">14 June, 2021</p>
-                        </div>
-                        <div className="space-y-1">
-                            <div className="text-[#0A65CC]"><Globe className="h-5 w-5 stroke-[1.8]" /></div>
-                            <p className="text-[11px] uppercase text-gray-600 font-medium tracking-wide pt-1">Nationality</p>
-                            <p className="text-sm font-medium ">Cambodia</p>
+                            <p className="pt-1 text-[11px] font-medium uppercase tracking-wide text-gray-600">Date of Birth</p>
+                            <p className="text-sm font-medium">{formatDisplayDate(profile?.birth_date)}</p>
                         </div>
                         <div className="space-y-1">
                             <div className="text-[#0A65CC]"><FileText className="h-5 w-5 stroke-[1.8]" /></div>
-                            <p className="text-[11px] uppercase text-gray-600 font-medium tracking-wide pt-1">Marital Status</p>
-                            <p className="text-sm font-medium ">Single</p>
+                            <p className="pt-1 text-[11px] font-medium uppercase tracking-wide text-gray-600">Marital Status</p>
+                            <p className="text-sm font-medium">{formatLabel(profile?.marital_status)}</p>
                         </div>
                         <div className="space-y-1">
                             <div className="text-[#0A65CC]"><UserPlus className="h-5 w-5 stroke-[1.8]" /></div>
-                            <p className="text-[11px] uppercase text-gray-600 font-medium tracking-wide pt-1">Gender</p>
-                            <p className="text-sm font-medium ">Male</p>
+                            <p className="pt-1 text-[11px] font-medium uppercase tracking-wide text-gray-600">Gender</p>
+                            <p className="text-sm font-medium">{formatLabel(profile?.gender)}</p>
                         </div>
                         <div className="space-y-1">
                             <div className="text-[#0A65CC]"><Briefcase className="h-5 w-5 stroke-[1.8]" /></div>
-                            <p className="text-[11px] uppercase text-gray-600 font-medium tracking-wide pt-1">Experience</p>
-                            <p className="text-sm font-medium ">7 Years</p>
+                            <p className="pt-1 text-[11px] font-medium uppercase tracking-wide text-gray-600">Experience</p>
+                            <p className="text-sm font-medium">
+                                {latestExperience
+                                    ? `${latestExperience.year_of_experience} Years`
+                                    : "Not provided"}
+                            </p>
                         </div>
                         <div className="space-y-1">
                             <div className="text-[#0A65CC]"><GraduationCap className="h-5 w-5 stroke-[1.8]" /></div>
-                            <p className="text-[11px] uppercase text-gray-600 font-medium tracking-wide pt-1">Educations</p>
-                            <p className="text-sm font-medium ">Master Degree</p>
+                            <p className="pt-1 text-[11px] font-medium uppercase tracking-wide text-gray-600">Education</p>
+                            <p className="text-sm font-medium">
+                                {latestEducation?.degree ?? "Not provided"}
+                            </p>
                         </div>
                     </div>
 
-                    {/* Box 2: Download Resume Module */}
-                    <div className="bg-white border border-[#E8F1FC] rounded-lg p-6 space-y-3">
-                        <h4 className="text-sm font-semibold ">Download My Resume</h4>
-                        <div className="flex items-center justify-between border border-[#E4E5E8] rounded-md p-3.5 bg-[#FCFDFE]">
+                    <div className="space-y-3 rounded-lg border border-[#E8F1FC] bg-white p-6">
+                        <h4 className="text-sm font-semibold">Download Resume</h4>
+                        <div className="flex items-center justify-between rounded-md border border-[#E4E5E8] bg-[#FCFDFE] p-3.5">
                             <div className="flex items-center space-x-3">
-                                <div className="text-red-500 bg-red-50 p-2 rounded"><FileText className="h-6 w-6" /></div>
+                                <div className="rounded bg-red-50 p-2 text-red-500"><FileText className="h-6 w-6" /></div>
                                 <div>
-                                    <p className="text-xs font-medium text-[#474C54] truncate max-w-35">Esther Howard</p>
-                                    <p className="text-[11px] text-gray-600 uppercase font-bold">PDF</p>
+                                    <p className="max-w-35 truncate text-xs font-medium text-[#474C54]">{displayName}</p>
+                                    <p className="text-[11px] font-bold uppercase text-gray-600">CV</p>
                                 </div>
                             </div>
-                            <button type="button" className="p-2.5 bg-[#E8F1FC] text-[#0A65CC] rounded hover:bg-[#D4E6FC] transition-colors">
+                            <a
+                                href={cvUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="rounded bg-[#E8F1FC] p-2.5 text-[#0A65CC] transition-colors hover:bg-[#D4E6FC]"
+                            >
                                 <Download className="h-4 w-4 stroke-[2.5]" />
-                            </button>
+                            </a>
                         </div>
                     </div>
 
-                    {/* Box 3: Contact Information Module */}
-                    <div className="bg-white border border-[#E8F1FC] rounded-lg p-6 space-y-5">
-                        <h4 className="text-sm font-semibold ">Contact Information</h4>
+                    <div className="space-y-5 rounded-lg border border-[#E8F1FC] bg-white p-6">
+                        <h4 className="text-sm font-semibold">Contact Information</h4>
 
-                        {/* Website Row */}
+                        {website && (
+                            <div className="flex items-start space-x-3">
+                                <Globe className="mt-0.5 h-5 w-5 shrink-0 text-[#0A65CC]" />
+                                <div className="space-y-0.5">
+                                    <p className="text-[11px] font-medium uppercase tracking-wide text-gray-600">Website</p>
+                                    <a
+                                        href={website}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="break-all text-sm font-medium hover:text-[#0A65CC]"
+                                    >
+                                        {website}
+                                    </a>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex items-start space-x-3">
-                            <Globe className="h-5 w-5 text-[#0A65CC] mt-0.5 shrink-0" />
+                            <Phone className="mt-0.5 h-5 w-5 shrink-0 text-[#0A65CC]" />
                             <div className="space-y-0.5">
-                                <p className="text-[11px] uppercase font-medium tracking-wide text-gray-600">Website</p>
-                                <a href="https://www.estherhoward.com" target="_blank" rel="noreferrer" className="text-sm  hover:text-[#0A65CC] break-all font-medium">
-                                    www.estherhoward.com
+                                <p className="text-[11px] font-medium uppercase tracking-wide text-gray-600">Phone</p>
+                                <p className="text-sm font-medium">{phoneNumber}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start space-x-3">
+                            <Mail className="mt-0.5 h-5 w-5 shrink-0 text-[#0A65CC]" />
+                            <div className="space-y-0.5">
+                                <p className="text-[11px] font-medium uppercase tracking-wide text-gray-600">Email Address</p>
+                                <a href={`mailto:${displayEmail}`} className="break-all text-sm font-medium hover:text-[#0A65CC]">
+                                    {displayEmail}
                                 </a>
                             </div>
                         </div>
-
-                        <hr className="border-[#E8F1FC]" />
-
-                        {/* Location Row */}
-                        <div className="flex items-start space-x-3">
-                            <MapPin className="h-5 w-5 text-[#0A65CC] mt-0.5 shrink-0" />
-                            <div className="space-y-1">
-                                <p className="text-[11px] uppercase font-medium tracking-wide text-gray-600">Location</p>
-                                <p className="text-sm font-medium ">Beverly Hills, California 90202</p>
-                                <p className="text-xs text-[#5E6670] leading-relaxed">
-                                    Zone/Block Basement 1 Unit B2, 1372 Spring Avenue, Portland,
-                                </p>
-                            </div>
-                        </div>
-
-                        <hr className="border-[#E8F1FC]" />
-
-                        {/* Phone Row */}
-                        <div className="flex items-start space-x-3">
-                            <Phone className="h-5 w-5 text-[#0A65CC] mt-0.5 shrink-0" />
-                            <div className="space-y-3 w-full">
-                                <div className="space-y-0.5">
-                                    <p className="text-[11px] uppercase font-medium tracking-wide text-gray-600">Phone</p>
-                                    <p className="text-sm font-medium ">+1-202-555-0141</p>
-                                </div>
-                                <div className="space-y-0.5">
-                                    <p className="text-[11px] uppercase font-medium tracking-wide text-gray-600">Secondary Phone</p>
-                                    <p className="text-sm font-medium ">+1-202-555-0189</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <hr className="border-[#E8F1FC]" />
-
-                        {/* Email Row */}
-                        <div className="flex items-start space-x-3">
-                            <Mail className="h-5 w-5 text-[#0A65CC] mt-0.5 shrink-0" />
-                            <div className="space-y-0.5">
-                                <p className="text-[11px] uppercase font-medium tracking-wide text-gray-600">Email Address</p>
-                                <a href="mailto:esther.howard@gmail.com" className="text-sm  hover:text-[#0A65CC] font-medium break-all">
-                                    esther.howard@gmail.com
-                                </a>
-                            </div>
-                        </div>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
     );
 }

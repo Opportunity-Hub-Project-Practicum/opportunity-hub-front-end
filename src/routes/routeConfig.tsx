@@ -36,6 +36,7 @@ import AllPostPage from "../features/Admin/Pages/AllPostPage";
 import ManageUserPage from "../features/Admin/Pages/ManageUserPage";
 import ProfilePage from "../features/Admin/Pages/ProfilePage";
 import ReportedPage from "../features/Admin/Pages/ReportedPage";
+import { createRoleLoader } from "./loaders";
 export interface RouteConfig {
     path?: string;
     label?: string;
@@ -98,7 +99,7 @@ export const routeConfig: RouteConfig[] = [
                 component: PostDetail
             },
             {
-                path: ROUTES.HOME.ORGANIZATION_DETAIL_ROUTE,
+                path: ROUTES.HOME.ORGANIZATION_DETAIL(':id'),
                 label: 'OrganizationDetail',
                 component: OrganizationDetail
             },
@@ -108,7 +109,7 @@ export const routeConfig: RouteConfig[] = [
         label: 'SeekerLayout',
         layout: SeekerLayout,
         path: ROUTES.SEEKER.ROOT,
-        //role:'seeker',
+        loader: createRoleLoader('seeker'),
         children: [
 
             {
@@ -140,7 +141,7 @@ export const routeConfig: RouteConfig[] = [
         label: 'EmployerLayout',
         path: ROUTES.EMPLOYER.ROOT,
         layout: EmployerLayout,
-        //role: 'employer',
+        loader: createRoleLoader('employer'),
         children: [
 
             {
@@ -180,7 +181,7 @@ export const routeConfig: RouteConfig[] = [
                 component: SettingPage
             },
             {
-                path: ROUTES.EMPLOYER.MY_JOB_VIEW_APPLICATION,
+                path: ROUTES.EMPLOYER.MY_JOB_VIEW_APPLICATION_ROUTE,
                 label: 'MyJobViewApplication',
                 component: MyJobViewApplicationPage
             }
@@ -191,7 +192,7 @@ export const routeConfig: RouteConfig[] = [
         label: 'adminLayout',
         path: ROUTES.ADMIN.ROOT,
         layout: AdminLayout,
-        //role: 'admin'
+        loader: createRoleLoader('admin'),
         children: [
             {
                 path: '',

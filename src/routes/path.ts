@@ -13,7 +13,6 @@ export const ROUTES = {
         POST_LIST: "/postList",
         POST_DETAIL_ROUTE: "/postDetail/:id",
         POST_DETAIL: (id: string|number) => `/postDetail/${id}`,
-        ORGANIZATION_DETAIL_ROUTE: "/organizationDetail/:id",
         ORGANIZATION_DETAIL: (id: string|number) => `/organizationDetail/${id}`,
     },
 
@@ -35,7 +34,8 @@ export const ROUTES = {
         SAVE_CANDIDATE_DETAIL_ROUTE: "saveCandidate/:favouriteId",
         SAVE_CANDIDATE_DETAIL: (favouriteId: string | number) => `saveCandidate/${favouriteId}`,
         SETTING: "setting",
-        MY_JOB_VIEW_APPLICATION :"myJobViewApplication"
+        MY_JOB_VIEW_APPLICATION_ROUTE: "myJobViewApplication/:postId",
+        MY_JOB_VIEW_APPLICATION: (postId: string | number) => `myJobViewApplication/${postId}`,
     },
 
     ADMIN: {

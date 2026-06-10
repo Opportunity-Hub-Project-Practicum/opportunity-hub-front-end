@@ -6,7 +6,7 @@ interface FavCandidateCardProps {
     id: number;
     name: string;
     image?: string;
-    postTitle?: string;
+    subtitle?: string;
     isBookmarked?: boolean;
     onBookmark?: () => void;
 }
@@ -15,7 +15,7 @@ export default function FavCandidateCard({
     id,
     name,
     image,
-    postTitle,
+    subtitle,
     isBookmarked = true,
     onBookmark,
 }: FavCandidateCardProps) {
@@ -33,8 +33,8 @@ export default function FavCandidateCard({
                 )}
                 <div className="min-w-0">
                     <p className="truncate font-semibold text-[#18191C]">{name}</p>
-                    {postTitle && (
-                        <p className="truncate text-sm text-[#767F8C]">Post: {postTitle}</p>
+                    {subtitle && (
+                        <p className="truncate text-sm text-[#767F8C]">{subtitle}</p>
                     )}
                 </div>
             </div>
@@ -59,7 +59,7 @@ export default function FavCandidateCard({
                     to={`${ROUTES.EMPLOYER.ROOT}/${ROUTES.EMPLOYER.SAVE_CANDIDATE_DETAIL(id)}`}
                     className="btn-primary-white inline-flex items-center gap-1.5 whitespace-nowrap text-primaryDark"
                 >
-                    View Post
+                    View Candidate
                     <ArrowRight size={16} />
                 </Link>
             </div>

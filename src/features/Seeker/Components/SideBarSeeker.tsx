@@ -7,7 +7,9 @@ import {
     Bell,
     Settings,
     ChevronRight,
+    LogOut,
 } from "lucide-react";
+import { useAuth } from "../../../contexts/AuthContext";
 import { ROUTES } from "../../../routes/path";
 
 const menuItems = [
@@ -20,15 +22,28 @@ const menuItems = [
 
 export default function SideBarSeeker() {
     const [column, setcolumn] = useState('overviewActivity');
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const navigate = useNavigate();
+    const { logout } = useAuth();
 
     const handleClick = (item: string) => {
         setcolumn(item);
         navigate(item);
     };
 
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+
+        try {
+            await logout();
+            navigate(ROUTES.AUTH.LOGIN, { replace: true });
+        } finally {
+            setIsLoggingOut(false);
+        }
+    };
+
     return (
-        <div className="flex flex-col w-full py-4 px-2">
+        <div className="flex flex-col w-full py-4 px-2 h-full">
             {/* Section label */}
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 px-3 mb-2">
                 Candidate Dashboard
@@ -59,6 +74,18 @@ export default function SideBarSeeker() {
                     );
                 })}
             </nav>
+
+            <div className="mt-auto pt-4">
+                <button
+                    type="button"
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="group flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 text-red-500 hover:bg-red-50 hover:text-red-600 border-l-2 border-transparent disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                    <LogOut size={17} className="shrink-0 transition-colors text-red-400 group-hover:text-red-600" />
+                    <span className="flex-1 text-left">{isLoggingOut ? "Signing out..." : "Logout"}</span>
+                </button>
+            </div>
         </div>
     );
 }

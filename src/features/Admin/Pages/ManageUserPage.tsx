@@ -1,14 +1,51 @@
-import { CheckCircle2, Clock, Users, XCircle } from "lucide-react"
+import { CheckCircle2, Users, XCircle } from "lucide-react"
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import SeekerProfileSection from "../../../GlobalComponents/SeekerProfileSection"
+import type { SeekerFormData } from "../../../GlobalComponents/SeekerProfileSection"
+import { MOCK_USERS, type User } from "../../../services/mockJobPortalApi"
 import SearchBox from "../../../GlobalComponents/SearchBox"
+
+const toSeekerFormData = (user: User): SeekerFormData => {
+    const [firstName, ...rest] = user.fullName.split(" ");
+
+    return {
+        firstName: firstName ?? user.fullName,
+        lastName: rest.join(" "),
+        email: user.email,
+        dob: "",
+        website: user.seekerProfile?.portfolioUrl ?? "",
+        gender: "",
+        martialStatus: "",
+        Phone: user.phone ?? "",
+        bio: user.bio,
+        profileImage: user.avatarUrl,
+        socialLinks: [],
+        resume: user.seekerProfile?.resumeUrl
+            ? [{ id: "resume-1", name: "resume.pdf", size: "—" }]
+            : [],
+        education: [],
+        experience: user.seekerProfile
+            ? [
+                {
+                    jobTitle: user.seekerProfile.currentTitle,
+                    company: "",
+                    jobRole: user.seekerProfile.experienceLevel,
+                    from: "",
+                    to: "",
+                    jobDescription: user.skills.join(", "),
+                },
+            ]
+            : [],
+    };
+};
+
 export default function ManageUserPage() {
-    const navigate = useNavigate()
-    const [activeTab, setActiveTab] = useState("job")
+    const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
 
     const listingsData = [
         {
             id: '1',
+            userId: 101,
             userName: 'Pory Morokot',
             createdDate: '09/32/1932',
             timeRemaining: '8 days remaining',
@@ -17,6 +54,7 @@ export default function ManageUserPage() {
             applyvolunteerCount: 85
         }, {
             id: '2',
+            userId: 102,
             userName: 'noc raksa',
             createdDate: '09/32/1932',
             timeRemaining: '8 days remaining',
@@ -24,6 +62,11 @@ export default function ManageUserPage() {
             applyJobCount: 185,
             applyvolunteerCount: 85
         },]
+
+    const selectedUser = selectedUserId != null
+        ? MOCK_USERS.find((user) => user.id === selectedUserId)
+        : undefined;
+
     return (
         <div>
             <SearchBox search="" setSearch={() => { }} />
@@ -74,8 +117,8 @@ export default function ManageUserPage() {
                         {/* Interactive Actions Control Column */}
                         <div className="flex items-center justify-between pl-4">
                             <button
-                                onClick={() => { navigate('') }}
                                 type="button"
+                                onClick={() => setSelectedUserId(item.userId)}
                                 className="bg-slate-200 text-blue-600 text-sm font-semibold px-5 py-2.5 rounded-sm hover:bg-slate-200 transition-colors"
                             >
                                 View profile
@@ -87,6 +130,25 @@ export default function ManageUserPage() {
                     </div>
                 ))}
             </div>
+
+            {selectedUser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="relative max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-xl bg-white p-6 shadow-2xl">
+                        <button
+                            onClick={() => setSelectedUserId(null)}
+                            type="button"
+                            className="absolute right-4 top-4 z-10 rounded-full bg-gray-200 px-3 py-1 text-sm hover:bg-gray-300"
+                        >
+                            ✕
+                        </button>
+
+                        <SeekerProfileSection
+                            seekerData={toSeekerFormData(selectedUser)}
+                            viewOnly
+                        />
+                    </div>
+                </div>
+            )}
 
         </div>
     )

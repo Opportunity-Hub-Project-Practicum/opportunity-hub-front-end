@@ -12,7 +12,7 @@ export default function NavBarSeeker() {
                 <ul className="flex gap-5">
                     <li className="whitespace-nowrap"><Link to={ROUTES.HOME.ROOT}>Opportunities</Link></li>
                     <li className="whitespace-nowrap"><Link to={ROUTES.HOME.ORGANIZATION_LIST}>Find Employer</Link></li>
-                    <li className="whitespace-nowrap"><Link to={ROUTES.SEEKER.OVERVIEW}>My Activity</Link></li>
+                    <li className="whitespace-nowrap"><Link to={`${ROUTES.SEEKER.ROOT}/${ROUTES.SEEKER.OVERVIEW}`}>My Activity</Link></li>
                 </ul>
 
             </div>

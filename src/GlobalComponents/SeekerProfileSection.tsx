@@ -30,21 +30,27 @@ export interface SocialLink {
     id: string;
     platform: string;
     url: string;
+    contactId?: number;
 }
 
 export interface ExperienceEntry {
+    experienceId?: number;
     jobTitle?: string;
     company?: string;
     jobRole?: string;
+    yearsOfExperience?: string;
+    industry?: string;
     from?: string;
     to?: string;
     jobDescription?: string;
 }
 
 export interface EducationEntry {
+    educationId?: number;
     school?: string;
     degree?: string;
     areaOfStudy?: string;
+    location?: string;
     country?: string;
     from?: string;
     to?: string;
