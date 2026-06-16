@@ -1,95 +1,71 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
 import { CheckCircle2, DollarSign, XCircle } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { ROUTES } from "../../../routes/path";
 import SearchBox from "../../../GlobalComponents/SearchBox";
-
-type Post = {
-    id: string;
-    title: string;
-    organizationName: string;
-    image: string;
-    workPlaceType: string;
-    salary?: string;
-    closeDate: string;
-    status: "Active" | "Ban";
-    applications: number;
-    type: "job" | "volunteer";
-};
-
-const mockPosts: Post[] = [
-    {
-        id: "1",
-        title: "Frontend Developer",
-        organizationName: "Google",
-        image: "https://placehold.co/60x60",
-        workPlaceType: "Remote",
-        salary: "$1,500 - $2,500",
-        closeDate: "2026-06-30",
-        status: "Active",
-        applications: 23,
-        type: "job",
-    },
-    {
-        id: "2",
-        title: "Backend Developer",
-        organizationName: "Microsoft",
-        image: "https://placehold.co/60x60",
-        workPlaceType: "Hybrid",
-        salary: "$2,000 - $3,000",
-        closeDate: "2026-07-15",
-        status: "Ban",
-        applications: 14,
-        type: "job",
-    },
-    {
-        id: "3",
-        title: "Community Event Volunteer",
-        organizationName: "Red Cross",
-        image: "https://placehold.co/60x60",
-        workPlaceType: "On-site",
-        closeDate: "2026-08-10",
-        status: "Active",
-        applications: 45,
-        type: "volunteer",
-    },
-    {
-        id: "4",
-        title: "Teaching Assistant Volunteer",
-        organizationName: "Education For All",
-        image: "https://placehold.co/60x60",
-        workPlaceType: "Remote",
-        closeDate: "2026-09-01",
-        status: "Active",
-        applications: 18,
-        type: "volunteer",
-    },
-];
+import { formatApiError } from "../../../services/apiClient";
+import {
+    fetchAdminPosts,
+    mapAdminPostToListItem,
+} from "../services/adminPostService";
+import type { AdminPostListItem } from "../types/adminPost";
 
 export default function AllPostPage() {
     const [activeTab, setActiveTab] = useState<"job" | "volunteer">("job");
-    const posts: Post[] = mockPosts;
+    const [search, setSearch] = useState("");
+    const [posts, setPosts] = useState<AdminPostListItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const currentItems = posts.filter(
-        (post) => post.type === activeTab
-    );
+    const loadPosts = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const data = await fetchAdminPosts({ type: activeTab });
+            setPosts(data.map(mapAdminPostToListItem));
+        } catch (loadError) {
+            setError(formatApiError(loadError));
+        } finally {
+            setLoading(false);
+        }
+    }, [activeTab]);
+
+    useEffect(() => {
+        loadPosts();
+    }, [loadPosts]);
+
+    const currentItems = useMemo(() => {
+        const tabPosts = posts.filter((post) => post.type === activeTab);
+
+        if (!search.trim()) {
+            return tabPosts;
+        }
+
+        const query = search.trim().toLowerCase();
+        return tabPosts.filter(
+            (post) =>
+                post.title.toLowerCase().includes(query)
+                || post.organizationName.toLowerCase().includes(query),
+        );
+    }, [activeTab, posts, search]);
 
     return (
         <div className="space-y-4">
-            <SearchBox search="" setSearch={() => { }} />
+            <SearchBox search={search} setSearch={setSearch} />
             <div className="grid grid-cols-6 bg-[#F1F2F4] px-6 py-3 text-[12px] font-medium tracking-wider text-[#474C54] uppercase items-center">
                 <div className="col-span-3 flex items-center space-x-8">
                     <button
                         type="button"
-                        onClick={() => setActiveTab('job')}
-                        className={`pb-1 font-semibold transition-colors ${activeTab === 'job' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-[#767F8C] hover:text-gray-900'}`}
+                        onClick={() => setActiveTab("job")}
+                        className={`pb-1 font-semibold transition-colors ${activeTab === "job" ? "text-blue-600 border-b-2 border-blue-600" : "text-[#767F8C] hover:text-gray-900"}`}
                     >
                         JOBS
                     </button>
                     <button
                         type="button"
-                        onClick={() => setActiveTab('volunteer')}
-                        className={`pb-1 font-semibold transition-colors ${activeTab === 'volunteer' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-[#767F8C] hover:text-gray-900'}`}
+                        onClick={() => setActiveTab("volunteer")}
+                        className={`pb-1 font-semibold transition-colors ${activeTab === "volunteer" ? "text-blue-600 border-b-2 border-blue-600" : "text-[#767F8C] hover:text-gray-900"}`}
                     >
                         Volunteer
                     </button>
@@ -99,7 +75,19 @@ export default function AllPostPage() {
                 <div className=" text-left pl-4">Actions</div>
             </div>
 
-            {currentItems.map((item) => (
+            {loading && (
+                <div className="px-6 py-8 text-sm text-[#767F8C]">Loading posts...</div>
+            )}
+
+            {!loading && error && (
+                <div className="px-6 py-8 text-sm text-red-600">{error}</div>
+            )}
+
+            {!loading && !error && currentItems.length === 0 && (
+                <div className="px-6 py-8 text-sm text-[#767F8C]">No posts found.</div>
+            )}
+
+            {!loading && !error && currentItems.map((item) => (
                 <div
                     key={item.id}
                     className="grid grid-cols-6 items-center rounded-lg border p-4 transition-all duration-300 hover:scale-[1.01] hover:border-primary hover:shadow-lg"

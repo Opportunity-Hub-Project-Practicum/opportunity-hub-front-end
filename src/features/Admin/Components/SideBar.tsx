@@ -1,7 +1,17 @@
-import { Layers, PlusCircle, Briefcase, Bookmark, Settings, CircleUserRound, X } from 'lucide-react';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '../../../routes/path';
+import {
+    Briefcase,
+    Bookmark,
+    ChevronLeft,
+    ChevronRight,
+    CircleUserRound,
+    Layers,
+    PlusCircle,
+    Settings,
+    X,
+} from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../../routes/path";
 
 type SidebarProps = {
     mobileOpen?: boolean;
@@ -10,82 +20,109 @@ type SidebarProps = {
 
 const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
     const menuItems = [
-        { name: 'Overview', icon: Layers, path: ROUTES.ADMIN.OVERVIEW },
-        { name: 'Manage User', icon: PlusCircle, path: ROUTES.ADMIN.MANAGE_USER },
-        { name: 'All Posts', icon: Briefcase, path: ROUTES.ADMIN.ALL_POST },
-        { name: 'Organizaion', icon: Bookmark, path: ROUTES.ADMIN.ALL_EMPLOYER },
-        { name: 'Reported Post', icon: Settings, path: ROUTES.ADMIN.REPORTED },
-        { name: 'Profile', icon: CircleUserRound, path: ROUTES.ADMIN.PROFILE },
+        { name: "Overview", icon: Layers, path: ROUTES.ADMIN.OVERVIEW },
+        { name: "Manage User", icon: PlusCircle, path: ROUTES.ADMIN.MANAGE_USER },
+        { name: "All Posts", icon: Briefcase, path: ROUTES.ADMIN.ALL_POST },
+        { name: "Organizaion", icon: Bookmark, path: ROUTES.ADMIN.ALL_EMPLOYER },
+        { name: "Reported Post", icon: Settings, path: ROUTES.ADMIN.REPORTED },
+        { name: "Profile", icon: CircleUserRound, path: ROUTES.ADMIN.PROFILE },
     ];
-    const [section, SetSection] = useState("Overview")
+    const [section, setSection] = useState("Overview");
+    const [collapsed, setCollapsed] = useState(false);
     const navigate = useNavigate();
 
     const handleClick = (itemName: string, path: string) => {
-        SetSection(itemName);
+        setSection(itemName);
         navigate(path);
-        if (onClose) onClose();
+        if (onClose) {
+            onClose();
+        }
     };
+
+    const renderNavItems = (isCollapsed: boolean) => (
+        menuItems.map((item) => {
+            const isActive = section === item.name;
+
+            return (
+                <button
+                    key={item.name}
+                    type="button"
+                    title={isCollapsed ? item.name : undefined}
+                    onClick={() => handleClick(item.name, item.path)}
+                    className={`flex items-center transition-all duration-200 border-l-[3px] ${isCollapsed ? "justify-center px-0 py-4" : "px-6 py-4"} ${isActive
+                        ? "bg-blue-50 border-blue-600 text-blue-600"
+                        : "bg-transparent border-transparent text-slate-500 hover:bg-gray-50"
+                        }`}
+                >
+                    <item.icon
+                        className={`h-5 w-5 shrink-0 ${isCollapsed ? "" : "mr-4"} ${isActive ? "text-blue-600" : "text-slate-400"
+                            }`}
+                    />
+                    {!isCollapsed && (
+                        <span className="text-[15px] font-medium">{item.name}</span>
+                    )}
+                </button>
+            );
+        })
+    );
 
     return (
         <>
-            {/* Desktop / large screens */}
-            <div className="hidden md:block w-full max-w-75 min-h-screen  bg-white border-r border-gray-100 py-6 font-sans">
-                <div className="px-6 mb-6">
-                    <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                        Admin Dashboard
-                    </h2>
+            <div
+                className={`hidden md:flex min-h-screen flex-col border-r border-gray-100 bg-white py-6 font-sans transition-all duration-300 ${collapsed ? "w-16" : "w-64"
+                    }`}
+            >
+                <div className={`mb-6 flex items-center ${collapsed ? "justify-center px-2" : "justify-between px-4"}`}>
+                    {!collapsed && (
+                        <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                            Admin Dashboard
+                        </h2>
+                    )}
+                    <button
+                        type="button"
+                        onClick={() => setCollapsed((current) => !current)}
+                        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                        className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-gray-50 hover:text-slate-700"
+                    >
+                        {collapsed ? (
+                            <ChevronRight className="h-5 w-5" />
+                        ) : (
+                            <ChevronLeft className="h-5 w-5" />
+                        )}
+                    </button>
                 </div>
 
-                <nav className="flex flex-col">
-                    {menuItems.map((item) => (
-                        <button
-                            key={item.name}
-                            onClick={() => handleClick(item.name, item.path)}
-                            className={`flex items-center px-6 py-4 transition-all duration-200 border-l-[3px] ${section
-                                === `${item.name}` ? 'bg-blue-50 border-blue-600 text-blue-600'
-                                : 'bg-transparent border-transparent text-slate-500 hover:bg-gray-50'
-                                }`}
-                        >
-                            <item.icon
-                                className={`w-5 h-5 mr-4 ${section
-                                    === `${item.name}` ? 'text-blue-600' : 'text-slate-400'
-                                    }`}
-                            />
-                            <span className="text-[15px] font-medium flex shrink-0">{item.name}</span>
-                        </button>
-                    ))}
+                <nav className="flex flex-1 flex-col">
+                    {renderNavItems(collapsed)}
                 </nav>
             </div>
 
-            {/* Mobile drawer */}
-            <div className={`md:hidden fixed inset-0 z-40 transition-transform ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`} aria-hidden={!mobileOpen}>
-                <div className="absolute inset-0 bg-black/40" onClick={() => onClose && onClose()} />
-                <aside className="relative w-64 h-full bg-white border-r border-gray-100 py-6">
-                    <div className="px-4 flex items-center justify-between">
-                        <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Employers Dashboard</h2>
-                        <button onClick={() => onClose && onClose()} aria-label="Close menu" className="p-2">
-                            <X className="w-5 h-5 text-slate-600" />
+            <div
+                className={`fixed inset-0 z-40 transition-transform md:hidden ${mobileOpen ? "translate-x-0" : "-translate-x-full"
+                    }`}
+                aria-hidden={!mobileOpen}
+            >
+                <div
+                    className="absolute inset-0 bg-black/40"
+                    onClick={() => onClose && onClose()}
+                />
+                <aside className="relative h-full w-64 border-r border-gray-100 bg-white py-6">
+                    <div className="flex items-center justify-between px-4">
+                        <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                            Admin Dashboard
+                        </h2>
+                        <button
+                            type="button"
+                            onClick={() => onClose && onClose()}
+                            aria-label="Close menu"
+                            className="p-2"
+                        >
+                            <X className="h-5 w-5 text-slate-600" />
                         </button>
                     </div>
 
-                    <nav className="flex flex-col mt-4">
-                        {menuItems.map((item) => (
-                            <button
-                                key={item.name}
-                                onClick={() => handleClick(item.name, item.path)}
-                                className={`flex items-center px-6 py-4 transition-all duration-200 border-l-[3px] ${section
-                                    === `${item.name}` ? 'bg-blue-50 border-blue-600 text-blue-600'
-                                    : 'bg-transparent border-transparent text-slate-500 hover:bg-gray-50'
-                                    }`}
-                            >
-                                <item.icon
-                                    className={`w-5 h-5 mr-4 ${section
-                                        === `${item.name}` ? 'text-blue-600' : 'text-slate-400'
-                                        }`}
-                                />
-                                <span className="text-[15px] font-medium flex shrink-0">{item.name}</span>
-                            </button>
-                        ))}
+                    <nav className="mt-4 flex flex-col">
+                        {renderNavItems(false)}
                     </nav>
                 </aside>
             </div>

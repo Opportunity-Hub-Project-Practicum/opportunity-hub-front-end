@@ -45,6 +45,11 @@ export const ROUTES = {
       MANAGE_USER:'manageUser',
       PROFILE:'profile',
       REPORTED:'reported',
+      REPORTED_DETAIL_ROUTE: 'reported/:postId',
+      REPORTED_DETAIL: (postId: string | number, status?: 'pending' | 'resolved') => {
+        const base = `/admin/reported/${postId}`;
+        return status ? `${base}?status=${status}` : base;
+      },
       ALL_EMPLOYER:'allEmployer'
        
 

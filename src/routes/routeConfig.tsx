@@ -36,6 +36,7 @@ import AllPostPage from "../features/Admin/Pages/AllPostPage";
 import ManageUserPage from "../features/Admin/Pages/ManageUserPage";
 import ProfilePage from "../features/Admin/Pages/ProfilePage";
 import ReportedPage from "../features/Admin/Pages/ReportedPage";
+import ReportedPostDetailPage from "../features/Admin/Pages/ReportedPostDetailPage";
 import { createRoleLoader } from "./loaders";
 export interface RouteConfig {
     path?: string;
@@ -220,6 +221,9 @@ export const routeConfig: RouteConfig[] = [
             }, {
                 path: ROUTES.ADMIN.REPORTED,
                 component: ReportedPage,
+            }, {
+                path: ROUTES.ADMIN.REPORTED_DETAIL_ROUTE,
+                component: ReportedPostDetailPage,
             },
         ]
     }
