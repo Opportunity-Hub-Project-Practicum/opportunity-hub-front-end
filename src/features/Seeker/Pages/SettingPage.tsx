@@ -28,13 +28,18 @@ const EMPTY_NOTIFY: SeekerNotifyFormState = {
     },
     jobAlerts: { role: "", location: "" },
     volunteerAlerts: { role: "", location: "" },
-    profilePrivacy: true,
     alertCategory: "job",
 };
 
 export default function Setting() {
     const [seekerData, setSeekerData] = useState<SeekerFormData | null>(null);
-    const [profileMeta, setProfileMeta] = useState<SeekerProfileMeta>({ cvResumePath: null });
+    const [profileMeta, setProfileMeta] = useState<SeekerProfileMeta>({
+        cvResumePath: null,
+        profileImagePath: null,
+        educationIds: [],
+        experienceIds: [],
+        socialContactIds: {},
+    });
     const [seekerNotifySetting, setSeekerNotifySetting] = useState<SeekerNotifyFormState>(EMPTY_NOTIFY);
 
     const [isProfile, setIsProfile] = useState(true);
@@ -83,7 +88,6 @@ export default function Setting() {
                 const updatedMeta = await saveSeekerProfileSettings(
                     seekerData,
                     profileMeta,
-                    seekerNotifySetting.profilePrivacy,
                 );
                 const refreshed = await reloadSeekerSettings();
                 setSeekerData(refreshed.profile);
@@ -112,7 +116,7 @@ export default function Setting() {
         setSuccess(null);
 
         try {
-            await saveSeekerAccountSettings(seekerNotifySetting, seekerData, profileMeta);
+            await saveSeekerAccountSettings(seekerNotifySetting);
             const refreshed = await reloadSeekerSettings();
             setSeekerData(refreshed.profile);
             setProfileMeta(refreshed.meta);
@@ -163,7 +167,7 @@ export default function Setting() {
             )}
 
             <p className="mb-4 text-xs text-slate-500">
-                Note: file uploads send a file path string only (no upload API yet). Password change uses forgot-password email.
+                Profile photos and resumes upload when you click Done. Password change uses forgot-password email.
                 Job and volunteer alerts share one backend alert slot — job alerts are saved by default.
             </p>
 
@@ -279,32 +283,6 @@ export default function Setting() {
                             </div>
                         </div>
                     </section>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-5">
-                        <section>
-                            <h2 className="text-lg font-semibold mb-2">Profile Privacy</h2>
-                            <div className="flex items-center border border-gray-200 rounded-md p-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setSeekerNotifySetting((prev) => ({
-                                        ...prev,
-                                        profilePrivacy: !prev.profilePrivacy,
-                                    }))}
-                                    className={`flex items-center rounded-full px-2 py-1 mr-3 ${seekerNotifySetting.profilePrivacy ? "bg-blue-600" : "bg-gray-200"}`}
-                                >
-                                    <div className="w-3 h-3 bg-white rounded-full mr-2" />
-                                    <span className={`text-[10px] font-bold ${seekerNotifySetting.profilePrivacy ? "text-white" : "text-gray-500"}`}>
-                                        {seekerNotifySetting.profilePrivacy ? "YES" : "NO"}
-                                    </span>
-                                </button>
-                                <span className="text-sm text-gray-500">
-                                    {seekerNotifySetting.profilePrivacy
-                                        ? "Your profile is public"
-                                        : "Your profile is private"}
-                                </span>
-                            </div>
-                        </section>
-                    </div>
 
                     <button
                         type="button"

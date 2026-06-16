@@ -4,6 +4,7 @@ import type {
     SeekerFormData,
     SocialLink,
 } from "../../../GlobalComponents/SeekerProfileSection";
+import { resolveAssetUrl } from "../../Employer/lib/resolveAssetUrl";
 import type {
     SeekerNotifySettingApi,
     SeekerProfileApi,
@@ -21,7 +22,6 @@ export interface SeekerNotifyFormState {
     };
     jobAlerts: { role: string; location: string };
     volunteerAlerts: { role: string; location: string };
-    profilePrivacy: boolean;
     alertCategory: "job" | "volunteer" | null;
 }
 
@@ -29,6 +29,10 @@ export interface SeekerProfileMeta {
     phoneContactId?: number;
     websiteContactId?: number;
     cvResumePath: string | null;
+    profileImagePath: string | null;
+    educationIds: number[];
+    experienceIds: number[];
+    socialContactIds: Record<string, number>;
 }
 
 export interface SeekerSettingsBundle {
@@ -48,6 +52,7 @@ const EMPTY_PROFILE: SeekerFormData = {
     Phone: "",
     bio: "",
     profileImage: null,
+    profileImageFile: undefined,
     socialLinks: [{ id: "1", platform: "website", url: "" }],
     resume: [],
     education: [],
@@ -158,6 +163,12 @@ export function mapProfileApiToSettings(profile: SeekerProfileApi): SeekerSettin
           ? [{ id: "legacy-social", platform: "social", url: profile.social_link }]
           : [{ id: "1", platform: "website", url: "" }];
 
+    const socialContactIds = Object.fromEntries(
+        socialLinks
+            .filter((link) => link.contactId != null)
+            .map((link) => [link.id, link.contactId as number]),
+    );
+
     const education: EducationEntry[] = (profile.educations ?? []).map((item) => ({
         educationId: item.education_id,
         school: item.institution_name,
@@ -200,10 +211,16 @@ export function mapProfileApiToSettings(profile: SeekerProfileApi): SeekerSettin
             martialStatus: profile.marital_status ?? "",
             Phone: profile.seeker_phone_number ?? phoneContact?.value ?? "",
             bio: profile.biography ?? "",
-            profileImage: profile.profile_img,
+            profileImage: profile.profile_img ? resolveAssetUrl(profile.profile_img) : null,
+            profileImageFile: undefined,
             socialLinks,
             resume: profile.cv_resume
-                ? [{ id: "cv", name: profile.cv_resume.split("/").pop() ?? "Resume", size: "" }]
+                ? [{
+                    id: "cv",
+                    name: profile.cv_resume.split("/").pop() ?? "Resume",
+                    size: "",
+                    url: resolveAssetUrl(profile.cv_resume),
+                }]
                 : [],
             education,
             experience,
@@ -212,14 +229,21 @@ export function mapProfileApiToSettings(profile: SeekerProfileApi): SeekerSettin
             phoneContactId: phoneContact?.contact_id,
             websiteContactId: websiteContact?.contact_id,
             cvResumePath: profile.cv_resume,
+            profileImagePath: profile.profile_img,
+            educationIds: education
+                .map((entry) => entry.educationId)
+                .filter((id): id is number => id != null),
+            experienceIds: experience
+                .map((entry) => entry.experienceId)
+                .filter((id): id is number => id != null),
+            socialContactIds,
         },
-        notify: mapNotifyApiToForm(notifySetting, profile.is_profile_public, alertCategory, alerts),
+        notify: mapNotifyApiToForm(notifySetting, alertCategory, alerts),
     };
 }
 
 export function mapNotifyApiToForm(
     setting: SeekerNotifySettingApi | null | undefined,
-    isProfilePublic: boolean,
     alertCategory: "job" | "volunteer" | null = "job",
     alerts: { role: string; location: string } = { role: "", location: "" },
 ): SeekerNotifyFormState {
@@ -236,7 +260,6 @@ export function mapNotifyApiToForm(
         },
         jobAlerts,
         volunteerAlerts,
-        profilePrivacy: isProfilePublic,
         alertCategory,
     };
 }
@@ -244,22 +267,26 @@ export function mapNotifyApiToForm(
 export function mapProfileFormToUpdatePayload(
     profile: SeekerFormData,
     meta: SeekerProfileMeta,
-    profilePrivacy: boolean,
+    uploadedProfilePath?: string | null,
+    uploadedResumePath?: string | null,
 ): UpdateSeekerProfilePayload {
     const payload: UpdateSeekerProfilePayload = {
-        is_profile_public: profilePrivacy,
         birth_date: parseBirthDateForApi(profile.dob) ?? null,
         gender: profile.gender || null,
         marital_status: profile.martialStatus || null,
         biography: profile.bio || null,
     };
 
-    if (profile.profileImage && !profile.profileImage.startsWith("data:")) {
-        payload.profile_img = profile.profileImage;
+    if (uploadedProfilePath) {
+        payload.profile_img = uploadedProfilePath;
+    } else if (meta.profileImagePath) {
+        payload.profile_img = meta.profileImagePath;
     }
 
-    if (profile.resume[0]?.name) {
-        payload.cv_resume = meta.cvResumePath ?? `resumes/${profile.resume[0].name}`;
+    if (uploadedResumePath) {
+        payload.cv_resume = uploadedResumePath;
+    } else if (profile.resume.length === 0) {
+        payload.cv_resume = null;
     } else if (meta.cvResumePath) {
         payload.cv_resume = meta.cvResumePath;
     }

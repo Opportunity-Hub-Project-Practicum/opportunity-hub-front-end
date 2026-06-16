@@ -1,5 +1,6 @@
 import type { EmployerData, SocialLink } from "../../../GlobalComponents/OrganizationForm";
 import type { AuthUser } from "../../../types/auth";
+import { resolveAssetUrl } from "./resolveAssetUrl";
 import type {
     EmployerContactApi,
     EmployerProfileApi,
@@ -104,6 +105,7 @@ export function mapProfileApiToSettings(
             fullName: user?.full_name ?? "",
             password: "",
             confirmPassword: "",
+            currentPassword: "",
             companyName: profile.company_name ?? "",
             location: profile.map_location ?? getEmployerMapLocation(user),
             phoneNumber: profile.company_phone_number ?? "",
@@ -120,6 +122,7 @@ export function mapProfileApiToSettings(
                     id: "logo",
                     name: profile.logo_img.split("/").pop() ?? "Logo",
                     size: "",
+                    url: resolveAssetUrl(profile.logo_img),
                 }
                 : undefined,
             socialLinks: links,
@@ -134,6 +137,7 @@ export function mapProfileApiToSettings(
 export function mapEmployerFormToUpdatePayload(
     data: EmployerData,
     meta: EmployerProfileMeta,
+    uploadedLogoPath?: string | null,
 ): UpdateEmployerProfilePayload {
     const payload: UpdateEmployerProfilePayload = {
         company_name: data.companyName.trim(),
@@ -150,8 +154,8 @@ export function mapEmployerFormToUpdatePayload(
         social_link: firstSocialLink(data) ?? null,
     };
 
-    if (data.logo?.raw) {
-        payload.logo_img = `logos/${data.logo.name}`;
+    if (uploadedLogoPath) {
+        payload.logo_img = uploadedLogoPath;
     } else if (meta.logoPath) {
         payload.logo_img = meta.logoPath;
     }

@@ -24,6 +24,8 @@ export interface ResumeFile {
     id: string;
     name: string;
     size: string;
+    raw?: globalThis.File;
+    url?: string;
 }
 
 export interface SocialLink {
@@ -67,6 +69,7 @@ export interface SeekerFormData {
     Phone: string;
     bio: string;
     profileImage: string | null;
+    profileImageFile?: globalThis.File;
     socialLinks: SocialLink[];
     resume: ResumeFile[];
     education: EducationEntry[];
@@ -143,7 +146,7 @@ const CvResumeSection: React.FC<{
                                 <span className="text-xs font-medium text-gray-700">Add Cv/Resume</span>
                             </div>
                             <p className="text-xs text-gray-400">Browse file or drop here. only pdf</p>
-                            <Upload onUpload={(resume) => setResumes(prev => [...prev, resume])} inputRef={fileInputRef} />
+                            <Upload onUpload={(resume) => setResumes([resume])} inputRef={fileInputRef} />
                         </button>
                     )}
                 </div>
@@ -203,9 +206,8 @@ export default function SeekerProfileSection({
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && file.size <= 5 * 1024 * 1024) {
-            const reader = new FileReader();
-            reader.onload = (event) => handleFieldChange('profileImage', event.target?.result as string);
-            reader.readAsDataURL(file);
+            handleFieldChange("profileImage", URL.createObjectURL(file));
+            handleFieldChange("profileImageFile", file);
         } else if (file) {
             alert("File size exceeds 5 MB limit");
         }

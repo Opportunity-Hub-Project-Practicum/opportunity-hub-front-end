@@ -19,6 +19,7 @@ export type EmployerData = {
     fullName: string
     password: string
     confirmPassword: string
+    currentPassword: string
     companyName: string
     location: string
     phoneNumber: string
@@ -43,6 +44,8 @@ export type EmployerFormProps = {
     companyInfoTab?: boolean
     /** Notifies the parent whenever the user switches tabs. */
     onTabChange?: (isCompanyInfo: boolean) => void
+    /** Registration keeps password required; settings makes account fields optional. */
+    variant?: "register" | "settings"
 }
 
 // ─── Default state ────────────────────────────────────────────────────────────
@@ -51,6 +54,7 @@ const DEFAULT_DATA: EmployerData = {
     fullName: "",
     password: "",
     confirmPassword: "",
+    currentPassword: "",
     companyName: "",
     location: "",
     phoneNumber: "",
@@ -68,7 +72,13 @@ const DEFAULT_DATA: EmployerData = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function OrganizationForm({ initialData, onChange, companyInfoTab, onTabChange }: EmployerFormProps) {
+export default function OrganizationForm({
+    initialData,
+    onChange,
+    companyInfoTab,
+    onTabChange,
+    variant = "register",
+}: EmployerFormProps) {
 
     const [employerData, setEmployerData] = useState<EmployerData>({
         ...DEFAULT_DATA,
@@ -113,6 +123,9 @@ export default function OrganizationForm({ initialData, onChange, companyInfoTab
         onTabChange?.(isInfoTab)
     }
 
+    const isSettings = variant === "settings"
+    const logoPreviewUrl = employerData.logo?.url
+
     // ── Render ──────────────────────────────────────────────────────────────
 
     return (
@@ -153,11 +166,21 @@ export default function OrganizationForm({ initialData, onChange, companyInfoTab
                         {/* Logo + Social links */}
                         <div className="flex w-full gap-4">
                             <div>
-                                <div className="border flex items-center justify-center p-4 w-32 h-32 rounded-2xl bg-gray-200">
-                                    <Upload onUpload={(file) => updateField("logo", file)} />
+                                <div className="relative border flex items-center justify-center p-4 w-32 h-32 rounded-2xl bg-gray-200 overflow-hidden">
+                                    {logoPreviewUrl && (
+                                        <img
+                                            src={logoPreviewUrl}
+                                            alt="Company logo"
+                                            className="absolute inset-0 h-full w-full object-cover"
+                                        />
+                                    )}
+                                    <Upload
+                                        kind="image"
+                                        onUpload={(file) => updateField("logo", file)}
+                                    />
                                 </div>
                                 <span className="flex items-center justify-center shrink-0 text-gray-600">
-                                    Upload file
+                                    {logoPreviewUrl ? "Change logo" : "Upload logo"}
                                 </span>
                             </div>
 
@@ -231,9 +254,9 @@ export default function OrganizationForm({ initialData, onChange, companyInfoTab
                                     type="password"
                                     value={employerData.password}
                                     onChange={(e) => updateField("password", e.target.value)}
-                                    placeholder="Password"
+                                    placeholder={isSettings ? "Leave blank to keep current password" : "Password"}
                                     autoComplete="new-password"
-                                    required
+                                    required={!isSettings}
                                     className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
                                 />
                             </div>
@@ -243,12 +266,25 @@ export default function OrganizationForm({ initialData, onChange, companyInfoTab
                                     type="password"
                                     value={employerData.confirmPassword}
                                     onChange={(e) => updateField("confirmPassword", e.target.value)}
-                                    placeholder="Confirm password"
+                                    placeholder={isSettings ? "Confirm new password" : "Confirm password"}
                                     autoComplete="new-password"
-                                    required
+                                    required={!isSettings}
                                     className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
                                 />
                             </div>
+                            {isSettings && (
+                                <div className="flex flex-col gap-2 md:col-span-2">
+                                    <span>Current password</span>
+                                    <input
+                                        type="password"
+                                        value={employerData.currentPassword}
+                                        onChange={(e) => updateField("currentPassword", e.target.value)}
+                                        placeholder="Required only when changing password"
+                                        autoComplete="current-password"
+                                        className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* About Company */}

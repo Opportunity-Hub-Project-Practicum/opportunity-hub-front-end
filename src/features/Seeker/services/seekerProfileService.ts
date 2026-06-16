@@ -85,3 +85,60 @@ export async function createWorkExperience(payload: {
         body: JSON.stringify(payload),
     });
 }
+
+export async function deleteContact(contactId: number): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>(`/seeker/contacts/${contactId}`, {
+        method: "DELETE",
+    });
+}
+
+export async function updateEducation(
+    educationId: number,
+    payload: {
+        institution_name?: string;
+        degree?: string;
+        location?: string;
+        country?: string;
+        start_date?: string;
+        end_date?: string | null;
+    },
+): Promise<{ education: SeekerEducationApi }> {
+    return apiRequest<{ education: SeekerEducationApi }>(`/seeker/educations/${educationId}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function deleteEducation(educationId: number): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>(`/seeker/educations/${educationId}`, {
+        method: "DELETE",
+    });
+}
+
+export async function updateWorkExperience(
+    experienceId: number,
+    payload: {
+        company_name?: string;
+        job_title?: string;
+        job_role?: string;
+        year_of_experience?: number;
+        industry?: string;
+        start_date?: string;
+        end_date?: string | null;
+        description?: string | null;
+    },
+): Promise<{ work_experience: SeekerWorkExperienceApi }> {
+    return apiRequest<{ work_experience: SeekerWorkExperienceApi }>(
+        `/seeker/work-experiences/${experienceId}`,
+        {
+            method: "PUT",
+            body: JSON.stringify(payload),
+        },
+    );
+}
+
+export async function deleteWorkExperience(experienceId: number): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>(`/seeker/work-experiences/${experienceId}`, {
+        method: "DELETE",
+    });
+}

@@ -32,6 +32,19 @@ export interface MessageResponse {
     message: string;
 }
 
+export interface UpdateAccountPayload {
+    full_name?: string;
+    email?: string;
+    current_password?: string;
+    password?: string;
+    password_confirmation?: string;
+}
+
+export interface UpdateAccountResponse {
+    message: string;
+    user: AuthUser;
+}
+
 export interface RoleChangeRequestResponse {
     message: string;
     request: {

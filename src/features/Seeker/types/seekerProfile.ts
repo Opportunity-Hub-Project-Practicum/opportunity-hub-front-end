@@ -43,7 +43,6 @@ export interface SeekerProfileApi {
     user_id: number;
     full_name?: string | null;
     email?: string | null;
-    is_profile_public: boolean;
     profile_img: string | null;
     seeker_phone_number: string | null;
     birth_date: string | null;
@@ -68,7 +67,6 @@ export interface SeekerNotifySettingResponse {
 }
 
 export interface UpdateSeekerProfilePayload {
-    is_profile_public?: boolean;
     profile_img?: string | null;
     birth_date?: string | null;
     gender?: string | null;

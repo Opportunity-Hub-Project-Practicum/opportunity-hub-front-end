@@ -4,6 +4,8 @@ import type {
     MeResponse,
     MessageResponse,
     RoleChangeRequestResponse,
+    UpdateAccountPayload,
+    UpdateAccountResponse,
 } from "../types/auth";
 import type { EmployerRegisterPayload } from "../features/Employer/types/employerRegister";
 import { toEmployerRegisterApiBody } from "../features/Employer/lib/buildEmployerRegisterPayload";
@@ -111,6 +113,16 @@ export async function login(payload: LoginPayload): Promise<AuthResponse> {
 
 export async function fetchCurrentUser(): Promise<AuthUser> {
     const data = await apiRequest<MeResponse>("/auth/me");
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
+    localStorage.setItem(USER_ROLE_KEY, data.user.role);
+    return data.user;
+}
+
+export async function updateAccount(payload: UpdateAccountPayload): Promise<AuthUser> {
+    const data = await apiRequest<UpdateAccountResponse>("/auth/me", {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
     localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
     localStorage.setItem(USER_ROLE_KEY, data.user.role);
     return data.user;

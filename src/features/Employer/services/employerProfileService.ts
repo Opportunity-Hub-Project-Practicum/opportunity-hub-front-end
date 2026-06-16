@@ -44,3 +44,9 @@ export async function updateEmployerContact(
         body: JSON.stringify(payload),
     });
 }
+
+export async function deleteEmployerContact(contactId: number): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>(`/employer/contacts/${contactId}`, {
+        method: "DELETE",
+    });
+}

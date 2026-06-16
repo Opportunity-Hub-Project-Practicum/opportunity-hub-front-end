@@ -1,4 +1,5 @@
 import type { SeekerFormData } from "../../../GlobalComponents/SeekerProfileSection";
+import { uploadFile } from "../../../services/uploadService";
 import {
     mapEducationEntryToApi,
     mapExperienceEntryToApi,
@@ -12,19 +13,47 @@ import {
     createContact,
     createEducation,
     createWorkExperience,
+    deleteContact,
+    deleteEducation,
+    deleteWorkExperience,
     fetchSeekerProfile,
     updateContact,
+    updateEducation,
     updateNotifySettings,
     updateSeekerProfile,
+    updateWorkExperience,
 } from "../services/seekerProfileService";
+
+async function uploadProfileImageIfNeeded(profile: SeekerFormData): Promise<string | null> {
+    if (!profile.profileImageFile) {
+        return null;
+    }
+
+    const response = await uploadFile(profile.profileImageFile, "profiles");
+    return response.path;
+}
+
+async function uploadResumeIfNeeded(profile: SeekerFormData): Promise<string | null> {
+    const resume = profile.resume[0];
+    if (!resume?.raw) {
+        return null;
+    }
+
+    const response = await uploadFile(resume.raw, "resumes");
+    return response.path;
+}
 
 async function syncPhoneContact(
     phone: string,
     phoneContactId: number | undefined,
 ): Promise<number | undefined> {
     const value = phone.trim();
+
     if (!value) {
-        return phoneContactId;
+        if (phoneContactId) {
+            await deleteContact(phoneContactId);
+        }
+        return undefined;
     }
 
     if (phoneContactId) {
@@ -45,8 +74,12 @@ async function syncWebsiteContact(
     websiteContactId: number | undefined,
 ): Promise<number | undefined> {
     const value = website.trim();
+
     if (!value) {
-        return websiteContactId;
+        if (websiteContactId) {
+            await deleteContact(websiteContactId);
+        }
+        return undefined;
     }
 
     if (websiteContactId) {
@@ -62,70 +95,144 @@ async function syncWebsiteContact(
     return response.contact.contact_id;
 }
 
-async function syncSocialContacts(profile: SeekerFormData): Promise<void> {
-    const links = profile.socialLinks.filter((link) => link.url.trim().length > 0);
+async function syncSocialContacts(
+    profile: SeekerFormData,
+    meta: SeekerProfileMeta,
+): Promise<Record<string, number>> {
+    const socialContactIds = { ...meta.socialContactIds };
+    const activeLinks = profile.socialLinks.filter((link) => link.url.trim().length > 0);
+    const activeLinkIds = new Set(activeLinks.map((link) => link.id));
 
-    for (const link of links) {
+    for (const [linkId, contactId] of Object.entries(meta.socialContactIds)) {
+        if (!activeLinkIds.has(linkId)) {
+            await deleteContact(contactId);
+            delete socialContactIds[linkId];
+        }
+    }
+
+    for (const link of activeLinks) {
         const value = link.url.trim();
-        if (link.contactId) {
-            await updateContact(link.contactId, {
+        const contactId = link.contactId ?? socialContactIds[link.id];
+
+        if (contactId) {
+            await updateContact(contactId, {
                 label: link.platform || "Social",
                 value,
             });
+            socialContactIds[link.id] = contactId;
             continue;
         }
 
-        await createContact({
+        const response = await createContact({
             category: "social",
             label: link.platform || "Social",
             value,
         });
+        socialContactIds[link.id] = response.contact.contact_id;
     }
+
+    return socialContactIds;
 }
 
-async function syncNewEducations(profile: SeekerFormData): Promise<void> {
-    const pending = profile.education.filter((entry) => !entry.educationId);
-    for (const entry of pending) {
-        await createEducation(mapEducationEntryToApi(entry));
+async function syncEducations(profile: SeekerFormData, meta: SeekerProfileMeta): Promise<number[]> {
+    const currentIds = new Set(
+        profile.education
+            .map((entry) => entry.educationId)
+            .filter((id): id is number => id != null),
+    );
+
+    for (const educationId of meta.educationIds) {
+        if (!currentIds.has(educationId)) {
+            await deleteEducation(educationId);
+        }
     }
+
+    const savedIds: number[] = [];
+
+    for (const entry of profile.education) {
+        const payload = mapEducationEntryToApi(entry);
+
+        if (entry.educationId) {
+            await updateEducation(entry.educationId, payload);
+            savedIds.push(entry.educationId);
+            continue;
+        }
+
+        const response = await createEducation(payload);
+        savedIds.push(response.education.education_id);
+    }
+
+    return savedIds;
 }
 
-async function syncNewExperiences(profile: SeekerFormData): Promise<void> {
-    const pending = profile.experience.filter((entry) => !entry.experienceId);
-    for (const entry of pending) {
-        await createWorkExperience(mapExperienceEntryToApi(entry));
+async function syncExperiences(profile: SeekerFormData, meta: SeekerProfileMeta): Promise<number[]> {
+    const currentIds = new Set(
+        profile.experience
+            .map((entry) => entry.experienceId)
+            .filter((id): id is number => id != null),
+    );
+
+    for (const experienceId of meta.experienceIds) {
+        if (!currentIds.has(experienceId)) {
+            await deleteWorkExperience(experienceId);
+        }
     }
+
+    const savedIds: number[] = [];
+
+    for (const entry of profile.experience) {
+        const payload = mapExperienceEntryToApi(entry);
+
+        if (entry.experienceId) {
+            await updateWorkExperience(entry.experienceId, payload);
+            savedIds.push(entry.experienceId);
+            continue;
+        }
+
+        const response = await createWorkExperience(payload);
+        savedIds.push(response.work_experience.experience_id);
+    }
+
+    return savedIds;
 }
 
 export async function saveSeekerProfileSettings(
     profile: SeekerFormData,
     meta: SeekerProfileMeta,
-    profilePrivacy: boolean,
 ): Promise<SeekerProfileMeta> {
-    await updateSeekerProfile(mapProfileFormToUpdatePayload(profile, meta, profilePrivacy));
+    const [uploadedProfilePath, uploadedResumePath] = await Promise.all([
+        uploadProfileImageIfNeeded(profile),
+        uploadResumeIfNeeded(profile),
+    ]);
 
-    const phoneContactId = await syncPhoneContact(profile.Phone, meta.phoneContactId);
-    const websiteContactId = await syncWebsiteContact(profile.website, meta.websiteContactId);
-    await syncSocialContacts(profile);
-    await syncNewEducations(profile);
-    await syncNewExperiences(profile);
+    await updateSeekerProfile(
+        mapProfileFormToUpdatePayload(profile, meta, uploadedProfilePath, uploadedResumePath),
+    );
+
+    const [phoneContactId, websiteContactId, socialContactIds, educationIds, experienceIds] =
+        await Promise.all([
+            syncPhoneContact(profile.Phone, meta.phoneContactId),
+            syncWebsiteContact(profile.website, meta.websiteContactId),
+            syncSocialContacts(profile, meta),
+            syncEducations(profile, meta),
+            syncExperiences(profile, meta),
+        ]);
 
     return {
-        ...meta,
         phoneContactId,
         websiteContactId,
+        socialContactIds,
+        educationIds,
+        experienceIds,
+        profileImagePath: uploadedProfilePath ?? meta.profileImagePath,
+        cvResumePath: uploadedResumePath ?? (profile.resume.length > 0 ? meta.cvResumePath : null),
     };
 }
 
 export async function saveSeekerAccountSettings(
     notify: SeekerNotifyFormState,
-    profile: SeekerFormData,
-    meta: SeekerProfileMeta,
 ): Promise<void> {
     await updateNotifySettings(mapNotifyFormToUpdatePayload(notify));
-    await updateSeekerProfile({
-        is_profile_public: notify.profilePrivacy,
-    });
 }
 
 export async function reloadSeekerSettings() {
