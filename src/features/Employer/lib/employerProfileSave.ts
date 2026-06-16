@@ -32,9 +32,6 @@ async function saveEmployerAccountSettings(
     const payload: Parameters<typeof updateAccount>[0] = {};
     const fullName = formData.fullName.trim();
     const email = formData.email.trim();
-    const password = formData.password.trim();
-    const confirmPassword = formData.confirmPassword.trim();
-    const currentPassword = formData.currentPassword.trim();
 
     if (fullName && fullName !== user.full_name) {
         payload.full_name = fullName;
@@ -42,24 +39,6 @@ async function saveEmployerAccountSettings(
 
     if (email && email !== user.email) {
         payload.email = email;
-    }
-
-    if (password) {
-        if (password !== confirmPassword) {
-            throw new Error("Passwords do not match.");
-        }
-
-        if (password.length < 8) {
-            throw new Error("Password must be at least 8 characters.");
-        }
-
-        if (!currentPassword) {
-            throw new Error("Enter your current password to set a new password.");
-        }
-
-        payload.current_password = currentPassword;
-        payload.password = password;
-        payload.password_confirmation = confirmPassword;
     }
 
     if (Object.keys(payload).length > 0) {

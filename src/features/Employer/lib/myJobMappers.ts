@@ -1,4 +1,5 @@
 import type { EmployerPostApi } from "../types/employerPost";
+import type { UpdateEmployerPostPayload } from "../services/employerPostService";
 
 export type ListingStatus = "Active" | "Expire";
 
@@ -11,6 +12,7 @@ export type ListingItem = {
     timeRemaining: string;
     status: ListingStatus;
     applicationsCount: number;
+    closedDate: string | null;
 };
 
 const DURATION_LABELS: Record<string, string> = {
@@ -103,5 +105,66 @@ export function mapEmployerPostToListingItem(post: EmployerPostApi): ListingItem
         timeRemaining: formatTimeRemaining(post, status),
         status,
         applicationsCount: post.applications_count ?? 0,
+        closedDate: post.closed_date,
     };
+}
+
+export function closedDateFromDaysOpen(days: number): string {
+    const closingDate = new Date();
+    closingDate.setDate(closingDate.getDate() + days);
+    closingDate.setHours(23, 59, 59, 999);
+    return closingDate.toISOString();
+}
+
+export function toApiClosedDate(dateValue: string): string {
+    return new Date(`${dateValue}T23:59:59`).toISOString();
+}
+
+export function defaultDaysOpen(listing: ListingItem): number {
+    if (!listing.closedDate) {
+        return 30;
+    }
+
+    const closing = new Date(listing.closedDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    closing.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.ceil((closing.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 30;
+}
+
+export function defaultClosingDateInput(listing: ListingItem): string {
+    if (listing.closedDate) {
+        const closing = new Date(listing.closedDate);
+        if (closing > new Date()) {
+            return closing.toISOString().slice(0, 10);
+        }
+    }
+
+    const fallback = new Date();
+    fallback.setDate(fallback.getDate() + 30);
+    return fallback.toISOString().slice(0, 10);
+}
+
+export function buildPostOpenUntilPayload(closedDate: string): UpdateEmployerPostPayload {
+    return {
+        post_status: "open",
+        closed_date: closedDate,
+    };
+}
+
+export function buildPostClosePayload(): UpdateEmployerPostPayload {
+    return { post_status: "closed" };
+}
+
+export function applyUpdatedPostToListings(
+    listings: ListingItem[],
+    updatedPost: EmployerPostApi,
+): ListingItem[] {
+    const updatedItem = mapEmployerPostToListingItem(updatedPost);
+
+    return listings.map((item) =>
+        item.postId === updatedPost.post_id ? updatedItem : item,
+    );
 }

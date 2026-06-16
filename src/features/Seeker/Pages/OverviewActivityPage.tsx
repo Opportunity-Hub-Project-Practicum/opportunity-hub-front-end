@@ -78,7 +78,7 @@ export default function OverviewActivity() {
     return (
         <div className="page-container flex flex-col gap-5 ">
             <span>Hello, {overviewData?.userName ?? "User"}</span>
-            <small className="text-gray-600">Here is your Daily Activity</small>
+
 
             {loading && <p className="text-gray-500">Loading activity...</p>}
             {error && <p className="text-red-600">{error}</p>}
@@ -178,7 +178,7 @@ export default function OverviewActivity() {
                         </span>
                         <Link
                             to={ROUTES.HOME.POST_DETAIL(item.postId)}
-                            className="bg-primary text-white flex justify-center items-center rounded-2xl"
+                            className="bg-primary text-white flex justify-center items-center rounded-2xl m-2"
                         >
                             View Post
                         </Link>

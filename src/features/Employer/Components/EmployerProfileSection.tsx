@@ -132,7 +132,7 @@ export default function EmployerProfileSection({
     const activeSocialLinks = data.socialLinks.filter((link) => link.url.trim().length > 0);
 
     return (
-        <div className="page-container flex flex-col items-center px-4 py-6">
+        <div className="page-container flex flex-col items-center  py-6">
             <div className="mb-6 flex w-full max-w-4xl flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <h1 className="text-xl font-semibold text-slate-900">Company profile</h1>
@@ -298,29 +298,6 @@ export default function EmployerProfileSection({
                                         placeholder="Company email"
                                         type="email"
                                     />
-                                    <EditField
-                                        label="New password"
-                                        value={data.password}
-                                        onChange={(value) => onFieldChange("password", value)}
-                                        type="password"
-                                        placeholder="Leave blank to keep current"
-                                    />
-                                    <EditField
-                                        label="Confirm password"
-                                        value={data.confirmPassword}
-                                        onChange={(value) => onFieldChange("confirmPassword", value)}
-                                        type="password"
-                                        placeholder="Confirm new password"
-                                    />
-                                    <div className="md:col-span-2">
-                                        <EditField
-                                            label="Current password"
-                                            value={data.currentPassword}
-                                            onChange={(value) => onFieldChange("currentPassword", value)}
-                                            type="password"
-                                            placeholder="Required when changing password"
-                                        />
-                                    </div>
                                 </div>
 
                                 <div>

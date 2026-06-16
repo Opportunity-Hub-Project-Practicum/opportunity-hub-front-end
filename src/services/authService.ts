@@ -136,6 +136,14 @@ export async function logout(): Promise<void> {
     }
 }
 
+export async function deleteAccount(): Promise<MessageResponse> {
+    const data = await apiRequest<MessageResponse>("/auth/me", {
+        method: "DELETE",
+    });
+    clearAuthSession();
+    return data;
+}
+
 export async function submitRoleChangeRequest(
     payload: RoleChangeRequestPayload,
 ): Promise<RoleChangeRequestResponse> {

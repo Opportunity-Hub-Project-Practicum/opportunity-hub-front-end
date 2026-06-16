@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
     CircleUserRound, Settings,
-    Briefcase, MapPin, XCircle,
+    Briefcase, MapPin,
 } from "lucide-react";
 import SeekerProfileSection, { type SeekerFormData } from "../../../GlobalComponents/SeekerProfileSection";
 import Password from "../../../GlobalComponents/Password";
@@ -167,7 +167,7 @@ export default function Setting() {
             )}
 
             <p className="mb-4 text-xs text-slate-500">
-                Profile photos and resumes upload when you click Done. Password change uses forgot-password email.
+                Profile photos and resumes upload when you click Done.
                 Job and volunteer alerts share one backend alert slot — job alerts are saved by default.
             </p>
 
@@ -186,31 +186,6 @@ export default function Setting() {
 
             {!isProfile && (
                 <div className="w-full min-h-screen bg-white p-8 text-slate-700">
-                    <section className="mb-8">
-                        <h2 className="text-lg font-semibold mb-4">Notification</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {[
-                                { key: "employerShortlistedMe", label: "Notify me when employers shortlisted me" },
-                                { key: "newOpportunity", label: "Notify me when there is new opportunity" },
-                                { key: "notifyOnHire", label: "Notify me when I am hired" },
-                                { key: "employerRejectedMe", label: "Notify me when employers rejected me" },
-                            ].map(({ key, label }) => (
-                                <label key={key} className="flex items-center space-x-3 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={seekerNotifySetting.notifications[key as keyof typeof seekerNotifySetting.notifications]}
-                                        onChange={(e) => setSeekerNotifySetting((prev) => ({
-                                            ...prev,
-                                            notifications: { ...prev.notifications, [key]: e.target.checked },
-                                        }))}
-                                        className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <span className="text-sm text-gray-700">{label}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </section>
-
                     <section className="mb-5">
                         <h2 className="text-lg font-semibold mb-2">Job Alerts</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -295,21 +270,6 @@ export default function Setting() {
                     <hr className="mb-5 border-gray-100" />
 
                     <Password email={seekerData.email} />
-
-                    <section className="max-w-3xl rounded-3xl border border-rose-100 bg-white p-5 shadow-sm md:p-6 mt-8">
-                        <h2 className="text-lg font-semibold mb-2">Delete Your Account</h2>
-                        <p className="text-xs text-gray-400 max-w-2xl leading-relaxed mb-4">
-                            Account deletion is not available through the API yet.
-                        </p>
-                        <button
-                            type="button"
-                            disabled
-                            className="flex items-center text-red-400 text-sm font-semibold cursor-not-allowed"
-                        >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Close Account (not available)
-                        </button>
-                    </section>
                 </div>
             )}
         </div>

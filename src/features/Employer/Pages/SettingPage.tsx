@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
+import { CircleUserRound, Settings } from "lucide-react";
 import type { EmployerData } from "../../../GlobalComponents/OrganizationForm";
+import Password from "../../../GlobalComponents/Password";
 import EmployerProfileSection from "../Components/EmployerProfileSection";
 import { formatApiError } from "../../../services/apiClient";
 import type { EmployerProfileMeta } from "../lib/employerProfileMappers";
@@ -12,6 +14,7 @@ export default function SettingPage() {
         logoPath: null,
         socialContactIds: {},
     });
+    const [isProfile, setIsProfile] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -83,39 +86,68 @@ export default function SettingPage() {
 
     if (isLoading || !formData) {
         return (
-            <div className="flex min-h-[50vh] items-center justify-center px-4 text-sm text-slate-500">
+            <div className="w-full p-6 bg-white min-h-screen text-sm text-slate-600">
                 Loading employer profile...
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-white">
-            {error && (
-                <div className="mx-auto max-w-5xl px-4 pt-6 md:px-6">
-                    <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <div className="w-full bg-white min-h-screen">
+            <div className="w-full p-3">
+                <div className="mb-4 flex w-fit gap-4 rounded-xl bg-gray-100 p-1 text-gray-500">
+                    <button
+                        type="button"
+                        onClick={() => setIsProfile(true)}
+                        className={`flex items-center gap-2 rounded-lg px-4 py-1 text-sm transition-all ${isProfile ? "bg-white text-blue-600 shadow-sm" : "hover:text-gray-700"}`}
+                    >
+                        Profile <CircleUserRound size={16} />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setIsProfile(false)}
+                        className={`flex items-center gap-2 rounded-lg px-4 py-1 text-sm transition-all ${!isProfile ? "bg-white text-blue-600 shadow-sm" : "hover:text-gray-700"}`}
+                    >
+                        Account <Settings size={16} />
+                    </button>
+                </div>
+
+                {error && (
+                    <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                         {error}
                     </p>
-                </div>
-            )}
+                )}
 
-            {success && (
-                <div className="mx-auto max-w-5xl px-4 pt-6 md:px-6">
-                    <p className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+                {success && (
+                    <p className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
                         {success}
                     </p>
-                </div>
+                )}
+
+                {isProfile && (
+                    <p className="mb-4 text-xs text-slate-500">
+                        Company logo uploads when you click Save. Password and account actions are under the Account tab.
+                    </p>
+                )}
+            </div>
+
+            {isProfile && (
+                <EmployerProfileSection
+                    data={formData}
+                    isEditing={isEditing}
+                    isSaving={isSaving}
+                    onFieldChange={handleFieldChange}
+                    onStartEdit={handleStartEdit}
+                    onSave={() => void handleSave()}
+                    onCancel={handleCancelEdit}
+                />
             )}
 
-            <EmployerProfileSection
-                data={formData}
-                isEditing={isEditing}
-                isSaving={isSaving}
-                onFieldChange={handleFieldChange}
-                onStartEdit={handleStartEdit}
-                onSave={() => void handleSave()}
-                onCancel={handleCancelEdit}
-            />
+            {!isProfile && (
+                <div className="w-full min-h-screen bg-white p-8 text-slate-700">
+                    <Password email={formData.email} />
+                </div>
+            )}
         </div>
     );
 }

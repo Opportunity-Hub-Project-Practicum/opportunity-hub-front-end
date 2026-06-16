@@ -6,6 +6,7 @@ import CardGrid from "../Components/card/CardGrid";
 import heroimg from "../../../assets/heroimg.png";
 import howOurWebWork from "../../../assets/howOurWebWork.png";
 import { ROUTES } from "../../../routes/path";
+import { useAuth } from "../../../contexts/AuthContext";
 import { formatApiError } from "../../../services/apiClient";
 import { fetchHomeSeekerData } from "../services/homeSeekerService";
 import type { HomeSeekerData } from "../types/homeSeeker";
@@ -35,6 +36,7 @@ function getHeroIcon(label: string) {
 
 export default function HomeSeeker() {
     const navigate = useNavigate();
+    const { user, isAuthenticated } = useAuth();
     const [homeData, setHomeData] = useState<HomeSeekerData>(EMPTY_HOME_DATA);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -70,6 +72,8 @@ export default function HomeSeeker() {
             isMounted = false;
         };
     }, []);
+
+    const showRegistrationPromo = !(isAuthenticated && user?.role === "seeker");
 
     return (
         <>
@@ -262,34 +266,36 @@ export default function HomeSeeker() {
                 </div>
             </section>
 
-            <section className="page-container flex gap-10 px-3 sm:px-10 md:px-35">
-                <div className="flex flex-col p-5 rounded gap-2 bg-primary">
-                    <span className="text-white text-big">Become an Employer</span>
-                    <small className="text-white text-small">
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Est, cumque sed, culpa soluta eveniet possimus deleniti id expedita nulla ducimus .
-                    </small>
-                    <button
-                        onClick={() => navigate(ROUTES.AUTH.SIGNUP_EMPLOYER)}
-                        className="flex justify-center items-center gap-1 btn-primary-white"
-                    >
-                        <span>Register Now</span>
-                        <ArrowRight size={15} />
-                    </button>
-                </div>
-                <div className="flex flex-col p-5 rounded gap-2 bg-gray-100">
-                    <span className="text-big">Become a Candidate</span>
-                    <small className="text-small">
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Est, cumque sed, culpa soluta eveniet possimus deleniti id expedita nulla ducimus.
-                    </small>
-                    <button
-                        onClick={() => navigate(ROUTES.AUTH.SIGNUP_SEEKER)}
-                        className="flex justify-center items-center gap-1 btn-primary-white"
-                    >
-                        <span>Register Now</span>
-                        <ArrowRight size={15} />
-                    </button>
-                </div>
-            </section>
+            {showRegistrationPromo && (
+                <section className="page-container flex gap-10 px-3 sm:px-10 md:px-35">
+                    <div className="flex flex-col p-5 rounded gap-2 bg-primary">
+                        <span className="text-white text-big">Become an Employer</span>
+                        <small className="text-white text-small">
+                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Est, cumque sed, culpa soluta eveniet possimus deleniti id expedita nulla ducimus .
+                        </small>
+                        <button
+                            onClick={() => navigate(ROUTES.AUTH.SIGNUP_EMPLOYER)}
+                            className="flex justify-center items-center gap-1 btn-primary-white"
+                        >
+                            <span>Register Now</span>
+                            <ArrowRight size={15} />
+                        </button>
+                    </div>
+                    <div className="flex flex-col p-5 rounded gap-2 bg-gray-100">
+                        <span className="text-big">Become a Candidate</span>
+                        <small className="text-small">
+                            Lorem ipsum dolor sit amet consectetur adipisicing elit. Est, cumque sed, culpa soluta eveniet possimus deleniti id expedita nulla ducimus.
+                        </small>
+                        <button
+                            onClick={() => navigate(ROUTES.AUTH.SIGNUP_SEEKER)}
+                            className="flex justify-center items-center gap-1 btn-primary-white"
+                        >
+                            <span>Register Now</span>
+                            <ArrowRight size={15} />
+                        </button>
+                    </div>
+                </section>
+            )}
         </>
     );
 }

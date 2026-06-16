@@ -1,5 +1,5 @@
-
 import { Link } from "react-router-dom";
+import NavProfileButton from "../../../GlobalComponents/NavProfileButton";
 import { ROUTES } from "../../../routes/path";
 export default function NavBarSeeker() {
 
@@ -18,9 +18,7 @@ export default function NavBarSeeker() {
             </div>
 
 
-            <button ><Link to={ROUTES.SEEKER.SETTING}><img
-                className='rounded-full h-10 w-10 border'
-            /></Link></button>
+            <NavProfileButton settingsPath={ROUTES.SEEKER.SETTING} />
         </nav>
     );
 }

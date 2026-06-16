@@ -1,5 +1,4 @@
-
-import { Link } from "react-router-dom";
+import NavProfileButton from "../../../GlobalComponents/NavProfileButton";
 import { ROUTES } from "../../../routes/path";
 
 type NavBarProps = {
@@ -22,9 +21,7 @@ export default function NavBar({ onMenuClick }: NavBarProps) {
             </div>
 
 
-            <button ><Link to={ROUTES.EMPLOYER.SETTING}><img
-                className='rounded-full h-10 w-10 border'
-            /></Link></button>
+            <NavProfileButton settingsPath={ROUTES.EMPLOYER.SETTING} />
         </nav>
     );
 }

@@ -4,9 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../routes/path';
 import SearchBox from '../../../GlobalComponents/SearchBox';
 import EmployerPostListTable from '../Components/EmployerPostListTable';
+import PostListingDurationModal from '../Components/PostListingDurationModal';
 import { formatApiError } from '../../../services/apiClient';
-import { mapEmployerPostToListingItem, type ListingItem } from '../lib/myJobMappers';
-import { fetchEmployerPosts } from '../services/employerPostService';
+import {
+    mapEmployerPostToListingItem,
+    type ListingItem,
+    applyUpdatedPostToListings,
+    buildPostClosePayload,
+    buildPostOpenUntilPayload,
+} from '../lib/myJobMappers';
+import { fetchEmployerPosts, updateEmployerPost } from '../services/employerPostService';
 
 type PostTab = 'JOBS' | 'Volunteer';
 type JobStatusFilter = 'All Jobs' | 'Active' | 'Expired';
@@ -19,6 +26,9 @@ export default function MyJobPage() {
     const [listings, setListings] = useState<ListingItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [updatingPostId, setUpdatingPostId] = useState<number | null>(null);
+    const [modalError, setModalError] = useState<string | null>(null);
+    const [selectedListing, setSelectedListing] = useState<ListingItem | null>(null);
 
     const loadListings = useCallback(async () => {
         setLoading(true);
@@ -64,6 +74,53 @@ export default function MyJobPage() {
         });
     }, [activeTab, jobStatusFilter, listings, search]);
 
+    const updateListingDuration = async (
+        listing: ListingItem,
+        payload: ReturnType<typeof buildPostOpenUntilPayload> | ReturnType<typeof buildPostClosePayload>,
+    ) => {
+        setUpdatingPostId(listing.postId);
+        setModalError(null);
+        setError(null);
+
+        try {
+            const updatedPost = await updateEmployerPost(listing.postId, payload);
+            setListings((current) => applyUpdatedPostToListings(current, updatedPost));
+            setSelectedListing(null);
+        } catch (updateError) {
+            const message = formatApiError(updateError);
+            if (selectedListing) {
+                setModalError(message);
+            } else {
+                setError(message);
+            }
+        } finally {
+            setUpdatingPostId(null);
+        }
+    };
+
+    const handleSaveDuration = async (closedDate: string) => {
+        if (!selectedListing) {
+            return;
+        }
+
+        await updateListingDuration(selectedListing, buildPostOpenUntilPayload(closedDate));
+    };
+
+    const handleCloseListingNow = async () => {
+        if (!selectedListing) {
+            return;
+        }
+
+        const confirmed = window.confirm(
+            "Close this listing now? It will no longer accept applications.",
+        );
+        if (!confirmed) {
+            return;
+        }
+
+        await updateListingDuration(selectedListing, buildPostClosePayload());
+    };
+
     return (
         <div className="page-container">
             <SearchBox search={search} setSearch={setSearch} />
@@ -96,8 +153,29 @@ export default function MyJobPage() {
                 onViewApplications={(postId) => {
                     navigate(`${ROUTES.EMPLOYER.ROOT}/${ROUTES.EMPLOYER.MY_JOB_VIEW_APPLICATION(postId)}`);
                 }}
+                onTogglePostStatus={(item) => {
+                    setModalError(null);
+                    setSelectedListing(item);
+                }}
+                updatingPostId={updatingPostId}
                 loading={loading}
                 error={error}
+            />
+
+            <PostListingDurationModal
+                isOpen={selectedListing != null}
+                listing={selectedListing}
+                isSaving={selectedListing != null && updatingPostId === selectedListing.postId}
+                error={modalError}
+                onClose={() => {
+                    if (updatingPostId != null) {
+                        return;
+                    }
+                    setSelectedListing(null);
+                    setModalError(null);
+                }}
+                onSave={(closedDate) => void handleSaveDuration(closedDate)}
+                onCloseListing={() => void handleCloseListingNow()}
             />
         </div>
     );

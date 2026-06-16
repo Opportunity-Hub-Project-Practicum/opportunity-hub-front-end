@@ -8,6 +8,8 @@ type EmployerPostListTableProps = {
     activeTab: EmployerPostTab;
     onTabChange: (tab: EmployerPostTab) => void;
     onViewApplications: (postId: number) => void;
+    onTogglePostStatus?: (item: ListingItem) => void;
+    updatingPostId?: number | null;
     loading?: boolean;
     error?: string | null;
     limit?: number;
@@ -20,6 +22,8 @@ export default function EmployerPostListTable({
     activeTab,
     onTabChange,
     onViewApplications,
+    onTogglePostStatus,
+    updatingPostId = null,
     loading = false,
     error = null,
     limit,
@@ -112,15 +116,15 @@ export default function EmployerPostListTable({
                                         View Applications
                                     </button>
 
-                                    {item.status === "Active" ? (
-                                        <button type="button" title="Ending Soon" className="p-1 text-[#E0513E] hover:opacity-80">
-                                            <Clock className="h-5 w-5 transform stroke-2" />
-                                        </button>
-                                    ) : (
-                                        <button type="button" title="Renew Listing" className="p-1 text-[#7ED321] hover:opacity-80">
-                                            <Clock className="h-5 w-5 transform stroke-2" />
-                                        </button>
-                                    )}
+                                    <button
+                                        type="button"
+                                        title="Set listing duration"
+                                        disabled={!onTogglePostStatus || updatingPostId === item.postId}
+                                        onClick={() => onTogglePostStatus?.(item)}
+                                        className={`p-1 hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 ${item.status === "Active" ? "text-[#E0513E]" : "text-[#7ED321]"}`}
+                                    >
+                                        <Clock className="h-5 w-5 transform stroke-2" />
+                                    </button>
                                 </div>
                             </div>
                         ))
