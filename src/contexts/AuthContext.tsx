@@ -92,8 +92,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const logout = useCallback(async () => {
-        await logoutRequest();
-        setUser(null);
+        try {
+            await logoutRequest();
+        } finally {
+            setUser(null);
+        }
     }, []);
 
     const registerEmployer = useCallback(async (payload: EmployerRegisterPayload) => {

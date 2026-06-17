@@ -1,7 +1,13 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Briefcase, Users, BarChart2, Clipboard, FileText, Star, Zap, Megaphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../routes/path";
+import { formatApiError } from "../../../services/apiClient";
+import {
+    fetchPublicPosts,
+    formatWorkPlaceType,
+} from "../../Seeker/services/postApiService";
+
 type Opportunity = {
     id: number;
     title: string;
@@ -10,33 +16,6 @@ type Opportunity = {
     category: string;
     postedAt: string;
 };
-
-const sampleOpportunities: Opportunity[] = [
-    {
-        id: 1,
-        title: "Frontend Developer",
-        location: "Remote",
-        type: "Full-time",
-        category: "Technology",
-        postedAt: "2 days ago",
-    },
-    {
-        id: 2,
-        title: "Community Event Volunteer",
-        location: "Phnom Penh",
-        type: "Volunteer",
-        category: "Community Service",
-        postedAt: "5 days ago",
-    },
-    {
-        id: 3,
-        title: "Graphic Designer",
-        location: "Hybrid",
-        type: "Contract",
-        category: "Creative",
-        postedAt: "1 week ago",
-    },
-];
 
 function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
     return (
@@ -86,6 +65,57 @@ function FeatureCard({
 
 export default function HomeEmployerPage() {
     const navigate = useNavigate();
+    const [featuredOpportunities, setFeaturedOpportunities] = useState<Opportunity[]>([]);
+    const [loadingOpportunities, setLoadingOpportunities] = useState(true);
+    const [opportunitiesError, setOpportunitiesError] = useState<string | null>(null);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadFeaturedOpportunities = async () => {
+            setLoadingOpportunities(true);
+            setOpportunitiesError(null);
+
+            try {
+                const posts = await fetchPublicPosts();
+                if (!isMounted) {
+                    return;
+                }
+
+                const mapped = posts.slice(0, 6).map((post) => ({
+                    id: post.post_id,
+                    title: post.post_title,
+                    location: post.location ?? formatWorkPlaceType(post.work_place_type),
+                    type: post.type === "job" ? "Job" : "Volunteer",
+                    category: post.job_role ?? post.type,
+                    postedAt: post.closed_date
+                        ? new Date(post.closed_date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                        })
+                        : "Open",
+                }));
+
+                setFeaturedOpportunities(mapped);
+            } catch (error) {
+                if (!isMounted) {
+                    return;
+                }
+                setOpportunitiesError(formatApiError(error));
+            } finally {
+                if (isMounted) {
+                    setLoadingOpportunities(false);
+                }
+            }
+        };
+
+        void loadFeaturedOpportunities();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
     return (
         <>
             {/* Hero Section */}
@@ -252,7 +282,16 @@ export default function HomeEmployerPage() {
                 </div>
 
                 <div className="flex gap-4 overflow-x-auto pb-4">
-                    {sampleOpportunities.map((opportunity) => (
+                    {loadingOpportunities && (
+                        <p className="text-sm text-gray-500">Loading opportunities...</p>
+                    )}
+                    {!loadingOpportunities && opportunitiesError && (
+                        <p className="text-sm text-red-600">{opportunitiesError}</p>
+                    )}
+                    {!loadingOpportunities && !opportunitiesError && featuredOpportunities.length === 0 && (
+                        <p className="text-sm text-gray-500">No public opportunities available yet.</p>
+                    )}
+                    {featuredOpportunities.map((opportunity) => (
                         <OpportunityCard
                             key={opportunity.id}
                             opportunity={opportunity}

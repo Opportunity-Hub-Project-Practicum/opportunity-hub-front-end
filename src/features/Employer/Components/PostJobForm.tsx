@@ -27,6 +27,7 @@ const getString = (value: FormDataEntryValue | null) => (value ? value.toString(
 export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobFormProps) {
     const [description, setDescription] = useState("");
     const [responsibilities, setResponsibilities] = useState("");
+    const [jobRequirements, setJobRequirements] = useState("");
     const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -44,16 +45,19 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                 education: getString(formData.get("education")),
                 experience: getString(formData.get("experience")),
                 jobType: getString(formData.get("jobType")),
+                workPlaceType: getString(formData.get("workPlaceType")) as JobPostSubmitPayload["workPlaceType"],
                 expirationDate: getString(formData.get("expirationDate")),
                 jobLevel: getString(formData.get("jobLevel")) as JobLevel | "",
                 location: getString(formData.get("location")),
                 description,
                 responsibilities,
+                jobRequirements,
             });
 
             event.currentTarget.reset();
             setDescription("");
             setResponsibilities("");
+            setJobRequirements("");
         } catch (submitError) {
             setError(submitError instanceof Error ? submitError.message : "Failed to post job.");
         }
@@ -79,7 +83,7 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
                     <div>
                         <label className="block text-sm font-medium mb-2 text-[#18191C]">Job Role</label>
                         <div className="relative">
@@ -102,6 +106,18 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                             placeholder="City, Country"
                             className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-blue-500 text-sm"
                         />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2 text-[#18191C]">Job Type</label>
+                        <div className="relative">
+                            <select name="jobType" className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10">
+                                <option value="">Select...</option>
+                                <option value="part_time">Part time</option>
+                                <option value="full_time">Full time</option>
+                                <option value="internship">Internship</option>
+                            </select>
+                            <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
+                        </div>
                     </div>
                 </div>
 
@@ -167,9 +183,13 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-2 text-[#18191C]">Job Type</label>
+                            <label className="block text-sm font-medium mb-2 text-[#18191C]">Work Place Type</label>
                             <div className="relative">
-                                <select name="jobType" className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10">
+                                <select
+                                    name="workPlaceType"
+                                    required
+                                    className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10"
+                                >
                                     <option value="">Select...</option>
                                     <option value="remote">Remote</option>
                                     <option value="onsite">Onsite</option>
@@ -206,11 +226,15 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                 </div>
 
                 <div className="w-full space-y-6">
-                    <h3 className="text-base font-semibold text-[#18191C] pt-2">Description & Responsibility</h3>
+                    <h3 className="text-base font-semibold text-[#18191C] pt-2">Description</h3>
                     <TextAreaBox value={description} onChange={setDescription} />
                     <div>
                         <label className="block text-sm font-medium mb-2 text-[#18191C]">Responsibilities</label>
                         <TextAreaBox value={responsibilities} onChange={setResponsibilities} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2 text-[#18191C]">Job Requirements</label>
+                        <TextAreaBox value={jobRequirements} onChange={setJobRequirements} />
                     </div>
                 </div>
 

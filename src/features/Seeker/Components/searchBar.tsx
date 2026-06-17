@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
 import { Search, MapPin, Layers, ChevronDown } from "lucide-react";
 import { useSearch } from "../hooks/useSearch";
-import { opportunityTypeContext, setOpportunityTypeContext, type OpportunityType } from "../../../contexts/Context";
+import { opportunityTypeContext, setOpportunityTypeContext } from "../../../contexts/Context";
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { Posts, getOrganizationById, formatSalary } from "../../../services/postService";
+import type { PostListCardItem } from "../services/postApiService";
+import type { SearchFilters } from "../lib/searchPosts";
+import { runPostSearch } from "../lib/searchPosts";
 
 interface SearchBarProps {
-    onResultsChange?: (results: any[]) => void;
+    onResultsChange?: (results: PostListCardItem[]) => void;
     onLoadingChange?: (loading: boolean) => void;
 }
 
-export default function SearchBar({ onResultsChange }: SearchBarProps) {
+export default function SearchBar({ onResultsChange, onLoadingChange }: SearchBarProps) {
     const navigate = useNavigate();
     const opportunityType = useContext(opportunityTypeContext);
     const setOpportunityType = useContext(setOpportunityTypeContext);
@@ -35,7 +37,7 @@ export default function SearchBar({ onResultsChange }: SearchBarProps) {
     const [languageRequirement, setLanguageRequirement] = useState("");
 
     // Track applied filters - only updated on Apply button click
-    const [appliedFilters, setAppliedFilters] = useState<any>({});
+    const [appliedFilters, setAppliedFilters] = useState<SearchFilters>({});
 
     // Toggle helpers
     const toggleArray = (value: string, setter: Function, state: string[]) => {
@@ -46,68 +48,66 @@ export default function SearchBar({ onResultsChange }: SearchBarProps) {
         );
     };
 
-    // Handle Apply button click
-    const handleApplyFilters = () => {
-        setAppliedFilters(
-            opportunityType === "job"
-                ? { experience, salary, jobLevel, jobTypes, education }
-                : { duration, schedule, hoursPerWeek, benefits, languageRequirement }
-        );
-
-        // Navigate to PostList with results
-        navigate('/postList', {
-            state: {
-                results,
-                filters: opportunityType === "job"
-                    ? { experience, salary, jobLevel, jobTypes, education }
-                    : { duration, schedule, hoursPerWeek, benefits, languageRequirement },
-                searchTerm,
-                location,
-                category,
-                opportunityType
-            }
-        });
-    };
-
-    //  Payload (core of modern search)
-    const payload = {
+    const { results, loading } = useSearch({
         query: searchTerm,
         location,
         category,
         opportunityType,
         filters: appliedFilters,
-    };
-
-    //  Hook handles debounce + API
-    const { results, loading } = useSearch(payload);
+    });
 
     useEffect(() => {
         onResultsChange?.(results);
-    }, [results, onResultsChange, searchTerm]);
+    }, [results, onResultsChange]);
 
-    // Handle Enter key press
-    const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            // Filter Posts based on search input
-            const filteredResults = Posts.filter(post => {
-                const matchesType = post.type === opportunityType;
-                const matchesSearchTerm = !searchTerm || post.title.toLowerCase().includes(searchTerm.toLowerCase());
-                const matchesLocation = !location || post.location === location;
-                const matchesCategory = !category || post.category === category;
+    useEffect(() => {
+        onLoadingChange?.(loading);
+    }, [loading, onLoadingChange]);
 
-                return matchesType && matchesSearchTerm && matchesLocation && matchesCategory;
+    const navigateToResults = (nextResults: PostListCardItem[]) => {
+        navigate("/postList", {
+            state: {
+                results: nextResults,
+                filters: appliedFilters,
+                searchTerm,
+                location,
+                category,
+                opportunityType,
+            },
+        });
+    };
+
+    const handleApplyFilters = () => {
+        const nextFilters: SearchFilters = opportunityType === "job"
+            ? { experience, salary, jobLevel, jobTypes, education }
+            : { duration, schedule, hoursPerWeek, benefits, languageRequirement };
+
+        setAppliedFilters(nextFilters);
+
+        void (async () => {
+            const nextResults = await runPostSearch({
+                query: searchTerm,
+                location,
+                category,
+                opportunityType,
+                filters: nextFilters,
             });
+            navigateToResults(nextResults);
+        })();
+    };
 
-            navigate('/postList', {
-                state: {
-                    results: filteredResults,
-                    filters: appliedFilters,
-                    searchTerm,
+    const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            void (async () => {
+                const nextResults = await runPostSearch({
+                    query: searchTerm,
                     location,
                     category,
-                    opportunityType
-                }
-            });
+                    opportunityType,
+                    filters: appliedFilters,
+                });
+                navigateToResults(nextResults);
+            })();
         }
     };
 
@@ -232,7 +232,7 @@ export default function SearchBar({ onResultsChange }: SearchBarProps) {
                                         Salary
                                     </h4>
                                     <div className="space-y-2">
-                                        {["$50 - $1,000", "$1,000 - $5,000", "$5,000 - $10,000", "$10,000 - $15,000", "$15,000+"].map((sal) => (
+                                        {["All", "$100+", "$300+", "$500+", "$800+", "$1000+", "$1500+", "$2000+"].map((sal) => (
                                             <label key={sal} className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="radio"
@@ -293,7 +293,7 @@ export default function SearchBar({ onResultsChange }: SearchBarProps) {
                                         Job Level
                                     </h4>
                                     <div className="space-y-2">
-                                        {["Entry Level", "Expert Level"].map((level) => (
+                                        {["ALL", "non prior experience", "junior Level", "Supervisor/ Manager", "Top Executive Level"].map((level) => (
                                             <label key={level} className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="radio"

@@ -55,11 +55,9 @@ function AccountActions() {
 
         try {
             await logout();
-            navigate(ROUTES.AUTH.LOGIN, { replace: true });
-        } catch (err) {
-            setError(formatApiError(err));
         } finally {
             setIsLoggingOut(false);
+            navigate(ROUTES.AUTH.LOGIN, { replace: true });
         }
     };
 

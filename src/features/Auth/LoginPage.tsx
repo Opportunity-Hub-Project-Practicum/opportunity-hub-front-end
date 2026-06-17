@@ -113,6 +113,15 @@ export default function LoginPage() {
                                 </button>
                             </div>
 
+                            <div className="flex justify-end">
+                                <Link
+                                    to={ROUTES.AUTH.FORGOT_PASSWORD}
+                                    className="text-sm text-blue-600 font-medium hover:underline"
+                                >
+                                    Forgot password?
+                                </Link>
+                            </div>
+
                             <button
                                 type="submit"
                                 disabled={isSubmitting}

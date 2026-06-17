@@ -26,6 +26,7 @@ export type EmployerPostApi = {
     job_role: string | null;
     job_education: string | null;
     job_experience: string | null;
+    job_requirement: string | null;
     job_level: string | null;
     closed_date: string | null;
     created_at: string | null;

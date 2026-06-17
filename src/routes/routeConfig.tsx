@@ -8,6 +8,7 @@ import { Navigate } from "react-router-dom";
 //pages for seeker
 import SignUpSeeker from "../features/Auth/SignUpPage";
 import LoginPage from "../features/Auth/LoginPage";
+import ForgotPasswordPage from "../features/Auth/ForgotPasswordPage";
 import PostList from "../features/Seeker/Pages/PostListPage";
 import HomeSeeker from "../features/Seeker/Pages/HomeSeekerPage";
 import PostDetail from "../features/Seeker/Pages/PostDetailPage";
@@ -31,7 +32,6 @@ import MyJobViewApplicationPage from "../features/Employer/Pages/MyJobViewApplic
 //import for admin
 
 import OverviewPageAdmin from "../features/Admin/Pages/OverviewPage";
-import AllEmployerPage from "../features/Admin/Pages/AllEmployerPage";
 import AllPostPage from "../features/Admin/Pages/AllPostPage";
 import ManageUserPage from "../features/Admin/Pages/ManageUserPage";
 import ProfilePage from "../features/Admin/Pages/ProfilePage";
@@ -59,6 +59,11 @@ export const routeConfig: RouteConfig[] = [
         path: ROUTES.AUTH.LOGIN,
         label: 'LoginPage',
         layout: LoginPage,
+    },
+    {
+        path: ROUTES.AUTH.FORGOT_PASSWORD,
+        label: 'ForgotPassword',
+        layout: ForgotPasswordPage,
     },
 
     {

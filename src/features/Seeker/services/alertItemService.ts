@@ -5,6 +5,7 @@ import type {
     AlertItemApi,
     AlertItemsResponse,
     AlertPostCardItem,
+    AlertItemCategory,
 } from "../types/alertItem";
 import type { PublicPostApi } from "../types/post";
 import { fetchSeekerProfile } from "./seekerProfileService";
@@ -34,14 +35,15 @@ function toCriterion(
     return { roleName: role, location: loc };
 }
 
-function buildJobAlertCriteria(
+function buildAlertCriteria(
     alertItems: AlertItemApi[],
     notifySetting: SeekerNotifySettingApi | null | undefined,
+    category: AlertItemCategory,
 ): AlertCriterion[] {
     const criteria: AlertCriterion[] = [];
 
     for (const item of alertItems) {
-        if (item.category != null && item.category !== "job") {
+        if (item.category != null && item.category !== category) {
             continue;
         }
 
@@ -51,7 +53,7 @@ function buildJobAlertCriteria(
         }
     }
 
-    if (notifySetting?.category === "job") {
+    if (notifySetting?.category === category) {
         const notifyCriterion = toCriterion(notifySetting.role_name, notifySetting.location);
         if (notifyCriterion) {
             criteria.push(notifyCriterion);
@@ -59,6 +61,20 @@ function buildJobAlertCriteria(
     }
 
     return criteria;
+}
+
+function buildJobAlertCriteria(
+    alertItems: AlertItemApi[],
+    notifySetting: SeekerNotifySettingApi | null | undefined,
+): AlertCriterion[] {
+    return buildAlertCriteria(alertItems, notifySetting, "job");
+}
+
+function buildVolunteerAlertCriteria(
+    alertItems: AlertItemApi[],
+    notifySetting: SeekerNotifySettingApi | null | undefined,
+): AlertCriterion[] {
+    return buildAlertCriteria(alertItems, notifySetting, "volunteer");
 }
 
 function postMatchesCriterion(post: PublicPostApi, criterion: AlertCriterion): boolean {
@@ -89,16 +105,23 @@ function toAlertPostCardItem(post: PublicPostApi): AlertPostCardItem {
 }
 
 export async function fetchJobAlertPostCards(): Promise<AlertPostCardItem[]> {
+    return fetchAlertPostCards("job");
+}
+
+export async function fetchVolunteerAlertPostCards(): Promise<AlertPostCardItem[]> {
+    return fetchAlertPostCards("volunteer");
+}
+
+async function fetchAlertPostCards(category: AlertItemCategory): Promise<AlertPostCardItem[]> {
     const [alertItems, profileResponse, posts] = await Promise.all([
         fetchAlertItems(),
         fetchSeekerProfile(),
-        fetchPublicPosts({ type: "job" }),
+        fetchPublicPosts({ type: category }),
     ]);
 
-    const criteria = buildJobAlertCriteria(
-        alertItems,
-        profileResponse.profile.notify_setting,
-    );
+    const criteria = category === "job"
+        ? buildJobAlertCriteria(alertItems, profileResponse.profile.notify_setting)
+        : buildVolunteerAlertCriteria(alertItems, profileResponse.profile.notify_setting);
 
     if (criteria.length === 0) {
         return [];

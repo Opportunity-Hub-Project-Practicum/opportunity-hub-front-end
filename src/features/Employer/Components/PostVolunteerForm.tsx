@@ -21,6 +21,7 @@ const parseNumberOrNull = (value: string) => {
 export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: PostVolunteerFormProps) {
     const [description, setDescription] = useState("");
     const [responsibilities, setResponsibilities] = useState("");
+    const [volunteerRequirements, setVolunteerRequirements] = useState("");
     const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -42,11 +43,13 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
                 languages,
                 description,
                 responsibilities,
+                volunteerRequirements,
             });
 
             event.currentTarget.reset();
             setDescription("");
             setResponsibilities("");
+            setVolunteerRequirements("");
         } catch (submitError) {
             setError(submitError instanceof Error ? submitError.message : "Failed to post volunteer form.");
         }
@@ -79,8 +82,8 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
                             <select name="duration" className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10">
                                 <option value="">Select...</option>
                                 <option value="one-time">One-time</option>
-                                <option value="short-term">Short-term</option>
-                                <option value="long-term">Long-term</option>
+                                <option value="short-term">Short-term '1-4 weeks'</option>
+                                <option value="long-term">Long-term '1+ month'</option>
                             </select>
                             <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
                         </div>
@@ -174,6 +177,11 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
                     <div>
                         <label className="block text-sm font-medium mb-2 text-[#18191C]">Responsibilities</label>
                         <TextAreaBox value={responsibilities} onChange={setResponsibilities} />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2 text-[#18191C]">Volunteer Requirements</label>
+                        <TextAreaBox value={volunteerRequirements} onChange={setVolunteerRequirements} />
                     </div>
                 </div>
 

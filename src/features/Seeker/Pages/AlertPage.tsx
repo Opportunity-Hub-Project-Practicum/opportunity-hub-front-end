@@ -1,51 +1,42 @@
 import { useEffect, useState } from "react";
 import CardList from "../Components/card/CardList";
 import { formatApiError } from "../../../services/apiClient";
-import { fetchJobAlertPostCards } from "../services/alertItemService";
+import {
+    fetchJobAlertPostCards,
+    fetchVolunteerAlertPostCards,
+} from "../services/alertItemService";
 import type { AlertPostCardItem } from "../types/alertItem";
-
-const VOLUNTEER_MOCK_ITEMS = [
-    {
-        id: 11,
-        organizationName: "Green Earth NGO",
-        title: "Tree Planting Volunteer",
-        workPlaceType: "onsite",
-        location: "Phnom Penh, Cambodia",
-        salary: "",
-        appliedDate: "2026-05-08",
-        image: "",
-    },
-    {
-        id: 12,
-        organizationName: "EduSmart",
-        title: "Teaching Assistant",
-        workPlaceType: "onsite",
-        location: "Bangkok, Thailand",
-        salary: "",
-        appliedDate: "2026-05-09",
-        image: "",
-    },
-];
 
 export default function Alert() {
     const [isJob, setIsJob] = useState<"job" | "volunteer">("job");
     const [jobItems, setJobItems] = useState<AlertPostCardItem[]>([]);
+    const [volunteerItems, setVolunteerItems] = useState<AlertPostCardItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         let isMounted = true;
 
-        const loadJobAlerts = async () => {
+        const loadAlerts = async () => {
             setLoading(true);
             setError(null);
 
             try {
-                const items = await fetchJobAlertPostCards();
-                if (!isMounted) return;
-                setJobItems(items);
+                const [jobs, volunteers] = await Promise.all([
+                    fetchJobAlertPostCards(),
+                    fetchVolunteerAlertPostCards(),
+                ]);
+
+                if (!isMounted) {
+                    return;
+                }
+
+                setJobItems(jobs);
+                setVolunteerItems(volunteers);
             } catch (err) {
-                if (!isMounted) return;
+                if (!isMounted) {
+                    return;
+                }
                 setError(formatApiError(err));
             } finally {
                 if (isMounted) {
@@ -54,12 +45,17 @@ export default function Alert() {
             }
         };
 
-        loadJobAlerts();
+        void loadAlerts();
 
         return () => {
             isMounted = false;
         };
     }, []);
+
+    const activeItems = isJob === "job" ? jobItems : volunteerItems;
+    const emptyMessage = isJob === "job"
+        ? "No matching job posts found. Add job alerts in Account settings to see opportunities here."
+        : "No matching volunteer posts found. Add volunteer alerts in Account settings to see opportunities here.";
 
     return (
         <div>
@@ -78,18 +74,18 @@ export default function Alert() {
                 </button>
             </div>
 
-            {isJob && loading && <p className="text-gray-500">Loading job alerts...</p>}
-            {isJob && error && <p className="text-red-600">{error}</p>}
+            {loading && <p className="text-gray-500">Loading alerts...</p>}
+            {!loading && error && <p className="text-red-600">{error}</p>}
 
-            {isJob && !loading && !error && jobItems.length === 0 && (
+            {!loading && !error && activeItems.length === 0 && (
                 <div className="rounded-lg border border-dashed border-gray-300 p-6 text-sm text-gray-500">
-                    No matching job posts found. Add job alerts in Account settings to see opportunities here.
+                    {emptyMessage}
                 </div>
             )}
 
-            {isJob && !loading && !error && (
+            {!loading && !error && activeItems.length > 0 && (
                 <div className="flex flex-col gap-2">
-                    {jobItems.map((item) => (
+                    {activeItems.map((item) => (
                         <CardList
                             key={item.postId}
                             id={item.postId}
@@ -99,24 +95,6 @@ export default function Alert() {
                             location={item.location}
                             salary={item.salary}
                             remainingDays={item.remainingDays}
-                            image={item.image}
-                        />
-                    ))}
-                </div>
-            )}
-
-            {isJob === "volunteer" && (
-                <div className="flex flex-col gap-2">
-                    {VOLUNTEER_MOCK_ITEMS.map((item) => (
-                        <CardList
-                            key={item.id}
-                            id={item.id}
-                            organizationName={item.organizationName}
-                            title={item.title}
-                            engagementType={item.workPlaceType}
-                            location={item.location}
-                            salary={item.salary}
-                            remainingDays={`Applied on ${item.appliedDate}`}
                             image={item.image}
                         />
                     ))}

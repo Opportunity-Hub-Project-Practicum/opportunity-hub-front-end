@@ -3,7 +3,7 @@ export const ROUTES = {
         SIGNUP_SEEKER: "/signUpSeeker",
         LOGIN: "/loginPage",
         SIGNUP_EMPLOYER: "/accountSetup",
-      
+        FORGOT_PASSWORD: "/forgot-password",
     },
 
     HOME: {

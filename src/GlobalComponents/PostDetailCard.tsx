@@ -1,11 +1,12 @@
 import { Link2Icon, ArrowRight, Bookmark, type LucideIcon } from "lucide-react";
 import CardCompany from "../features/Seeker/Components/card/CardCompany";
 import type { Organization } from "../features/Seeker/Components/card/CardCompany";
+import RichTextContent from "./RichTextContent";
 /**
  * PostDetailCard
  *
  * Props:
- * - post            {object}   Required. Post data (title, employment_type, post_description, responsibility)
+ * - post            {object}   Required. Post data (title, employment_type, post_description, responsibility, job_requirement)
  * - organization    {object}   Required. Organization data (image, Category, value)
  * - overviewItems   {array}    Required. Array of { icon, label, value }
  * - isVolunteer     {boolean}  Optional. Switches labels to volunteer mode. Default: false
@@ -19,6 +20,7 @@ interface Post {
     employment_type: string;
     post_description: string;
     responsibility: string;
+    job_requirement?: string | null;
 }
 
 type OrgCategory = "web_url" | "social" | "phone";
@@ -116,16 +118,35 @@ export default function PostDetailCard({
                     <span className="text-big">
                         {isVolunteer ? "Volunteer Description" : "Job Description"}
                     </span>
-                    <p>{post.post_description}</p>
+                    <RichTextContent
+                        value={post.post_description}
+                        className="text-small text-gray-600"
+                    />
                     <span className="text-big">Responsibilities</span>
-                    <p>{post.responsibility}</p>
+                    <RichTextContent
+                        value={post.responsibility}
+                        className="text-small text-gray-600"
+                    />
+                    {post.job_requirement && (
+                        <>
+                            <span className="text-big">
+                                {isVolunteer ? "Volunteer Requirements" : "Job Requirements"}
+                            </span>
+                            <RichTextContent
+                                value={post.job_requirement}
+                                className="text-small text-gray-600"
+                            />
+                        </>
+                    )}
                     <span>Share this job on: facebook, instagram...</span>
                 </div>
 
                 {/* Right: Overview + Company + Report */}
                 <div className="flex flex-col gap-5">
                     <div className="border rounded-lg border-primary p-5">
-                        <span className="text-big">Job Overview</span>
+                        <span className="text-big">
+                            {isVolunteer ? "Volunteer Overview" : "Job Overview"}
+                        </span>
                         <div className="grid grid-cols-3 gap-4 mt-4">
                             {overviewItems.map((item, index) => {
                                 const IconComponent = item.icon;

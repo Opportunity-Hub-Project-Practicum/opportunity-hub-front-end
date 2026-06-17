@@ -78,6 +78,75 @@ function buildRelatedPosts(post: PostDetailApi, posts: PublicPostApi[]): PublicP
     return source.slice(0, 6);
 }
 
+function buildSameCompanyPosts(post: PostDetailApi, posts: PublicPostApi[]): PublicPostApi[] {
+    const employerId = post.employer?.user_id;
+    if (!employerId) {
+        return [];
+    }
+
+    return posts
+        .filter(
+            (item) =>
+                item.post_id !== post.post_id &&
+                item.employer?.user_id === employerId,
+        )
+        .slice(0, 6);
+}
+
+function PostCardsSection({
+    title,
+    posts,
+    emptyMessage,
+    isPostBanned,
+}: {
+    title: string;
+    posts: PublicPostApi[];
+    emptyMessage: string;
+    isPostBanned: boolean;
+}) {
+    return (
+        <section className="flex flex-col page-container">
+            <div className="flex justify-between py-5">
+                <span className="text-big">{title}</span>
+                <div className="flex gap-2">
+                    <button
+                        type="button"
+                        disabled={isPostBanned}
+                        className="bg-subPrimary rounded-lg text-primaryDark p-1 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <ArrowLeft />
+                    </button>
+                    <button
+                        type="button"
+                        disabled={isPostBanned}
+                        className="bg-subPrimary rounded-lg text-primaryDark p-1 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <ArrowRight />
+                    </button>
+                </div>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
+                {posts.length === 0 && (
+                    <p className="text-gray-500 col-span-full">{emptyMessage}</p>
+                )}
+                {posts.map((relatedPost) => (
+                    <CardGrid
+                        key={relatedPost.post_id}
+                        id={relatedPost.post_id}
+                        organizationName={relatedPost.employer?.company_name ?? "Unknown"}
+                        title={relatedPost.post_title}
+                        engagementType={relatedPost.work_place_type ?? relatedPost.type}
+                        location={relatedPost.location ?? ""}
+                        salary={formatPostSalary(relatedPost)}
+                        remainingDays={formatClosedDate(relatedPost.closed_date)}
+                        image={relatedPost.employer?.logo_img ?? ""}
+                    />
+                ))}
+            </div>
+        </section>
+    );
+}
+
 export default function PostDetail() {
     const { id } = useParams<{ id: string }>();
     const postId = Number(id);
@@ -86,6 +155,7 @@ export default function PostDetail() {
     const [post, setPost] = useState<PostDetailApi | null>(null);
     const [organization, setOrganization] = useState<Organization | undefined>();
     const [relatedPosts, setRelatedPosts] = useState<PublicPostApi[]>([]);
+    const [sameCompanyPosts, setSameCompanyPosts] = useState<PublicPostApi[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
@@ -125,10 +195,13 @@ export default function PostDetail() {
                 setPost(postData);
 
                 const employerId = postData.employer?.user_id;
-                const [employerProfile, contacts, posts] = await Promise.all([
+                const [employerProfile, contacts, allPosts, companyPosts] = await Promise.all([
                     employerId ? fetchPublicEmployer(employerId) : Promise.resolve(null),
                     employerId ? fetchPublicEmployerContacts(employerId) : Promise.resolve([]),
                     fetchPublicPosts({ type: postData.type }),
+                    employerId
+                        ? fetchPublicPosts({ type: postData.type, employerId })
+                        : Promise.resolve([]),
                 ]);
 
                 if (!isMounted) {
@@ -147,7 +220,8 @@ export default function PostDetail() {
                     setOrganization(undefined);
                 }
 
-                setRelatedPosts(buildRelatedPosts(postData, posts));
+                setRelatedPosts(buildRelatedPosts(postData, allPosts));
+                setSameCompanyPosts(buildSameCompanyPosts(postData, companyPosts));
             } catch (err) {
                 if (!isMounted) {
                     return;
@@ -466,12 +540,25 @@ export default function PostDetail() {
                             value={post.responsibility}
                             className="text-small text-gray-600"
                         />
+                        {post.job_requirement && (
+                            <>
+                                <span className="text-big">
+                                    {isVolunteer ? "Volunteer Requirements" : "Job Requirements"}
+                                </span>
+                                <RichTextContent
+                                    value={post.job_requirement}
+                                    className="text-small text-gray-600"
+                                />
+                            </>
+                        )}
                         <span>Share this job on: facebook, instargram...</span>
                     </div>
 
                     <div className="flex flex-col gap-5">
                         <div className="border rounded-lg border-primary p-5">
-                            <span className="text-big">Job Overview</span>
+                            <span className="text-big">
+                                {isVolunteer ? "Volunteer Overview" : "Job Overview"}
+                            </span>
                             <div className="grid grid-cols-3 gap-4 mt-4">
                                 {overviewItems.map((item) => {
                                     const IconComponent = item.icon;
@@ -499,45 +586,19 @@ export default function PostDetail() {
                 </div>
             </section>
 
-            <section className="flex flex-col page-container">
-                <div className="flex justify-between py-5">
-                    <span className="text-big">Related {isVolunteer ? "Volunteer" : "Jobs"}</span>
-                    <div className="flex gap-2">
-                        <button
-                            type="button"
-                            disabled={isPostBanned}
-                            className="bg-subPrimary rounded-lg text-primaryDark p-1 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <ArrowLeft />
-                        </button>
-                        <button
-                            type="button"
-                            disabled={isPostBanned}
-                            className="bg-subPrimary rounded-lg text-primaryDark p-1 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <ArrowRight />
-                        </button>
-                    </div>
-                </div>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
-                    {relatedPosts.length === 0 && (
-                        <p className="text-gray-500 col-span-full">No related posts found.</p>
-                    )}
-                    {relatedPosts.map((relatedPost) => (
-                        <CardGrid
-                            key={relatedPost.post_id}
-                            id={relatedPost.post_id}
-                            organizationName={relatedPost.employer?.company_name ?? "Unknown"}
-                            title={relatedPost.post_title}
-                            engagementType={relatedPost.work_place_type ?? relatedPost.type}
-                            location={relatedPost.location ?? ""}
-                            salary={formatPostSalary(relatedPost)}
-                            remainingDays={formatClosedDate(relatedPost.closed_date)}
-                            image={relatedPost.employer?.logo_img ?? ""}
-                        />
-                    ))}
-                </div>
-            </section>
+            <PostCardsSection
+                title={`Related ${isVolunteer ? "Volunteer" : "Jobs"}`}
+                posts={relatedPosts}
+                emptyMessage="No related posts found."
+                isPostBanned={isPostBanned}
+            />
+
+            <PostCardsSection
+                title={`${isVolunteer ? "Volunteer" : "Jobs"} from the same company`}
+                posts={sameCompanyPosts}
+                emptyMessage="No other posts from this company."
+                isPostBanned={isPostBanned}
+            />
 
             {isReport && (
                 <ReportModal
