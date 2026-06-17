@@ -50,6 +50,19 @@ export const ROUTES = {
         const base = `/admin/reported/${postId}`;
         return status ? `${base}?status=${status}` : base;
       },
+      REPORTED_USER_DETAIL_ROUTE: 'reported/user/:seekerId',
+      REPORTED_USER_DETAIL: (seekerId: string | number, status?: 'pending' | 'resolved', type?: 'user') => {
+        const base = `/admin/reported/user/${seekerId}`;
+        const params = new URLSearchParams();
+        if (status) {
+          params.set('status', status);
+        }
+        if (type) {
+          params.set('type', type);
+        }
+        const query = params.toString();
+        return query ? `${base}?${query}` : base;
+      },
     
        
 

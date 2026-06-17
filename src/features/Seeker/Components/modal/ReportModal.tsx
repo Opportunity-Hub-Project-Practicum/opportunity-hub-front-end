@@ -3,9 +3,14 @@ import TextAreaBox from "../../../../GlobalComponents/textAreaBox"
 interface ReportModalProps {
     onClose?: () => void;
     onSubmit?: (report: string) => void;
+    variant?: "post" | "profile";
 }
 
-const ReportModal: React.FC<ReportModalProps> = ({ onClose, onSubmit }) => {
+const ReportModal: React.FC<ReportModalProps> = ({
+    onClose,
+    onSubmit,
+    variant = "post",
+}) => {
     const [value, setValue] = useState("");
 
     const handleCancel = () => {
@@ -26,7 +31,11 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose, onSubmit }) => {
             <div className="relative z-10 w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
                 <div className="mb-4 flex flex-col items-center ">
                     <h2 className="text-big font-bold text-gray-800">Report</h2>
-                    <span className="flex items-start w-full">is something wrong with the post?</span>
+                    <span className="flex items-start w-full">
+                        {variant === "profile"
+                            ? "Is something wrong with this profile?"
+                            : "is something wrong with the post?"}
+                    </span>
                 </div>
 
                 <TextAreaBox value={value} onChange={setValue} />

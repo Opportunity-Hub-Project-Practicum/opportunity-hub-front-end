@@ -6,6 +6,7 @@ import {
     Cake,
     Download,
     FileText,
+    Flag,
     Globe,
     GraduationCap,
     Mail,
@@ -21,6 +22,8 @@ import {
 } from "../services/favoriteCandidateService";
 import { formatDisplayDate, formatLabel } from "../../Seeker/lib/seekerProfileFormatters";
 import { fetchPublicSeekerProfile } from "../../Seeker/services/seekerPublicService";
+import ReportModal from "../../Seeker/Components/modal/ReportModal";
+import { submitSeekerProfileReport } from "../services/seekerProfileReportService";
 import type { FavoriteCandidateApi } from "../types/favoriteCandidate";
 import type { SeekerProfileApi } from "../../Seeker/types/seekerProfile";
 
@@ -34,6 +37,9 @@ export default function SaveCandidateDetailPage() {
     const [actionError, setActionError] = useState<string | null>(null);
     const [isRemoving, setIsRemoving] = useState(false);
     const [isProfilePrivate, setIsProfilePrivate] = useState(false);
+    const [isReportOpen, setIsReportOpen] = useState(false);
+    const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+    const [reportMessage, setReportMessage] = useState<string | null>(null);
 
     const loadCandidate = useCallback(async () => {
         const parsedFavoriteId = Number(favouriteId);
@@ -100,6 +106,26 @@ export default function SaveCandidateDetailPage() {
         }
     };
 
+    const handleReportSubmit = async (reportReason: string) => {
+        if (!favorite?.seeker_id || isSubmittingReport) {
+            return;
+        }
+
+        setIsSubmittingReport(true);
+        setActionError(null);
+        setReportMessage(null);
+
+        try {
+            await submitSeekerProfileReport(favorite.seeker_id, reportReason);
+            setReportMessage("Report submitted successfully.");
+            setIsReportOpen(false);
+        } catch (reportError) {
+            setActionError(formatApiError(reportError));
+        } finally {
+            setIsSubmittingReport(false);
+        }
+    };
+
     if (loading) {
         return (
             <section className="page-container">
@@ -151,6 +177,12 @@ export default function SaveCandidateDetailPage() {
                 </div>
             )}
 
+            {reportMessage && (
+                <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                    {reportMessage}
+                </div>
+            )}
+
             <div className="mb-8 flex flex-col gap-4 border-b border-[#E4E5E8] pb-6 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-4">
                     {profileImage ? (
@@ -170,15 +202,27 @@ export default function SaveCandidateDetailPage() {
                     </div>
                 </div>
 
-                <button
-                    type="button"
-                    disabled={isRemoving}
-                    onClick={() => void handleRemoveFavorite()}
-                    className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-[#F8F9FA] px-4 py-2.5 text-sm font-medium text-[#18191C] transition-colors hover:bg-blue-50 disabled:opacity-60"
-                >
-                    <Bookmark size={18} className="fill-yellow-400 text-yellow-400" />
-                    Remove from shortlist
-                </button>
+                <div className="flex flex-wrap gap-3">
+                    <button
+                        type="button"
+                        disabled={isSubmittingReport}
+                        onClick={() => setIsReportOpen(true)}
+                        className="inline-flex items-center gap-2 rounded-lg border border-[#E4E5E8] px-4 py-2.5 text-sm font-medium text-[#5E6670] transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+                    >
+                        <Flag size={18} />
+                        Report Profile
+                    </button>
+
+                    <button
+                        type="button"
+                        disabled={isRemoving}
+                        onClick={() => void handleRemoveFavorite()}
+                        className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-[#F8F9FA] px-4 py-2.5 text-sm font-medium text-[#18191C] transition-colors hover:bg-blue-50 disabled:opacity-60"
+                    >
+                        <Bookmark size={18} className="fill-yellow-400 text-yellow-400" />
+                        Remove from shortlist
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -320,6 +364,14 @@ export default function SaveCandidateDetailPage() {
                     </div>
                 </div>
             </div>
+
+            {isReportOpen && (
+                <ReportModal
+                    variant="profile"
+                    onClose={() => setIsReportOpen(false)}
+                    onSubmit={(reportReason) => void handleReportSubmit(reportReason)}
+                />
+            )}
         </section>
     );
 }

@@ -100,7 +100,7 @@ export default function ReportedPostDetailPage() {
     }, [postId, reportStatus]);
 
     const backPath = useMemo(
-        () => `${ROUTES.ADMIN.ROOT}/${ROUTES.ADMIN.REPORTED}?status=${reportStatus}`,
+        () => `${ROUTES.ADMIN.ROOT}/${ROUTES.ADMIN.REPORTED}?status=${reportStatus}&type=post`,
         [reportStatus],
     );
 
