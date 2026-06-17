@@ -45,6 +45,7 @@ export const ROUTES = {
       MANAGE_USER:'manageUser',
       PROFILE:'profile',
       REPORTED:'reported',
+      MANAGE_VALUES:'manageValues',
       REPORTED_DETAIL_ROUTE: 'reported/:postId',
       REPORTED_DETAIL: (postId: string | number, status?: 'pending' | 'resolved') => {
         const base = `/admin/reported/${postId}`;

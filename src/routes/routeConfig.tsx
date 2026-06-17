@@ -38,6 +38,7 @@ import ProfilePage from "../features/Admin/Pages/ProfilePage";
 import ReportedPage from "../features/Admin/Pages/ReportedPage";
 import ReportedPostDetailPage from "../features/Admin/Pages/ReportedPostDetailPage";
 import ReportedSeekerDetailPage from "../features/Admin/Pages/ReportedSeekerDetailPage";
+import ManageValuesPage from "../features/Admin/Pages/ManageValuesPage";
 import { createRoleLoader } from "./loaders";
 export interface RouteConfig {
     path?: string;
@@ -224,6 +225,9 @@ export const routeConfig: RouteConfig[] = [
             }, {
                 path: ROUTES.ADMIN.REPORTED,
                 component: ReportedPage,
+            }, {
+                path: ROUTES.ADMIN.MANAGE_VALUES,
+                component: ManageValuesPage,
             }, {
                 path: ROUTES.ADMIN.REPORTED_USER_DETAIL_ROUTE,
                 component: ReportedSeekerDetailPage,
