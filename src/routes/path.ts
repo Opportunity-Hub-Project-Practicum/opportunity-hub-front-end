@@ -50,7 +50,7 @@ export const ROUTES = {
         const base = `/admin/reported/${postId}`;
         return status ? `${base}?status=${status}` : base;
       },
-      ALL_EMPLOYER:'allEmployer'
+    
        
 
     },

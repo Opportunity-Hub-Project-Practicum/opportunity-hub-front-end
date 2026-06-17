@@ -1,7 +1,7 @@
-import type { EmployerPostApi } from "../types/employerPost";
+import type { EmployerPostApi, EmployerPostBanReportApi } from "../types/employerPost";
 import type { UpdateEmployerPostPayload } from "../services/employerPostService";
 
-export type ListingStatus = "Active" | "Expire";
+export type ListingStatus = "Active" | "Expire" | "Banned";
 
 export type ListingItem = {
     id: string;
@@ -13,6 +13,7 @@ export type ListingItem = {
     status: ListingStatus;
     applicationsCount: number;
     closedDate: string | null;
+    banReports: EmployerPostBanReportApi[];
 };
 
 const DURATION_LABELS: Record<string, string> = {
@@ -47,10 +48,18 @@ function isPostExpired(post: EmployerPostApi): boolean {
 }
 
 export function resolveListingStatus(post: EmployerPostApi): ListingStatus {
+    if (post.is_ban) {
+        return "Banned";
+    }
+
     return isPostExpired(post) ? "Expire" : "Active";
 }
 
 export function formatTimeRemaining(post: EmployerPostApi, status: ListingStatus): string {
+    if (status === "Banned") {
+        return "Hidden from seekers";
+    }
+
     if (!post.closed_date) {
         return "No closing date";
     }
@@ -106,6 +115,7 @@ export function mapEmployerPostToListingItem(post: EmployerPostApi): ListingItem
         status,
         applicationsCount: post.applications_count ?? 0,
         closedDate: post.closed_date,
+        banReports: post.ban_reports ?? [],
     };
 }
 
@@ -164,7 +174,14 @@ export function applyUpdatedPostToListings(
 ): ListingItem[] {
     const updatedItem = mapEmployerPostToListingItem(updatedPost);
 
-    return listings.map((item) =>
-        item.postId === updatedPost.post_id ? updatedItem : item,
-    );
+    return listings.map((item) => {
+        if (item.postId !== updatedPost.post_id) {
+            return item;
+        }
+
+        return {
+            ...updatedItem,
+            banReports: updatedPost.ban_reports ?? item.banReports,
+        };
+    });
 }

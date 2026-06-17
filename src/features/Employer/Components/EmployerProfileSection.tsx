@@ -17,12 +17,14 @@ import Upload from "../../Seeker/libs/uploadFile";
 
 type EmployerProfileSectionProps = {
     data: EmployerData;
-    isEditing: boolean;
+    isEditing?: boolean;
     isSaving?: boolean;
-    onFieldChange: <K extends keyof EmployerData>(field: K, value: EmployerData[K]) => void;
-    onStartEdit: () => void;
-    onSave: () => void;
-    onCancel: () => void;
+    /** When true: read-only display with no edit controls (e.g. admin viewing a profile). */
+    viewOnly?: boolean;
+    onFieldChange?: <K extends keyof EmployerData>(field: K, value: EmployerData[K]) => void;
+    onStartEdit?: () => void;
+    onSave?: () => void;
+    onCancel?: () => void;
 };
 
 const SOCIAL_LABELS: Record<string, string> = {
@@ -119,8 +121,9 @@ function TabButton({
 
 export default function EmployerProfileSection({
     data,
-    isEditing,
+    isEditing = false,
     isSaving = false,
+    viewOnly = false,
     onFieldChange,
     onStartEdit,
     onSave,
@@ -130,6 +133,7 @@ export default function EmployerProfileSection({
     const [isCompanyInfo, setIsCompanyInfo] = useState(true);
     const logoUrl = data.logo?.url;
     const activeSocialLinks = data.socialLinks.filter((link) => link.url.trim().length > 0);
+    const editing = viewOnly ? false : isEditing;
 
     return (
         <div className="page-container flex flex-col items-center  py-6">
@@ -137,12 +141,13 @@ export default function EmployerProfileSection({
                 <div>
                     <h1 className="text-xl font-semibold text-slate-900">Company profile</h1>
                     <p className="mt-1 text-sm text-slate-500">
-                        {isEditing ? "Edit your company information." : "View your company profile."}
+                        {editing ? "Edit your company information." : "View company profile."}
                     </p>
                 </div>
 
+                {!viewOnly && (
                 <div className="flex flex-wrap gap-2">
-                    {isEditing ? (
+                    {editing ? (
                         <>
                             <button
                                 type="button"
@@ -172,6 +177,7 @@ export default function EmployerProfileSection({
                         </button>
                     )}
                 </div>
+                )}
             </div>
 
             <div className="flex w-full max-w-4xl flex-col gap-5 px-2">
@@ -199,7 +205,7 @@ export default function EmployerProfileSection({
                                         <Building2 size={36} className="text-slate-300" />
                                     )}
 
-                                    {isEditing && (
+                                    {editing && (
                                         <>
                                             <button
                                                 type="button"
@@ -212,23 +218,23 @@ export default function EmployerProfileSection({
                                             <Upload
                                                 kind="image"
                                                 inputRef={fileInputRef}
-                                                onUpload={(file) => onFieldChange("logo", file)}
+                                                onUpload={(file) => onFieldChange?.("logo", file)}
                                             />
                                         </>
                                     )}
                                 </div>
                                 <span className="mt-2 flex justify-center text-sm text-slate-500">
-                                    {isEditing ? (logoUrl ? "Change logo" : "Upload logo") : "Company logo"}
+                                    {editing ? (logoUrl ? "Change logo" : "Upload logo") : "Company logo"}
                                 </span>
                             </div>
 
                             <div className="w-full">
-                                {isEditing ? (
+                                {editing ? (
                                     <SocialLinksSection
                                         links={data.socialLinks}
                                         setLinks={(links) => {
                                             const nextLinks = typeof links === "function" ? links(data.socialLinks) : links;
-                                            onFieldChange("socialLinks", nextLinks);
+                                            onFieldChange?.("socialLinks", nextLinks);
                                         }}
                                         readOnly={false}
                                     />
@@ -258,13 +264,13 @@ export default function EmployerProfileSection({
                             </div>
                         </div>
 
-                        {isEditing ? (
+                        {editing ? (
                             <>
                                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <EditField
                                         label="Your full name"
                                         value={data.fullName}
-                                        onChange={(value) => onFieldChange("fullName", value)}
+                                        onChange={(value) => onFieldChange?.("fullName", value)}
                                         placeholder="Full name"
                                     />
                                 </div>
@@ -273,13 +279,13 @@ export default function EmployerProfileSection({
                                     <EditField
                                         label="Company name"
                                         value={data.companyName}
-                                        onChange={(value) => onFieldChange("companyName", value)}
+                                        onChange={(value) => onFieldChange?.("companyName", value)}
                                         placeholder="Company name"
                                     />
                                     <EditField
                                         label="Location"
                                         value={data.location}
-                                        onChange={(value) => onFieldChange("location", value)}
+                                        onChange={(value) => onFieldChange?.("location", value)}
                                         placeholder="Location"
                                     />
                                 </div>
@@ -288,13 +294,13 @@ export default function EmployerProfileSection({
                                     <EditField
                                         label="Phone number"
                                         value={data.phoneNumber}
-                                        onChange={(value) => onFieldChange("phoneNumber", value)}
+                                        onChange={(value) => onFieldChange?.("phoneNumber", value)}
                                         placeholder="Phone number"
                                     />
                                     <EditField
                                         label="Email"
                                         value={data.email}
-                                        onChange={(value) => onFieldChange("email", value)}
+                                        onChange={(value) => onFieldChange?.("email", value)}
                                         placeholder="Company email"
                                         type="email"
                                     />
@@ -305,7 +311,7 @@ export default function EmployerProfileSection({
                                     <TextAreaBox
                                         value={data.aboutCompany}
                                         onChange={(value: unknown) =>
-                                            onFieldChange(
+                                            onFieldChange?.(
                                                 "aboutCompany",
                                                 typeof value === "string" ? value : ((value as { target?: { value?: string } })?.target?.value ?? ""),
                                             )
@@ -334,37 +340,37 @@ export default function EmployerProfileSection({
                     </section>
                 ) : (
                     <section className="w-full">
-                        {isEditing ? (
+                        {editing ? (
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <EditField
                                     label="Organization type"
                                     value={data.organizationType}
-                                    onChange={(value) => onFieldChange("organizationType", value)}
+                                    onChange={(value) => onFieldChange?.("organizationType", value)}
                                     placeholder="Organization type"
                                 />
                                 <EditField
                                     label="Industry type"
                                     value={data.industryType}
-                                    onChange={(value) => onFieldChange("industryType", value)}
+                                    onChange={(value) => onFieldChange?.("industryType", value)}
                                     placeholder="Industry type"
                                 />
                                 <EditField
                                     label="Team size"
                                     value={data.teamSize}
-                                    onChange={(value) => onFieldChange("teamSize", value)}
+                                    onChange={(value) => onFieldChange?.("teamSize", value)}
                                     placeholder="Team size"
                                 />
                                 <EditField
                                     label="Year of establishment"
                                     value={data.yearOfEstablishment}
-                                    onChange={(value) => onFieldChange("yearOfEstablishment", value)}
+                                    onChange={(value) => onFieldChange?.("yearOfEstablishment", value)}
                                     type="date"
                                 />
                                 <div className="md:col-span-2">
                                     <EditField
                                         label="Company website"
                                         value={data.companyWebsite}
-                                        onChange={(value) => onFieldChange("companyWebsite", value)}
+                                        onChange={(value) => onFieldChange?.("companyWebsite", value)}
                                         placeholder="https://example.com"
                                         type="url"
                                     />
@@ -374,7 +380,7 @@ export default function EmployerProfileSection({
                                     <TextAreaBox
                                         value={data.companyVision}
                                         onChange={(value: unknown) =>
-                                            onFieldChange(
+                                            onFieldChange?.(
                                                 "companyVision",
                                                 typeof value === "string" ? value : ((value as { target?: { value?: string } })?.target?.value ?? ""),
                                             )

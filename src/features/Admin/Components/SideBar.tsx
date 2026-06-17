@@ -1,6 +1,5 @@
 import {
     Briefcase,
-    Bookmark,
     ChevronLeft,
     ChevronRight,
     CircleUserRound,
@@ -23,7 +22,6 @@ const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
         { name: "Overview", icon: Layers, path: ROUTES.ADMIN.OVERVIEW },
         { name: "Manage User", icon: PlusCircle, path: ROUTES.ADMIN.MANAGE_USER },
         { name: "All Posts", icon: Briefcase, path: ROUTES.ADMIN.ALL_POST },
-        { name: "Organizaion", icon: Bookmark, path: ROUTES.ADMIN.ALL_EMPLOYER },
         { name: "Reported Post", icon: Settings, path: ROUTES.ADMIN.REPORTED },
         { name: "Profile", icon: CircleUserRound, path: ROUTES.ADMIN.PROFILE },
     ];

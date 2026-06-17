@@ -4,6 +4,7 @@ export type FavoritePostApi = {
     post_title: string | null;
     post_type: "job" | "volunteer" | null;
     employer_name: string | null;
+    post_is_ban?: boolean;
     created_at: string | null;
 };
 
@@ -22,4 +23,5 @@ export type FavoriteCardItem = {
     salary: string;
     remainingDays: string;
     image: string;
+    postIsBanned: boolean;
 };

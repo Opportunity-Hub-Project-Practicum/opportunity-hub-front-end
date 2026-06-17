@@ -1,8 +1,16 @@
+export type EmployerPostBanReportApi = {
+    report_id: number;
+    report_reason: string;
+    report_status: "pending" | "resolved";
+    created_date: string;
+};
+
 export type EmployerPostApi = {
     post_id: number;
     uuid: string;
     type: "job" | "volunteer";
     post_status: "open" | "closed";
+    is_ban: boolean;
     post_title: string;
     post_description: string | null;
     responsibility: string | null;
@@ -22,6 +30,7 @@ export type EmployerPostApi = {
     closed_date: string | null;
     created_at: string | null;
     applications_count?: number;
+    ban_reports?: EmployerPostBanReportApi[];
 };
 
 export type EmployerPostsResponse = {

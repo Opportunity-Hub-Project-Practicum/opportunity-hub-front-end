@@ -1,5 +1,7 @@
-import { CheckCircle2, Clock, Users, XCircle } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, Clock, ShieldAlert, Users, XCircle } from "lucide-react";
 import type { ListingItem } from "../lib/myJobMappers";
+import PostBanReasonModal from "./PostBanReasonModal";
 
 export type EmployerPostTab = "JOBS" | "Volunteer";
 
@@ -30,12 +32,14 @@ export default function EmployerPostListTable({
     loadingMessage = "Loading your posts...",
     emptyMessage = "No posts found.",
 }: EmployerPostListTableProps) {
+    const [banReasonListing, setBanReasonListing] = useState<ListingItem | null>(null);
     const expectedPostType = activeTab === "JOBS" ? "job" : "volunteer";
     const filteredListings = listings
         .filter((item) => item.postType === expectedPostType)
         .slice(0, limit);
 
     return (
+        <>
         <div className="w-full overflow-hidden rounded-md border border-[#E4E5E8] bg-white">
             <div className="grid grid-cols-12 items-center bg-[#F1F2F4] px-6 py-3 text-[12px] font-medium uppercase tracking-wider text-[#474C54]">
                 <div className="col-span-5 flex items-center space-x-8">
@@ -89,7 +93,16 @@ export default function EmployerPostListTable({
                                 </div>
 
                                 <div className="col-span-2 flex items-center pl-2">
-                                    {item.status === "Active" ? (
+                                    {item.status === "Banned" ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setBanReasonListing(item)}
+                                            className="inline-flex items-center space-x-1.5 text-sm font-medium text-[#DC3545] underline-offset-2 transition-colors hover:underline"
+                                        >
+                                            <ShieldAlert className="h-4 w-4" />
+                                            <span>Banned</span>
+                                        </button>
+                                    ) : item.status === "Active" ? (
                                         <span className="inline-flex items-center space-x-1.5 text-sm font-medium text-[#28A745]">
                                             <CheckCircle2 className="h-4 w-4" />
                                             <span>Active</span>
@@ -111,7 +124,8 @@ export default function EmployerPostListTable({
                                     <button
                                         onClick={() => onViewApplications(item.postId)}
                                         type="button"
-                                        className="rounded-sm bg-[#F1F2F4] px-5 py-2.5 text-sm font-semibold text-[#0A65CC] transition-colors hover:bg-[#E4E5E8]"
+                                        disabled={item.status === "Banned"}
+                                        className="rounded-sm bg-[#F1F2F4] px-5 py-2.5 text-sm font-semibold text-[#0A65CC] transition-colors hover:bg-[#E4E5E8] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#F1F2F4]"
                                     >
                                         View Applications
                                     </button>
@@ -119,7 +133,11 @@ export default function EmployerPostListTable({
                                     <button
                                         type="button"
                                         title="Set listing duration"
-                                        disabled={!onTogglePostStatus || updatingPostId === item.postId}
+                                        disabled={
+                                            item.status === "Banned"
+                                            || !onTogglePostStatus
+                                            || updatingPostId === item.postId
+                                        }
                                         onClick={() => onTogglePostStatus?.(item)}
                                         className={`p-1 hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 ${item.status === "Active" ? "text-[#E0513E]" : "text-[#7ED321]"}`}
                                     >
@@ -132,5 +150,13 @@ export default function EmployerPostListTable({
                 </div>
             )}
         </div>
+
+        <PostBanReasonModal
+            isOpen={banReasonListing != null}
+            postTitle={banReasonListing?.title ?? ""}
+            reports={banReasonListing?.banReports ?? []}
+            onClose={() => setBanReasonListing(null)}
+        />
+        </>
     );
 }

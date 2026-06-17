@@ -1,10 +1,10 @@
-import { Bookmark, BellRing, BriefcaseBusiness, ArrowRight, MapPin, DollarSign } from "lucide-react";
+import { Bookmark, BellRing, BriefcaseBusiness, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import SeekerAppliedPostRow from "../Components/SeekerAppliedPostRow";
 import { ROUTES } from "../../../routes/path";
 import { formatApiError } from "../../../services/apiClient";
 import { fetchOverviewActivityData } from "../services/overviewActivityService";
-import type { ApplicationStatus } from "../types/application";
 import type { OverviewActivityCounts, OverviewActivityData } from "../types/overviewActivity";
 
 const metricCards = [
@@ -15,21 +15,6 @@ const metricCards = [
     { key: "favoriteVolunteers", label: "Favorite Volunteers", bg: "bg-green-200", icon: Bookmark },
     { key: "volunteerAlerts", label: "Volunteer Alerts", bg: "bg-green-200", icon: BellRing },
 ] as const;
-
-function statusClassName(status: ApplicationStatus): string {
-    switch (status) {
-        case "hired":
-            return "text-green-600";
-        case "rejected":
-            return "text-red-600";
-        case "pending":
-            return "text-amber-600";
-        default: {
-            const _exhaustive: never = status;
-            return _exhaustive;
-        }
-    }
-}
 
 export default function OverviewActivity() {
     const [isJob, setIsJob] = useState<"job" | "volunteer">("job");
@@ -135,54 +120,7 @@ export default function OverviewActivity() {
                 )}
 
                 {currentItems.map((item) => (
-                    <div
-                        key={item.applicationId}
-                        className="grid grid-cols-6 border p-2 lg:p-4 rounded-lg hover:border-primary hover:shadow-lg hover:scale-101 transition-all duration-300"
-                    >
-                        <div className="col-span-3 flex justify-between">
-                            <div className="flex gap-2 lg:gap-5">
-                                <img
-                                    src={item.image}
-                                    alt={item.organizationName}
-                                    className="rounded-lg border w-15 h-15 object-cover bg-white"
-                                />
-                                <div className="flex flex-col justify-around w-full">
-                                    <div className="flex gap-1 items-start flex-wrap">
-                                        <p className="font-semibold">
-                                            {item.organizationName} - {item.title}
-                                        </p>
-                                        <span className="rounded-2xl bg-subPrimary px-2 text-primaryDark w-fit h-fit text-sm">
-                                            {item.workPlaceType}
-                                        </span>
-                                    </div>
-                                    <div className="flex gap-2 flex-wrap">
-                                        {item.location && (
-                                            <span className="flex text-small justify-center items-center text-gray-500">
-                                                <MapPin className="text-primary" size={15} />
-                                                {item.location}
-                                            </span>
-                                        )}
-                                        {item.salary && (
-                                            <span className="flex text-small justify-center items-center text-gray-500">
-                                                <DollarSign className="text-primary" size={15} />
-                                                {item.salary}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <span className="text-gray-600 flex items-center">{item.appliedDate}</span>
-                        <span className={`flex items-center capitalize ${statusClassName(item.status)}`}>
-                            {item.status}
-                        </span>
-                        <Link
-                            to={ROUTES.HOME.POST_DETAIL(item.postId)}
-                            className="bg-primary text-white flex justify-center items-center rounded-2xl m-2"
-                        >
-                            View Post
-                        </Link>
-                    </div>
+                    <SeekerAppliedPostRow key={item.applicationId} item={item} />
                 ))}
             </section>
         </div>

@@ -16,7 +16,7 @@ import {
 import { fetchEmployerPosts, updateEmployerPost } from '../services/employerPostService';
 
 type PostTab = 'JOBS' | 'Volunteer';
-type JobStatusFilter = 'All Jobs' | 'Active' | 'Expired';
+type JobStatusFilter = 'All Jobs' | 'Active' | 'Expired' | 'Banned';
 
 export default function MyJobPage() {
     const navigate = useNavigate();
@@ -67,6 +67,10 @@ export default function MyJobPage() {
             }
 
             if (jobStatusFilter === 'Expired' && item.status !== 'Expire') {
+                return false;
+            }
+
+            if (jobStatusFilter === 'Banned' && item.status !== 'Banned') {
                 return false;
             }
 
@@ -140,6 +144,7 @@ export default function MyJobPage() {
                             <option>All Jobs</option>
                             <option>Active</option>
                             <option>Expired</option>
+                            <option>Banned</option>
                         </select>
                         <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
                     </div>

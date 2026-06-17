@@ -1,8 +1,8 @@
 import { CheckCircle2, Users, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import SeekerProfileSection from "../../../GlobalComponents/SeekerProfileSection";
-import OrganizationForm from "../../../GlobalComponents/OrganizationForm";
 import SearchBox from "../../../GlobalComponents/SearchBox";
+import EmployerProfileSection from "../../Employer/Components/EmployerProfileSection";
 import { formatApiError } from "../../../services/apiClient";
 import { mapProfileApiToSettings as mapEmployerProfileToForm } from "../../Employer/lib/employerProfileMappers";
 import type { EmployerProfileApi } from "../../Employer/types/employerProfile";
@@ -385,7 +385,10 @@ export default function ManageUserPage() {
                         )}
 
                         {!profileLoading && !profileError && employerProfileData && (
-                            <OrganizationForm initialData={employerProfileData} />
+                            <EmployerProfileSection
+                                data={employerProfileData}
+                                viewOnly
+                            />
                         )}
                     </div>
                 </div>

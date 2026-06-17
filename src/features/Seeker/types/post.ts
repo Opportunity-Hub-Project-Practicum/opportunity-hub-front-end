@@ -10,6 +10,7 @@ export type PostDetailApi = {
     uuid: string;
     type: "job" | "volunteer";
     post_status: "open" | "closed";
+    is_ban?: boolean;
     post_title: string;
     post_description: string | null;
     responsibility: string | null;

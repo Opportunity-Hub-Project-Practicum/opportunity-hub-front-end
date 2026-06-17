@@ -204,10 +204,7 @@ export const routeConfig: RouteConfig[] = [
                 path: ROUTES.ADMIN.OVERVIEW,
                 component: OverviewPageAdmin,
             },
-            {
-                path: ROUTES.ADMIN.ALL_EMPLOYER,
-                component: AllEmployerPage,
-            },
+
             {
                 path: ROUTES.ADMIN.ALL_POST,
                 component: AllPostPage,

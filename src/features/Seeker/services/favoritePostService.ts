@@ -65,6 +65,7 @@ function toFavoriteCardItem(
         salary: formatPostSalary(post),
         remainingDays: formatSavedDate(favorite.created_at),
         image: post?.employer?.logo_img ?? "",
+        postIsBanned: Boolean(post?.is_ban ?? favorite.post_is_ban),
     };
 }
 

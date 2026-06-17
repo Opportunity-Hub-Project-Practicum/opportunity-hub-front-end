@@ -7,6 +7,7 @@ export type ApplicationApi = {
     post_uuid: string | null;
     post_title: string | null;
     employer_name: string | null;
+    post_is_ban?: boolean;
     status: ApplicationStatus;
     submission_date: string | null;
     cv_resume_file: string | null;
@@ -30,5 +31,6 @@ export type AppliedCardItem = {
     salary: string;
     appliedDate: string;
     status: ApplicationStatus;
+    postIsBanned: boolean;
     image: string;
 };

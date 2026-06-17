@@ -90,6 +90,7 @@ export default function Favorite() {
                         salary={item.salary}
                         remainingDays={item.remainingDays}
                         image={item.image}
+                        isBanned={item.postIsBanned}
                         isBookmarked
                         onBookmark={() => handleRemoveFavorite(item.favoritePostId)}
                     />

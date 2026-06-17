@@ -43,6 +43,7 @@ import {
 import { submitPostReport } from "../services/reportService";
 import type { Organization } from "../Components/card/CardCompany";
 import type { PostDetailApi, PublicPostApi } from "../types/post";
+import { BANNED_POST_STATUS_LABEL, isPostBannedForSeeker } from "../lib/seekerPostBan";
 
 type OverviewItem = {
     label: string;
@@ -363,11 +364,18 @@ export default function PostDetail() {
     }
 
     const engagementLabel = formatWorkPlaceType(post.work_place_type) || post.type;
+    const isPostBanned = isPostBannedForSeeker(post.is_ban);
 
     return (
         <>
             <section className="page-container">
                 <BackButton />
+
+                {isPostBanned && (
+                    <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                        {BANNED_POST_STATUS_LABEL}
+                    </div>
+                )}
 
                 {error && <p className="text-red-600 mb-4">{error}</p>}
                 {actionError && <p className="text-red-600 mb-4">{actionError}</p>}
@@ -415,8 +423,8 @@ export default function PostDetail() {
                     <div className="flex gap-3">
                         <button
                             onClick={handleBookmark}
-                            disabled={isSubmittingFavorite}
-                            className="flex items-center justify-center w-10 h-10 bg-blue-50 hover:bg-blue-100 rounded transition-colors disabled:opacity-60"
+                            disabled={isPostBanned || isSubmittingFavorite}
+                            className="flex items-center justify-center w-10 h-10 bg-blue-50 hover:bg-blue-100 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             <Bookmark
                                 size={18}
@@ -429,8 +437,8 @@ export default function PostDetail() {
                         </button>
                         <button
                             onClick={handleApply}
-                            disabled={hasApplied || isSubmittingApplication}
-                            className="btn-primary-blue flex items-center gap-2 disabled:opacity-60"
+                            disabled={isPostBanned || hasApplied || isSubmittingApplication}
+                            className="btn-primary-blue flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {hasApplied
                                 ? isVolunteer
@@ -482,7 +490,8 @@ export default function PostDetail() {
 
                         <button
                             onClick={() => setIsReport(true)}
-                            className="bg-red-600 text-white rounded-lg p-2"
+                            disabled={isPostBanned}
+                            className="bg-red-600 text-white rounded-lg p-2 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             Report Post
                         </button>
@@ -494,10 +503,18 @@ export default function PostDetail() {
                 <div className="flex justify-between py-5">
                     <span className="text-big">Related {isVolunteer ? "Volunteer" : "Jobs"}</span>
                     <div className="flex gap-2">
-                        <button className="bg-subPrimary rounded-lg text-primaryDark p-1">
+                        <button
+                            type="button"
+                            disabled={isPostBanned}
+                            className="bg-subPrimary rounded-lg text-primaryDark p-1 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
                             <ArrowLeft />
                         </button>
-                        <button className="bg-subPrimary rounded-lg text-primaryDark p-1">
+                        <button
+                            type="button"
+                            disabled={isPostBanned}
+                            className="bg-subPrimary rounded-lg text-primaryDark p-1 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
                             <ArrowRight />
                         </button>
                     </div>
