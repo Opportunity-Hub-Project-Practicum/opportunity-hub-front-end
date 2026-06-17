@@ -1,0 +1,113 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F8FAFD"/>
+      <stop offset="100%" stop-color="#EEF4FB"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="300" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0a65CC"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="circleGrad1" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#d2e2fb" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#d2e2fb" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="circleGrad2" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#0a65CC" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#0a65CC" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Decorative elements -->
+  <circle cx="1100" cy="80" r="300" fill="url(#circleGrad1)"/>
+  <circle cx="1150" cy="550" r="400" fill="url(#circleGrad2)"/>
+  <circle cx="50" cy="600" r="200" fill="url(#circleGrad1)"/>
+
+  <!-- Subtle grid pattern -->
+  <line x1="400" y1="0" x2="400" y2="630" stroke="#0a65CC" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="800" y1="0" x2="800" y2="630" stroke="#0a65CC" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="0" y1="210" x2="1200" y2="210" stroke="#0a65CC" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="0" y1="420" x2="1200" y2="420" stroke="#0a65CC" stroke-opacity="0.03" stroke-width="1"/>
+
+  <!-- Top accent bar -->
+  <rect x="0" y="0" width="1200" height="5" fill="url(#accentGrad)"/>
+
+  <!-- Left section: Brand -->
+  <!-- Logo icon (abstract H shape) -->
+  <rect x="85" y="145" width="48" height="48" rx="12" fill="#0a65CC"/>
+  <rect x="97" y="157" width="6" height="24" rx="3" fill="white"/>
+  <rect x="115" y="157" width="6" height="24" rx="3" fill="white"/>
+  <rect x="97" y="169" width="24" height="6" rx="3" fill="white"/>
+
+  <!-- Headline -->
+  <text x="85" y="260" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="62" font-weight="800" fill="#18191C" letter-spacing="-1.5">Opportunity</text>
+  <text x="85" y="335" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="62" font-weight="800" fill="#0a65CC" letter-spacing="-1.5">Hub</text>
+
+  <!-- Tagline -->
+  <text x="85" y="400" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="20" fill="#5E6670" letter-spacing="-0.3">Find jobs &amp; volunteer opportunities that</text>
+  <text x="85" y="430" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="20" fill="#5E6670" letter-spacing="-0.3">match your skills and passions.</text>
+
+  <!-- CTA buttons -->
+  <rect x="85" y="470" width="140" height="44" rx="8" fill="#0a65CC"/>
+  <text x="155" y="498" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="white" text-anchor="middle">Find Jobs</text>
+
+  <rect x="240" y="470" width="140" height="44" rx="8" fill="#d2e2fb"/>
+  <text x="310" y="498" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#0a65CC" text-anchor="middle">Volunteer</text>
+
+  <!-- Divider vertical -->
+  <line x1="500" y1="100" x2="500" y2="530" stroke="#0a65CC" stroke-opacity="0.08" stroke-width="1.5" stroke-dasharray="6 4"/>
+
+  <!-- Right section: Illustration -->
+
+  <!-- 3D-like overlapping cards -->
+  <!-- Back card -->
+  <rect x="720" y="285" width="380" height="95" rx="12" fill="white" stroke="#E8F1FC" stroke-width="1.5"/>
+  <rect x="735" y="305" width="28" height="28" rx="6" fill="#d2e2fb"/>
+  <circle cx="749" cy="319" r="6" fill="#0a65CC"/>
+  <text x="775" y="320" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#18191C">Frontend Developer</text>
+  <text x="775" y="340" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="12" fill="#767F8C">Tech Corp · Full-time · $60k-$90k</text>
+  <rect x="1035" y="305" width="50" height="22" rx="6" fill="#d2e2fb"/>
+  <text x="1060" y="320" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#0a65CC" text-anchor="middle">JOB</text>
+
+  <!-- Front card (offset) -->
+  <rect x="700" y="370" width="380" height="95" rx="12" fill="white" stroke="#E8F1FC" stroke-width="1.5"/>
+  <rect x="715" y="390" width="28" height="28" rx="6" fill="#d2e2fb"/>
+  <path d="M 722 400 L 728 410 L 736 395" stroke="#0a65CC" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="755" y="405" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#18191C">Community Volunteer</text>
+  <text x="755" y="425" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="12" fill="#767F8C">Local NGO · Flexible · Weekends</text>
+  <rect x="1015" y="390" width="50" height="22" rx="6" fill="#D1FAE5"/>
+  <text x="1040" y="405" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="10" font-weight="600" fill="#065F46" text-anchor="middle">VOLUNTEER</text>
+
+  <!-- Connection nodes above cards -->
+  <circle cx="750" cy="200" r="22" fill="white" stroke="#d2e2fb" stroke-width="2"/>
+  <circle cx="750" cy="200" r="8" fill="#0a65CC"/>
+
+  <circle cx="870" cy="170" r="22" fill="white" stroke="#d2e2fb" stroke-width="2"/>
+  <circle cx="870" cy="170" r="8" fill="#0a65CC"/>
+
+  <circle cx="990" cy="200" r="22" fill="white" stroke="#d2e2fb" stroke-width="2"/>
+  <circle cx="990" cy="200" r="8" fill="#0a65CC"/>
+
+  <!-- Connector lines -->
+  <line x1="772" y1="200" x2="848" y2="170" stroke="#d2e2fb" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="892" y1="170" x2="968" y2="200" stroke="#d2e2fb" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Growth arrow -->
+  <line x1="1060" y1="520" x2="1060" y2="140" stroke="#0a65CC" stroke-width="4" stroke-linecap="round" stroke-opacity="0.3"/>
+  <polygon points="1060,125 1048,150 1072,150" fill="#0a65CC" fill-opacity="0.3"/>
+
+  <!-- Arrowhead on growth arrow -->
+  <polygon points="1060,125 1048,150 1072,150" fill="#0a65CC"/>
+
+  <!-- Stats badge -->
+  <rect x="85" y="540" width="340" height="50" rx="10" fill="white" stroke="#E8F1FC" stroke-width="1"/>
+  <text x="110" y="570" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="13" fill="#767F8C">
+    <tspan fill="#0a65CC" font-weight="700">500+</tspan> Opportunities  <tspan fill="#0a65CC" font-weight="700">200+</tspan> Organizations
+  </text>
+
+  <!-- Bottom accent -->
+  <rect x="0" y="625" width="1200" height="5" fill="url(#accentGrad)"/>
+</svg>
