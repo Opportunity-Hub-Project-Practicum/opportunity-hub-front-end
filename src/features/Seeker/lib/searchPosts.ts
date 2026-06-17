@@ -26,11 +26,6 @@ export type SearchPayload = {
     filters?: SearchFilters;
 };
 
-const JOB_LEVEL_MAP: Record<string, string> = {
-    "Entry Level": "entry_level",
-    "Expert Level": "expert_level",
-};
-
 const SALARY_RANGES: Record<string, { min: number; max: number | null }> = {
     "$100+": { min: 100, max: null },
     "$300+": { min: 300, max: null },
@@ -73,10 +68,6 @@ function postMatchesSalary(post: PublicPostApi, salaryLabel: string): boolean {
     return postMax >= range.min && postMin <= range.max;
 }
 
-function normalizeBenefitLabel(label: string): string {
-    return label.toLowerCase().replace(/\s+/g, "_").replace(/\//g, "_");
-}
-
 export function applySearchFilters(posts: PublicPostApi[], payload: SearchPayload): PublicPostApi[] {
     let filtered = [...posts];
     const filters = payload.filters;
@@ -93,39 +84,47 @@ export function applySearchFilters(posts: PublicPostApi[], payload: SearchPayloa
         return filtered;
     }
 
+    if (filters.experience) {
+        filtered = filtered.filter((post) => post.job_experience === filters.experience);
+    }
+
     if (filters.jobLevel) {
-        const mappedLevel = JOB_LEVEL_MAP[filters.jobLevel];
-        if (mappedLevel) {
-            filtered = filtered.filter((post) => post.job_level === mappedLevel);
-        }
+        filtered = filtered.filter((post) => post.job_level === filters.jobLevel);
     }
 
     if (filters.jobTypes && filters.jobTypes.length > 0) {
-        if (filters.jobTypes.includes("Remote")) {
-            filtered = filtered.filter((post) => post.work_place_type === "remote");
-        }
+        filtered = filtered.filter((post) => filters.jobTypes!.includes(post.job_type ?? ""));
     }
 
     if (filters.salary && filters.salary !== "All") {
         filtered = filtered.filter((post) => postMatchesSalary(post, filters.salary!));
     }
 
-    if (filters.education && filters.education.length > 0 && !filters.education.includes("All")) {
-        const educationTerms = filters.education.map((item) => item.toLowerCase());
+    if (filters.education && filters.education.length > 0) {
+        filtered = filtered.filter((post) => filters.education!.includes(post.job_education ?? ""));
+    }
+
+    if (filters.duration) {
+        filtered = filtered.filter((post) => post.duration === filters.duration);
+    }
+
+    if (filters.schedule && filters.schedule.length > 0) {
+        filtered = filtered.filter((post) => filters.schedule!.includes(post.schedule ?? ""));
+    }
+
+    if (filters.hoursPerWeek) {
+        filtered = filtered.filter((post) => post.hours_per_week === filters.hoursPerWeek);
+    }
+
+    if (filters.benefits && filters.benefits.length > 0 && !filters.benefits.includes("all")) {
         filtered = filtered.filter((post) => {
-            const haystack = (post.job_role ?? post.post_title ?? "").toLowerCase();
-            return educationTerms.some((term) => haystack.includes(term));
+            const postBenefits = post.benefits ?? [];
+            return filters.benefits!.some((benefit) => postBenefits.includes(benefit));
         });
     }
 
-    if (filters.benefits && filters.benefits.length > 0 && !filters.benefits.includes("All")) {
-        const benefitTerms = filters.benefits.map(normalizeBenefitLabel);
-        filtered = filtered.filter((post) => {
-            const postBenefits = (post.benefits ?? []).map((benefit) => benefit.toLowerCase());
-            return benefitTerms.some((term) =>
-                postBenefits.some((benefit) => benefit.includes(term)),
-            );
-        });
+    if (filters.languageRequirement && filters.languageRequirement !== "none") {
+        filtered = filtered.filter((post) => post.language === filters.languageRequirement);
     }
 
     return filtered;

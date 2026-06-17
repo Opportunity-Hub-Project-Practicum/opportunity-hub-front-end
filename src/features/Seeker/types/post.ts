@@ -43,7 +43,14 @@ export type PublicPostApi = {
     min_salary: string | number | null;
     max_salary: string | number | null;
     job_role: string | null;
+    job_type: string | null;
+    job_education: string | null;
+    job_experience: string | null;
     job_level: string | null;
+    duration: string | null;
+    schedule: string | null;
+    hours_per_week: string | null;
+    language: string | null;
     closed_date: string | null;
     benefits: string[] | null;
     employer?: PostEmployerApi | null;

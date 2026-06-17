@@ -1,7 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import TextAreaBox from '../../../GlobalComponents/textAreaBox';
-import type { JobLevel, JobPostSubmitPayload } from '../types/postApplication';
+import { getLookupOptions, useLookupValues } from '../../../hooks/useLookupValues';
+import { LOOKUP_TYPES } from '../../../types/lookupValue';
+import type { JobPostSubmitPayload } from '../types/postApplication';
 
 interface PostJobFormProps {
     onSubmit: (payload: JobPostSubmitPayload) => Promise<void> | void;
@@ -24,11 +26,21 @@ const parseNumberOrNull = (value: FormDataEntryValue | null) => {
 
 const getString = (value: FormDataEntryValue | null) => (value ? value.toString().trim() : "");
 
+const selectClassName =
+    "w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10";
+
 export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobFormProps) {
+    const { lookupValues, loading, error: lookupError } = useLookupValues();
     const [description, setDescription] = useState("");
     const [responsibilities, setResponsibilities] = useState("");
     const [jobRequirements, setJobRequirements] = useState("");
     const [error, setError] = useState<string | null>(null);
+
+    const jobTypeOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobType);
+    const workPlaceOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.workPlaceType);
+    const educationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.education);
+    const experienceOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.experience);
+    const jobLevelOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobLevel);
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -39,15 +51,14 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
         try {
             await onSubmit({
                 title: getString(formData.get("title")),
-                jobRole: getString(formData.get("jobRole")),
+                jobType: getString(formData.get("jobType")),
                 minSalary: parseNumberOrNull(formData.get("minSalary")),
                 maxSalary: parseNumberOrNull(formData.get("maxSalary")),
                 education: getString(formData.get("education")),
                 experience: getString(formData.get("experience")),
-                jobType: getString(formData.get("jobType")),
                 workPlaceType: getString(formData.get("workPlaceType")) as JobPostSubmitPayload["workPlaceType"],
                 expirationDate: getString(formData.get("expirationDate")),
-                jobLevel: getString(formData.get("jobLevel")) as JobLevel | "",
+                jobLevel: getString(formData.get("jobLevel")),
                 location: getString(formData.get("location")),
                 description,
                 responsibilities,
@@ -66,9 +77,9 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
     return (
         <div className="w-full bg-white min-h-screen p-8 text-[#18191C]">
             <form onSubmit={handleSubmit} className="w-full space-y-6">
-                {error && (
+                {(error || lookupError) && (
                     <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                        {error}
+                        {error ?? lookupError}
                     </div>
                 )}
 
@@ -85,15 +96,20 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-[#18191C]">Job Role</label>
+                        <label className="block text-sm font-medium mb-2 text-[#18191C]">Job Type</label>
                         <div className="relative">
-                            <select name="jobRole" required className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10">
+                            <select
+                                name="jobType"
+                                required
+                                disabled={loading}
+                                className={selectClassName}
+                            >
                                 <option value="">Select...</option>
-                                <option value="Software Engineer">Software Engineer</option>
-                                <option value="Frontend Developer">Frontend Developer</option>
-                                <option value="Backend Developer">Backend Developer</option>
-                                <option value="UI Designer">UI Designer</option>
-                                <option value="Project Manager">Project Manager</option>
+                                {jobTypeOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.name}
+                                    </option>
+                                ))}
                             </select>
                             <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
                         </div>
@@ -108,13 +124,20 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium mb-2 text-[#18191C]">Job Type</label>
+                        <label className="block text-sm font-medium mb-2 text-[#18191C]">Work Place Type</label>
                         <div className="relative">
-                            <select name="jobType" className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10">
+                            <select
+                                name="workPlaceType"
+                                required
+                                disabled={loading}
+                                className={selectClassName}
+                            >
                                 <option value="">Select...</option>
-                                <option value="part_time">Part time</option>
-                                <option value="full_time">Full time</option>
-                                <option value="internship">Internship</option>
+                                {workPlaceOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.name}
+                                    </option>
+                                ))}
                             </select>
                             <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
                         </div>
@@ -159,12 +182,13 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                         <div>
                             <label className="block text-sm font-medium mb-2 text-[#18191C]">Education</label>
                             <div className="relative">
-                                <select name="education" required className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10">
+                                <select name="education" required disabled={loading} className={selectClassName}>
                                     <option value="">Select...</option>
-                                    <option value="High School">High School</option>
-                                    <option value="Bachelor's Degree">Bachelor&apos;s Degree</option>
-                                    <option value="Master's Degree">Master&apos;s Degree</option>
-                                    <option value="PhD">PhD</option>
+                                    {educationOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.name}
+                                        </option>
+                                    ))}
                                 </select>
                                 <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
                             </div>
@@ -172,28 +196,27 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                         <div>
                             <label className="block text-sm font-medium mb-2 text-[#18191C]">Experience</label>
                             <div className="relative">
-                                <select name="experience" required className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10">
+                                <select name="experience" required disabled={loading} className={selectClassName}>
                                     <option value="">Select...</option>
-                                    <option value="No experience required">No experience required</option>
-                                    <option value="1-2 years">1-2 years</option>
-                                    <option value="3-5 years">3-5 years</option>
-                                    <option value="5+ years">5+ years</option>
+                                    {experienceOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.name}
+                                        </option>
+                                    ))}
                                 </select>
                                 <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-2 text-[#18191C]">Work Place Type</label>
+                            <label className="block text-sm font-medium mb-2 text-[#18191C]">Job Level</label>
                             <div className="relative">
-                                <select
-                                    name="workPlaceType"
-                                    required
-                                    className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10"
-                                >
+                                <select name="jobLevel" disabled={loading} className={selectClassName}>
                                     <option value="">Select...</option>
-                                    <option value="remote">Remote</option>
-                                    <option value="onsite">Onsite</option>
-                                    <option value="hybrid">Hybrid</option>
+                                    {jobLevelOptions.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.name}
+                                        </option>
+                                    ))}
                                 </select>
                                 <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
                             </div>
@@ -209,18 +232,6 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                                 placeholder="DD/MM/YYYY"
                                 className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-blue-500 text-sm"
                             />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-2 text-[#18191C]">Job Level</label>
-                            <div className="relative">
-                                <select name="jobLevel" className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10">
-                                    <option value="">Select...</option>
-                                    <option value="entry_level">Entry Level</option>
-                                    <option value="mid_level">Mid Level</option>
-                                    <option value="expert_level">Expert Level</option>
-                                </select>
-                                <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -241,8 +252,8 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                 <div className="pt-4">
                     <button
                         type="submit"
-                        disabled={isSubmitting}
-                        className="inline-flex items-center justify-center space-x-2 bg-[#0A65CC] text-white px-6 py-3.5 rounded-md font-semibold text-sm hover:bg-blue-700 transition-colors"
+                        disabled={isSubmitting || loading}
+                        className="inline-flex items-center justify-center space-x-2 bg-[#0A65CC] text-white px-6 py-3.5 rounded-md font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60"
                     >
                         <span>{isSubmitting ? "Posting..." : "Post Job"}</span>
                         <ArrowRight className="h-4 w-4" />
