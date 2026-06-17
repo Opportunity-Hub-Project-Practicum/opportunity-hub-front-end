@@ -126,7 +126,7 @@ const InputField: React.FC<{
   </div>
 );
 
-const WorkExperienceForm: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
+const WorkExperienceForm: React.FC<{ onClose?: () => void; onSave?: (data: WorkExperienceData) => void }> = ({ onClose, onSave }) => {
   const [formData, setFormData] = useState<WorkExperienceData>(EMPTY_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitted, setSubmitted] = useState(false);
@@ -150,7 +150,7 @@ const WorkExperienceForm: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
       return;
     }
     // TODO: send formData to API or parent component
-    console.log('Submitted Work Experience:', formData);
+    onSave?.(formData);
     setSubmitted(true);
     setFormData(EMPTY_FORM);
     setErrors({});

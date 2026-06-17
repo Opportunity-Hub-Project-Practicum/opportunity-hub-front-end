@@ -1,24 +1,23 @@
 import { redirect } from "react-router-dom";
+import { getHomeRouteForRole } from "../features/Auth/lib/authRoutes";
+import { getAccessToken } from "../services/apiClient";
+import { getStoredUser } from "../services/authService";
+import { ROUTES } from "./path";
+import type { UserRole } from "../types/auth";
 
+export const createRoleLoader = (requireRole: UserRole) => {
+    return () => {
+        const token = getAccessToken();
+        const user = getStoredUser();
 
-interface LoaderContext {
-    userRole: string | null;
-}
-
-export const createRoleLoader = (requireRole: 'admin' | 'employer' | 'seeker') => {
-    return async ({ params }: any, context?: LoaderContext) => {
-
-        // check the auth context will implement later
-        const userRole = context?.userRole;
-
-        if (!userRole) {
-            return redirect('/');
+        if (!token || !user) {
+            return redirect(ROUTES.AUTH.LOGIN);
         }
-        if (userRole != requireRole) {
-            return redirect('/')
+
+        if (user.role !== requireRole) {
+            return redirect(getHomeRouteForRole(user.role));
         }
-        // success user have right role 
+
         return null;
-
-    }
-}
+    };
+};
