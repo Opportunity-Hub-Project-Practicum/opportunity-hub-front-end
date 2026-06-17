@@ -7,5 +7,5 @@ export async function fetchPublicStats(): Promise<PublicStats> {
         {},
         { auth: false },
     );
-    return response.stats;
+    return response?.stats ?? { total_seekers: 0, total_employers: 0 };
 }

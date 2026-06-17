@@ -49,7 +49,7 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
         throw new ApiError(response.status, message, payload?.errors);
     }
 
-    return data as T;
+    return (data ?? {}) as T;
 }
 
 export async function apiRequest<T>(
