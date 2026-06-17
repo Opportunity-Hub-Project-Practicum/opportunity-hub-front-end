@@ -7,7 +7,7 @@ import type {
 
 export async function fetchFavoriteCandidates(): Promise<FavoriteCandidateApi[]> {
     const response = await apiRequest<FavoriteCandidatesResponse>("/employer/favorite-candidates");
-    return response.favorites;
+    return response?.favorites ?? [];
 }
 
 export async function addFavoriteCandidate(seekerId: number): Promise<FavoriteCandidateApi> {

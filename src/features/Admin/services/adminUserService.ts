@@ -25,7 +25,7 @@ export async function fetchAdminSeekers(isBan?: boolean): Promise<AdminSeekerApi
 
 export async function fetchAdminSeeker(seekerId: number): Promise<AdminSeekerApi> {
     const response = await apiRequest<AdminSeekerResponse>(`/admin/seekers/${seekerId}`);
-    return response.seeker;
+    return response?.seeker;
 }
 
 export async function fetchAdminEmployers(isBan?: boolean): Promise<EmployerProfileApi[]> {
@@ -37,7 +37,7 @@ export async function fetchAdminEmployers(isBan?: boolean): Promise<EmployerProf
 
 export async function fetchAdminEmployer(employerId: number): Promise<EmployerProfileApi> {
     const response = await apiRequest<AdminEmployerResponse>(`/admin/employers/${employerId}`);
-    return response.employer;
+    return response?.employer;
 }
 
 //-------------------------------------------------------------------

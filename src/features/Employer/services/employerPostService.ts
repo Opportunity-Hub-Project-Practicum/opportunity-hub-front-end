@@ -8,7 +8,7 @@ export type UpdateEmployerPostPayload = {
 
 export async function fetchEmployerPosts(): Promise<EmployerPostApi[]> {
     const response = await apiRequest<EmployerPostsResponse>("/employer/posts");
-    return response.posts;
+    return response?.posts ?? [];
 }
 
 export async function updateEmployerPost(

@@ -28,7 +28,7 @@ export async function fetchPublicPosts(params?: FetchPublicPostsParams): Promise
         {},
         { auth: false },
     );
-    return response.posts;
+    return response?.posts ?? [];
 }
 
 export async function fetchPostFilters(): Promise<PostFiltersData> {
@@ -37,7 +37,7 @@ export async function fetchPostFilters(): Promise<PostFiltersData> {
         {},
         { auth: false },
     );
-    return response.data;
+    return response?.data ?? { filters: {}, categories: [], defaults: { sort: "", per_page: 10 } };
 }
 
 export async function fetchPostDetail(postId: number): Promise<PostDetailApi | null> {

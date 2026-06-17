@@ -38,7 +38,7 @@ export async function fetchAdminPosts(params?: FetchAdminPostsParams): Promise<A
     const response = await apiRequest<AdminPostsResponse>(
         `/admin/posts${buildAdminPostsQuery(params)}`,
     );
-    return response.posts;
+    return response?.posts ?? [];
 }
 
 function resolvePostImage(logoPath: string | null | undefined): string {

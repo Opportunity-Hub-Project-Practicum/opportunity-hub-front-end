@@ -15,7 +15,7 @@ export async function fetchPublicEmployers(): Promise<PublicEmployerApi[]> {
         {},
         { auth: false },
     );
-    return response.employers;
+    return response?.employers ?? [];
 }
 
 export async function fetchPublicEmployer(employerId: number): Promise<PublicEmployerDetailApi | null> {
