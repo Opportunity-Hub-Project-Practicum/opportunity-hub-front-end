@@ -62,7 +62,7 @@ function toFavoriteCardItem(
         title: favorite.post_title ?? post?.post_title ?? "",
         engagementType: post?.work_place_type ?? postType,
         location: post?.location ?? "",
-        salary: formatPostSalary(post),
+        salary: post ? formatPostSalary(post) : "",
         remainingDays: formatSavedDate(favorite.created_at),
         image: post?.employer?.logo_img ?? "",
         postIsBanned: Boolean(post?.is_ban ?? favorite.post_is_ban),

@@ -31,7 +31,6 @@ import MyJobViewApplicationPage from "../features/Employer/Pages/MyJobViewApplic
 //import for admin
 
 import OverviewPageAdmin from "../features/Admin/Pages/OverviewPage";
-import AllEmployerPage from "../features/Admin/Pages/AllEmployerPage";
 import AllPostPage from "../features/Admin/Pages/AllPostPage";
 import ManageUserPage from "../features/Admin/Pages/ManageUserPage";
 import ProfilePage from "../features/Admin/Pages/ProfilePage";

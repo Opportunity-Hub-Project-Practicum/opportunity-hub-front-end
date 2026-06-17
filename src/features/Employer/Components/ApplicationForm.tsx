@@ -77,7 +77,7 @@ export default function ApplicationForm({
                 setProfile(profileResponse?.profile ?? null);
 
                 const matchedFavorite = favorites.find(
-                    (favorite) => favorite.seeker_id === application.seekerId,
+                    (favorite) => favorite.seeker_id === application?.seekerId,
                 );
                 setFavoriteCandidateId(matchedFavorite?.favorite_candidate_id ?? null);
             } catch (loadError) {

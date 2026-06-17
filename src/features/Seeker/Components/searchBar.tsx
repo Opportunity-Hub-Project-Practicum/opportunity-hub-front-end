@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Search, MapPin, Layers, ChevronDown } from "lucide-react";
 import { useSearch } from "../hooks/useSearch";
-import { opportunityTypeContext, setOpportunityTypeContext, type OpportunityType } from "../../../contexts/Context";
+import { opportunityTypeContext, setOpportunityTypeContext } from "../../../contexts/Context";
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { Posts, getOrganizationById, formatSalary } from "../../../services/postService";
+import { Posts } from "../../../services/postService";
 
 interface SearchBarProps {
     onResultsChange?: (results: any[]) => void;
@@ -79,7 +79,7 @@ export default function SearchBar({ onResultsChange }: SearchBarProps) {
     };
 
     //  Hook handles debounce + API
-    const { results, loading } = useSearch(payload);
+    const { results } = useSearch(payload);
 
     useEffect(() => {
         onResultsChange?.(results);

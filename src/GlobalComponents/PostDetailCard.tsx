@@ -21,10 +21,6 @@ interface Post {
     responsibility: string;
 }
 
-type OrgCategory = "web_url" | "social" | "phone";
-
-
-
 interface OverviewItem {
     icon: LucideIcon;
     label: string;

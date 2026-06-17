@@ -47,7 +47,7 @@ const TextAreaBox: React.FC<TextAreaBoxProps> = ({
             },
         },
 
-        onUpdate: ({ editor }) => {
+        onUpdate: ({ editor }: { editor: any }) => {
             if (!readOnly) {
                 onChange(editor.getHTML());
             }

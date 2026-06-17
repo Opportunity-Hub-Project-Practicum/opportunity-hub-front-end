@@ -28,8 +28,6 @@ const REQUIRED_FIELDS: (keyof EducationData)[] = ['school', 'degree'];
 const LOCATIONS = ['On-site', 'Remote', 'Hybrid'];
 const DEGREES = ["Associate's", "Bachelor's", "Master's", 'MBA', 'PhD', 'Diploma', 'Certificate', 'Other'];
 const AREAS_OF_STUDY = ['Computer Science', 'Business Administration', 'Engineering', 'Mathematics', 'Design', 'Medicine', 'Law', 'Education', 'Arts & Humanities', 'Social Sciences', 'Other'];
-const COUNTRIES = ['United States', 'United Kingdom', 'Canada', 'Australia', 'Germany', 'France', 'India', 'Singapore', 'Japan', 'Other'];
-
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: currentYear - 1969 }, (_, i) => String(currentYear - i));
 
