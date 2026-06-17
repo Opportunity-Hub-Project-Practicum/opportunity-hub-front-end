@@ -11,7 +11,7 @@ export class ApiError extends Error {
 }
 
 function normalizeBaseUrl(): string {
-    const raw = import.meta.env.VITE_API_BASE_URL ?? "";
+    const raw = import.meta.env.VITE_API_BASE_URL || "https://opportunity-hub-backend-671027881289.asia-southeast1.run.app";
     return raw.replace(/[;\s]+$/g, "").replace(/\/+$/g, "");
 }
 
