@@ -34,9 +34,6 @@ export interface SeekerNotifySettingApi {
     notify_on_reject: boolean;
     notify_on_hire: boolean;
     notify_on_opportunities: boolean;
-    category: "job" | "volunteer" | null;
-    role_name: string | null;
-    location: string | null;
 }
 
 export interface SeekerProfileApi {
@@ -80,7 +77,4 @@ export interface UpdateSeekerNotifyPayload {
     notify_on_reject?: boolean;
     notify_on_hire?: boolean;
     notify_on_opportunities?: boolean;
-    category?: "job" | "volunteer" | null;
-    role_name?: string | null;
-    location?: string | null;
 }

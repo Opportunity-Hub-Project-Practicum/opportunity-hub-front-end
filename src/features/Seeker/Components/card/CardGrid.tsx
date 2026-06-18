@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { BANNED_POST_STATUS_LABEL } from "../../lib/seekerPostBan";
 
+import UrgentBadge from "../UrgentBadge";
+
 interface CardGridProps {
     id: number;
     organizationName: string;
@@ -13,11 +15,12 @@ interface CardGridProps {
     remainingDays: string;
     image?: string;
     isBanned?: boolean;
+    isUrgent?: boolean;
     onBookmark?: () => void;
 }
 
 export default function CardGrid({
-    id, organizationName, title, engagementType, location, salary, remainingDays, image, isBanned = false, onBookmark
+    id, organizationName, title, engagementType, location, salary, remainingDays, image, isBanned = false, isUrgent = false, onBookmark
 }: CardGridProps) {
     const [isBookmarked, setIsBookmarked] = useState(false);
 
@@ -73,8 +76,10 @@ export default function CardGrid({
                 </div>
             ) : (
                 <Link to={`/postDetail/${id}`} className=" flex flex-col gap-1.5">
-                    {/* Job Title */}
-                    <h3 className="text-base font-semibold text-slate-950">{title}</h3>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-base font-semibold text-slate-950">{title}</h3>
+                        {isUrgent && <UrgentBadge />}
+                    </div>
 
                     {/* Job Details */}
                     <div className="flex flex-wrap items-center gap-1.5 text-xs">

@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { getPostLookupName, getPostLookupValue } from "../lib/postLookup";
+import { fetchSearchPosts } from "../lib/searchPosts";
 import {
     ArrowLeft,
     ArrowRight,
@@ -13,6 +14,7 @@ import {
     MapPin,
     Star,
 } from "lucide-react";
+import UrgentBadge from "../Components/UrgentBadge";
 import BackButton from "../Components/BackButton";
 import { useEffect, useMemo, useState } from "react";
 import CardCompany from "../Components/card/CardCompany";
@@ -36,7 +38,6 @@ import {
 import { fetchSeekerProfile } from "../services/seekerProfileService";
 import {
     fetchPostDetailWithEmployer,
-    fetchPublicPosts,
     formatClosedDate,
     formatPostSalary,
     formatWorkPlaceType,
@@ -141,6 +142,7 @@ function PostCardsSection({
                         salary={formatPostSalary(relatedPost)}
                         remainingDays={formatClosedDate(relatedPost.closed_date)}
                         image={relatedPost.employer?.logo_img ?? ""}
+                        isUrgent={relatedPost.is_urgent === true}
                     />
                 ))}
             </div>
@@ -196,12 +198,15 @@ export default function PostDetail() {
                 setPost(postData);
 
                 const employerId = postData.employer?.user_id;
-                const [employerProfile, contacts, allPosts, companyPosts] = await Promise.all([
+                const jobRoleSlug = getPostLookupValue(postData.job_role);
+                const [employerProfile, contacts, relatedSearch, companyPosts] = await Promise.all([
                     employerId ? fetchPublicEmployer(employerId) : Promise.resolve(null),
                     employerId ? fetchPublicEmployerContacts(employerId) : Promise.resolve([]),
-                    fetchPublicPosts({ type: postData.type }),
+                    jobRoleSlug
+                        ? fetchSearchPosts({ type: postData.type, job_role: jobRoleSlug })
+                        : Promise.resolve([]),
                     employerId
-                        ? fetchPublicPosts({ type: postData.type, employerId })
+                        ? fetchSearchPosts({ type: postData.type, employer_id: employerId })
                         : Promise.resolve([]),
                 ]);
 
@@ -221,7 +226,7 @@ export default function PostDetail() {
                     setOrganization(undefined);
                 }
 
-                setRelatedPosts(buildRelatedPosts(postData, allPosts));
+                setRelatedPosts(buildRelatedPosts(postData, relatedSearch));
                 setSameCompanyPosts(buildSameCompanyPosts(postData, companyPosts));
             } catch (err) {
                 if (!isMounted) {
@@ -469,8 +474,9 @@ export default function PostDetail() {
                         )}
 
                         <div className="flex flex-col">
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-wrap items-center">
                                 <h1 className="text-2xl font-bold">{post.post_title}</h1>
+                                {post.is_urgent && <UrgentBadge />}
                                 <p className="flex px-1 text-small bg-subPrimary rounded-lg justify-center items-center">
                                     {engagementLabel}
                                 </p>

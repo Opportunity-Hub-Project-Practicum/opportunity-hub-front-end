@@ -1,33 +1,27 @@
 import { ArrowRight, MapPin } from "lucide-react";
-import SearchBar from "../Components/searchBar";
-import FilterBox from "../Components/FilterBox";
+import EmployerSearchBar from "../Components/EmployerSearchBar";
+
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../routes/path";
 import { formatApiError } from "../../../services/apiClient";
 import { fetchPublicEmployers } from "../services/employerService";
 import type { PublicEmployerApi } from "../types/employer";
-
-function getOrganizationTypes(employers: PublicEmployerApi[]): string[] {
-    const types = new Set<string>();
-
-    for (const employer of employers) {
-        const type = employer.organization_type?.trim();
-        if (type) {
-            types.add(type);
-        }
-    }
-
-    return Array.from(types).sort((a, b) => a.localeCompare(b));
-}
+import {
+    EMPTY_EMPLOYER_SEARCH_FILTERS,
+    filterPublicEmployers,
+    hasActiveEmployerSearch,
+} from "../lib/filterEmployers";
+import { useLookupValues } from "../../../hooks/useLookupValues";
 
 export default function OrganizationList() {
-    const [viewType, setViewType] = useState("grid");
-    const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+
     const [employers, setEmployers] = useState<PublicEmployerApi[]>([]);
+    const [searchFilters, setSearchFilters] = useState(EMPTY_EMPLOYER_SEARCH_FILTERS);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
+    const { lookupValues } = useLookupValues();
 
     useEffect(() => {
         let isMounted = true;
@@ -61,91 +55,65 @@ export default function OrganizationList() {
         };
     }, []);
 
-    const organizationTypes = useMemo(() => getOrganizationTypes(employers), [employers]);
-
-    const filteredEmployers = useMemo(() => {
-        if (selectedTypes.length === 0) {
-            return employers;
-        }
-
-        return employers.filter((employer) => {
-            const type = employer.organization_type?.trim();
-            return type ? selectedTypes.includes(type) : false;
-        });
-    }, [employers, selectedTypes]);
-
-    const handleTypeChange = (type: string) => {
-        setSelectedTypes((prev) =>
-            prev.includes(type)
-                ? prev.filter((item) => item !== type)
-                : [...prev, type],
-        );
-    };
+    const filteredEmployers = useMemo(
+        () => filterPublicEmployers(employers, searchFilters, lookupValues),
+        [employers, lookupValues, searchFilters],
+    );
 
     return (
         <div className="page-container">
-            <SearchBar />
-            <FilterBox viewType={viewType} setViewType={setViewType} />
+            <EmployerSearchBar filters={searchFilters} onFiltersChange={setSearchFilters} />
+
 
             {loading && <p className="text-gray-500">Loading organizations...</p>}
             {error && <p className="text-red-600">{error}</p>}
 
-            <section className="grid grid-cols-3 gap-5">
-                <div className="col-span-1 flex flex-col border border-gray-100 p-5 rounded-lg">
-                    <span className="text-lg font-semibold mb-4">Organization Type</span>
-                    {organizationTypes.length === 0 && !loading && (
-                        <span className="text-sm text-gray-500">No organization types available.</span>
+            <section className="px-5 md:px-4 lg:px-6">
+                <div className="mx-auto max-w-7xl">
+                    {!loading && filteredEmployers.length === 0 && !error && (
+                        <p className="text-gray-500">
+                            {hasActiveEmployerSearch(searchFilters)
+                                ? "No organizations match your search."
+                                : "No organizations found."}
+                        </p>
                     )}
-                    {organizationTypes.map((type) => (
-                        <label
-                            key={type}
-                            className="text-gray-600 gap-2 flex items-center cursor-pointer py-2 hover:text-primary transition-colors"
-                        >
-                            <input
-                                type="checkbox"
-                                checked={selectedTypes.includes(type)}
-                                onChange={() => handleTypeChange(type)}
-                                className="cursor-pointer"
-                            />
-                            {type}
-                        </label>
-                    ))}
-                </div>
-                <div className="col-span-2">
+
                     <div className="flex flex-col gap-4">
-                        {!loading && filteredEmployers.length === 0 && !error && (
-                            <p className="text-gray-500">No organizations found.</p>
-                        )}
                         {filteredEmployers.map((employer) => {
                             const openPositions = employer.open_posts_count ?? 0;
 
                             return (
                                 <div
                                     key={employer.user_id}
-                                    className="border border-gray-100 rounded-lg p-5 hover:shadow-md transition-shadow"
+                                    className="rounded-lg border border-gray-100 p-5 transition-shadow hover:shadow-md"
                                 >
-                                    <div className="flex justify-between items-start">
+                                    <div className="flex items-start justify-between">
                                         <div className="flex gap-4">
                                             {employer.logo_img ? (
                                                 <img
                                                     src={employer.logo_img}
                                                     alt={employer.company_name}
-                                                    className="w-16 h-16 rounded-lg object-cover border border-gray-100"
+                                                    className="h-16 w-16 rounded-lg border border-gray-100 object-cover"
                                                 />
                                             ) : (
-                                                <div className="w-16 h-16 bg-gray-300 rounded-lg" />
+                                                <div className="h-16 w-16 rounded-lg bg-gray-300" />
                                             )}
-                                            <div className="flex flex-col gap-2 justify-between">
+                                            <div className="flex flex-col justify-between gap-2">
                                                 <span className="font-semibold">{employer.company_name}</span>
-                                                <div className="flex gap-5 text-sm text-gray-600">
+                                                <div className="flex flex-wrap gap-5 text-sm text-gray-600">
+                                                    {employer.organization_type && (
+                                                        <span>{employer.organization_type}</span>
+                                                    )}
                                                     {employer.industry_type && (
+                                                        <span>{employer.industry_type}</span>
+                                                    )}
+                                                    {employer.map_location && (
                                                         <span className="flex gap-2">
                                                             <MapPin size={16} />
-                                                            {employer.industry_type}
+                                                            {employer.map_location}
                                                         </span>
                                                     )}
                                                     <span className="flex gap-2">
-                                                        <MapPin size={16} />
                                                         {openPositions} Open Position{openPositions === 1 ? "" : "s"}
                                                     </span>
                                                 </div>
@@ -155,7 +123,7 @@ export default function OrganizationList() {
                                             onClick={() =>
                                                 navigate(ROUTES.HOME.ORGANIZATION_DETAIL(employer.user_id))
                                             }
-                                            className="btn-primary-blue flex flex-nowrap justify-center items-center gap-2"
+                                            className="btn-primary-blue flex flex-nowrap items-center justify-center gap-2"
                                         >
                                             Open Position
                                             <ArrowRight size={16} />

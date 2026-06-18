@@ -1,6 +1,7 @@
 import type { EmployerData } from "../../../GlobalComponents/OrganizationForm";
 import { ApiError } from "../../../services/apiClient";
 import { fetchCurrentUser, updateAccount } from "../../../services/authService";
+import { fetchLookupValues } from "../../../services/lookupValueService";
 import { uploadFile } from "../../../services/uploadService";
 import type { AuthUser } from "../../../types/auth";
 import {
@@ -94,7 +95,10 @@ export async function saveEmployerProfileSettings(
     formData: EmployerData,
     meta: EmployerProfileMeta,
 ): Promise<EmployerProfileMeta> {
-    const user = await fetchCurrentUser();
+    const [user, lookupValues] = await Promise.all([
+        fetchCurrentUser(),
+        fetchLookupValues(),
+    ]);
     const uploadedLogoPath = await uploadLogoIfNeeded(formData);
 
     try {
@@ -107,7 +111,7 @@ export async function saveEmployerProfileSettings(
         throw new Error(error instanceof Error ? error.message : "Failed to update account settings.");
     }
 
-    const profilePayload = mapEmployerFormToUpdatePayload(formData, meta, uploadedLogoPath);
+    const profilePayload = mapEmployerFormToUpdatePayload(formData, meta, uploadedLogoPath, lookupValues);
     await updateEmployerProfile(profilePayload);
     const socialContactIds = await syncSocialContacts(formData.socialLinks, meta);
 
@@ -119,10 +123,11 @@ export async function saveEmployerProfileSettings(
 }
 
 export async function reloadEmployerSettings() {
-    const [profileResponse, user] = await Promise.all([
+    const [profileResponse, user, lookupValues] = await Promise.all([
         fetchEmployerProfile(),
         fetchCurrentUser(),
+        fetchLookupValues(),
     ]);
 
-    return mapProfileApiToSettings(profileResponse.profile, user);
+    return mapProfileApiToSettings(profileResponse.profile, user, lookupValues);
 }

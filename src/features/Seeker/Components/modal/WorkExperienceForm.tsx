@@ -1,5 +1,7 @@
 import React, { useState, type ChangeEvent } from 'react';
 import { ChevronDown, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { getLookupOptions, useLookupValues } from '../../../../hooks/useLookupValues';
+import { LOOKUP_TYPES } from '../../../../types/lookupValue';
 
 interface WorkExperienceData {
   jobTitle: string;
@@ -37,6 +39,73 @@ const YEARS_OF_EXPERIENCE = ['Less than 1 year', '1–2 years', '3–5 years', '
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: currentYear - 1969 }, (_, i) => String(currentYear - i));
 
+const MONTHS = [
+  { value: '01', label: 'January' },
+  { value: '02', label: 'February' },
+  { value: '03', label: 'March' },
+  { value: '04', label: 'April' },
+  { value: '05', label: 'May' },
+  { value: '06', label: 'June' },
+  { value: '07', label: 'July' },
+  { value: '08', label: 'August' },
+  { value: '09', label: 'September' },
+  { value: '10', label: 'October' },
+  { value: '11', label: 'November' },
+  { value: '12', label: 'December' },
+];
+
+type MonthYearParts = {
+  month: string;
+  year: string;
+  isPresent: boolean;
+};
+
+function parseMonthYear(value: string): MonthYearParts {
+  if (!value || value === 'Present') {
+    return { month: '', year: '', isPresent: value === 'Present' };
+  }
+
+  const monthYearMatch = value.match(/^(\d{1,2})\/(\d{4})$/);
+  if (monthYearMatch) {
+    return {
+      month: monthYearMatch[1].padStart(2, '0'),
+      year: monthYearMatch[2],
+      isPresent: false,
+    };
+  }
+
+  if (/^\d{4}$/.test(value)) {
+    return { month: '', year: value, isPresent: false };
+  }
+
+  return { month: '', year: '', isPresent: false };
+}
+
+function formatMonthYear(month: string, year: string): string {
+  if (!month || !year) {
+    return year;
+  }
+  return `${month.padStart(2, '0')}/${year}`;
+}
+
+function compareMonthYear(from: string, to: string): number {
+  const parse = (value: string) => {
+    const parts = parseMonthYear(value);
+    if (!parts.year) {
+      return null;
+    }
+    const month = parts.month ? Number(parts.month) : 1;
+    return Number(parts.year) * 100 + month;
+  };
+
+  const fromValue = parse(from);
+  const toValue = parse(to);
+  if (fromValue == null || toValue == null) {
+    return 0;
+  }
+  return fromValue - toValue;
+}
+
 function validate(data: WorkExperienceData): FormErrors {
   const errors: FormErrors = {};
   for (const field of REQUIRED_FIELDS) {
@@ -44,8 +113,8 @@ function validate(data: WorkExperienceData): FormErrors {
       errors[field] = 'This field is required';
     }
   }
-  if (data.from && data.to && data.to !== 'Present' && Number(data.to) < Number(data.from)) {
-    errors.to = '"To" year cannot be before "From" year';
+  if (data.from && data.to && data.to !== 'Present' && compareMonthYear(data.from, data.to) > 0) {
+    errors.to = '"To" date cannot be before "From" date';
   }
   return errors;
 }
@@ -56,9 +125,10 @@ const SelectField: React.FC<{
   value: string;
   options: string[];
   error?: string;
+  disabled?: boolean;
   onChange: (e: ChangeEvent<HTMLSelectElement>) => void;
   extraOption?: { value: string; label: string };
-}> = ({ label, name, value, options, error, onChange, extraOption }) => (
+}> = ({ label, name, value, options, error, disabled = false, onChange, extraOption }) => (
   <div className="flex flex-col gap-1.5">
     <label htmlFor={name} className="text-sm font-medium text-gray-700">
       {label}
@@ -69,7 +139,8 @@ const SelectField: React.FC<{
         name={name}
         value={value}
         onChange={onChange}
-        className={`w-full px-3 py-2 border rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-gray-700 ${error ? 'border-red-400 focus:ring-red-400' : 'border-gray-300'
+        disabled={disabled}
+        className={`w-full px-3 py-2 border rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-gray-700 disabled:bg-gray-50 disabled:text-gray-400 ${error ? 'border-red-400 focus:ring-red-400' : 'border-gray-300'
           }`}
       >
         <option value="">Select…</option>
@@ -88,6 +159,123 @@ const SelectField: React.FC<{
         aria-hidden
       />
     </div>
+    {error && (
+      <p className="flex items-center gap-1 text-xs text-red-500">
+        <AlertCircle size={12} aria-hidden /> {error}
+      </p>
+    )}
+  </div>
+);
+
+const LookupSelectField: React.FC<{
+  label: string;
+  name: keyof WorkExperienceData;
+  value: string;
+  options: { value: string; name: string }[];
+  error?: string;
+  disabled?: boolean;
+  onChange: (e: ChangeEvent<HTMLSelectElement>) => void;
+}> = ({ label, name, value, options, error, disabled = false, onChange }) => (
+  <div className="flex flex-col gap-1.5">
+    <label htmlFor={name} className="text-sm font-medium text-gray-700">
+      {label}
+    </label>
+    <div className="relative">
+      <select
+        id={name}
+        name={name}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        className={`w-full px-3 py-2 border rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-gray-700 disabled:bg-gray-50 disabled:text-gray-400 ${error ? 'border-red-400 focus:ring-red-400' : 'border-gray-300'
+          }`}
+      >
+        <option value="">Select…</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.name}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+        size={16}
+        aria-hidden
+      />
+    </div>
+    {error && (
+      <p className="flex items-center gap-1 text-xs text-red-500">
+        <AlertCircle size={12} aria-hidden /> {error}
+      </p>
+    )}
+  </div>
+);
+
+const MonthYearField: React.FC<{
+  label: string;
+  month: string;
+  year: string;
+  isPresent?: boolean;
+  error?: string;
+  onMonthChange: (month: string) => void;
+  onYearChange: (year: string) => void;
+  onPresentChange?: (isPresent: boolean) => void;
+}> = ({ label, month, year, isPresent = false, error, onMonthChange, onYearChange, onPresentChange }) => (
+  <div className="flex flex-col gap-1.5 md:col-span-2">
+    <span className="text-sm font-medium text-gray-700">{label}</span>
+    <div className="grid grid-cols-2 gap-3">
+      <div className="relative">
+        <select
+          value={month}
+          onChange={(e) => onMonthChange(e.target.value)}
+          disabled={isPresent}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-gray-700 disabled:bg-gray-50 disabled:text-gray-400"
+        >
+          <option value="">Month</option>
+          {MONTHS.map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          size={16}
+          aria-hidden
+        />
+      </div>
+      <div className="relative">
+        <select
+          value={year}
+          onChange={(e) => onYearChange(e.target.value)}
+          disabled={isPresent}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-gray-700 disabled:bg-gray-50 disabled:text-gray-400"
+        >
+          <option value="">Year</option>
+          {YEARS.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+        <ChevronDown
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          size={16}
+          aria-hidden
+        />
+      </div>
+    </div>
+    {onPresentChange && (
+      <label className="flex items-center gap-2 text-sm text-gray-600">
+        <input
+          type="checkbox"
+          checked={isPresent}
+          onChange={(e) => onPresentChange(e.target.checked)}
+          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        />
+        Present
+      </label>
+    )}
     {error && (
       <p className="flex items-center gap-1 text-xs text-red-500">
         <AlertCircle size={12} aria-hidden /> {error}
@@ -127,7 +315,15 @@ const InputField: React.FC<{
 );
 
 const WorkExperienceForm: React.FC<{ onClose?: () => void; onSave?: (data: WorkExperienceData) => void }> = ({ onClose, onSave }) => {
+  const { lookupValues, loading: lookupLoading } = useLookupValues();
+  const jobRoleOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobRole);
+
   const [formData, setFormData] = useState<WorkExperienceData>(EMPTY_FORM);
+  const [fromMonth, setFromMonth] = useState('');
+  const [fromYear, setFromYear] = useState('');
+  const [toMonth, setToMonth] = useState('');
+  const [toYear, setToYear] = useState('');
+  const [toPresent, setToPresent] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitted, setSubmitted] = useState(false);
 
@@ -136,29 +332,64 @@ const WorkExperienceForm: React.FC<{ onClose?: () => void; onSave?: (data: WorkE
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error on change
     if (errors[name as keyof WorkExperienceData]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
+  const updateFromDate = (month: string, year: string) => {
+    setFromMonth(month);
+    setFromYear(year);
+    setFormData((prev) => ({ ...prev, from: formatMonthYear(month, year) }));
+    if (errors.from) {
+      setErrors((prev) => ({ ...prev, from: undefined }));
+    }
+  };
+
+  const updateToDate = (month: string, year: string, isPresent: boolean) => {
+    setToMonth(month);
+    setToYear(year);
+    setToPresent(isPresent);
+    setFormData((prev) => ({
+      ...prev,
+      to: isPresent ? 'Present' : formatMonthYear(month, year),
+    }));
+    if (errors.to) {
+      setErrors((prev) => ({ ...prev, to: undefined }));
+    }
+  };
+
   const handleSubmit = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const newErrors = validate(formData);
+    const payload: WorkExperienceData = {
+      ...formData,
+      from: formatMonthYear(fromMonth, fromYear),
+      to: toPresent ? 'Present' : formatMonthYear(toMonth, toYear),
+    };
+    const newErrors = validate(payload);
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    // TODO: send formData to API or parent component
-    onSave?.(formData);
+    onSave?.(payload);
     setSubmitted(true);
     setFormData(EMPTY_FORM);
+    setFromMonth('');
+    setFromYear('');
+    setToMonth('');
+    setToYear('');
+    setToPresent(false);
     setErrors({});
     setTimeout(() => setSubmitted(false), 4000);
   };
 
   const handleCancel = () => {
     setFormData(EMPTY_FORM);
+    setFromMonth('');
+    setFromYear('');
+    setToMonth('');
+    setToYear('');
+    setToPresent(false);
     setErrors({});
     onClose?.();
   };
@@ -166,7 +397,7 @@ const WorkExperienceForm: React.FC<{ onClose?: () => void; onSave?: (data: WorkE
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg ">
       <div className="flex items-center justify-between  pb-6 border-b border-gray-100">
-        <h2 className="text-xl font-bold text-gray-800">Education</h2>
+        <h2 className="text-xl font-bold text-gray-800">Work Experience</h2>
         <button
           type="button"
           onClick={handleCancel}
@@ -195,12 +426,13 @@ const WorkExperienceForm: React.FC<{ onClose?: () => void; onSave?: (data: WorkE
             onChange={handleChange}
           />
 
-          <InputField
+          <LookupSelectField
             label="Job role"
             name="jobRole"
             value={formData.jobRole}
-            placeholder='e.g. Sale'
+            options={jobRoleOptions}
             error={errors.jobRole}
+            disabled={lookupLoading}
             onChange={handleChange}
           />
 
@@ -237,22 +469,23 @@ const WorkExperienceForm: React.FC<{ onClose?: () => void; onSave?: (data: WorkE
             onChange={handleChange}
           />
 
-          <SelectField
+          <MonthYearField
             label="From"
-            name="from"
-            value={formData.from}
-            options={YEARS}
-            onChange={handleChange}
+            month={fromMonth}
+            year={fromYear}
+            onMonthChange={(month) => updateFromDate(month, fromYear)}
+            onYearChange={(year) => updateFromDate(fromMonth, year)}
           />
 
-          <SelectField
+          <MonthYearField
             label="To"
-            name="to"
-            value={formData.to}
-            options={YEARS}
+            month={toMonth}
+            year={toYear}
+            isPresent={toPresent}
             error={errors.to}
-            onChange={handleChange}
-            extraOption={{ value: 'Present', label: 'Present' }}
+            onMonthChange={(month) => updateToDate(month, toYear, toPresent)}
+            onYearChange={(year) => updateToDate(toMonth, year, toPresent)}
+            onPresentChange={(isPresent) => updateToDate('', '', isPresent)}
           />
         </div>
 

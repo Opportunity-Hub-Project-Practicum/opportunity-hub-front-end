@@ -24,4 +24,5 @@ export type FavoriteCardItem = {
     remainingDays: string;
     image: string;
     postIsBanned: boolean;
+    isUrgent: boolean;
 };

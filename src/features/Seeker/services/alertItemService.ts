@@ -1,94 +1,69 @@
 import { apiRequest } from "../../../services/apiClient";
-import type { SeekerNotifySettingApi } from "../types/seekerProfile";
+import { fetchLookupValues } from "../../../services/lookupValueService";
 import type {
-    AlertCriterion,
     AlertItemApi,
+    AlertItemResponse,
     AlertItemsResponse,
     AlertPostCardItem,
-    AlertItemCategory,
+    AlertItemType,
+    CreateAlertItemPayload,
+    DeleteAlertItemResponse,
+    SyncAlertItemPayload,
+    SyncAlertItemsResponse,
+    UpdateAlertItemPayload,
 } from "../types/alertItem";
-import { getPostLookupName } from "../lib/postLookup";
-import type { PublicPostApi } from "../types/post";
-import { fetchSeekerProfile } from "./seekerProfileService";
 import {
-    fetchPublicPosts,
+    buildAlertCriteria,
+    criterionToSearchParams,
+    dedupePostsById,
+    filterPostsMatchingAnyCriterion,
+} from "../lib/alertItemMatching";
+import { fetchSearchPosts } from "../lib/searchPosts";
+import type { LookupValuesByType } from "../../../types/lookupValue";
+import type { PublicPostApi } from "../types/post";
+import {
     formatClosedDate,
     formatPostSalary,
     formatWorkPlaceType,
 } from "./postApiService";
+import { getPostLookupName } from "../lib/postLookup";
 
 export async function fetchAlertItems(): Promise<AlertItemApi[]> {
     const response = await apiRequest<AlertItemsResponse>("/seeker/alert-items");
     return response.alert_items;
 }
 
-function toCriterion(
-    roleName: string | null | undefined,
-    location: string | null | undefined,
-): AlertCriterion | null {
-    const role = roleName?.trim() || null;
-    const loc = location?.trim() || null;
-
-    if (!role && !loc) {
-        return null;
-    }
-
-    return { roleName: role, location: loc };
+export async function createAlertItem(payload: CreateAlertItemPayload): Promise<AlertItemApi> {
+    const response = await apiRequest<AlertItemResponse>("/seeker/alert-items", {
+        method: "POST",
+        body: JSON.stringify(payload),
+    });
+    return response.alert_item;
 }
 
-function buildAlertCriteria(
-    alertItems: AlertItemApi[],
-    notifySetting: SeekerNotifySettingApi | null | undefined,
-    category: AlertItemCategory,
-): AlertCriterion[] {
-    const criteria: AlertCriterion[] = [];
-
-    for (const item of alertItems) {
-        if (item.category != null && item.category !== category) {
-            continue;
-        }
-
-        const criterion = toCriterion(item.role_name, item.location);
-        if (criterion) {
-            criteria.push(criterion);
-        }
-    }
-
-    if (notifySetting?.category === category) {
-        const notifyCriterion = toCriterion(notifySetting.role_name, notifySetting.location);
-        if (notifyCriterion) {
-            criteria.push(notifyCriterion);
-        }
-    }
-
-    return criteria;
+export async function updateAlertItem(
+    alertItemUuid: string,
+    payload: UpdateAlertItemPayload,
+): Promise<AlertItemApi> {
+    const response = await apiRequest<AlertItemResponse>(`/seeker/alert-items/${alertItemUuid}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+    });
+    return response.alert_item;
 }
 
-function buildJobAlertCriteria(
-    alertItems: AlertItemApi[],
-    notifySetting: SeekerNotifySettingApi | null | undefined,
-): AlertCriterion[] {
-    return buildAlertCriteria(alertItems, notifySetting, "job");
+export async function deleteAlertItem(alertItemUuid: string): Promise<void> {
+    await apiRequest<DeleteAlertItemResponse>(`/seeker/alert-items/${alertItemUuid}`, {
+        method: "DELETE",
+    });
 }
 
-function buildVolunteerAlertCriteria(
-    alertItems: AlertItemApi[],
-    notifySetting: SeekerNotifySettingApi | null | undefined,
-): AlertCriterion[] {
-    return buildAlertCriteria(alertItems, notifySetting, "volunteer");
-}
-
-function postMatchesCriterion(post: PublicPostApi, criterion: AlertCriterion): boolean {
-    const roleQuery = criterion.roleName?.toLowerCase();
-    const locationQuery = criterion.location?.toLowerCase();
-
-    const roleHaystack = `${post.post_title} ${getPostLookupName(post.job_role)}`.toLowerCase();
-    const locationHaystack = getPostLookupName(post.location).toLowerCase();
-
-    const roleMatch = !roleQuery || roleHaystack.includes(roleQuery);
-    const locationMatch = !locationQuery || locationHaystack.includes(locationQuery);
-
-    return roleMatch && locationMatch;
+export async function syncAlertItems(items: SyncAlertItemPayload[]): Promise<AlertItemApi[]> {
+    const response = await apiRequest<SyncAlertItemsResponse>("/seeker/alert-items/sync", {
+        method: "PUT",
+        body: JSON.stringify({ items }),
+    });
+    return response.alert_items;
 }
 
 function toAlertPostCardItem(post: PublicPostApi): AlertPostCardItem {
@@ -102,40 +77,57 @@ function toAlertPostCardItem(post: PublicPostApi): AlertPostCardItem {
         salary: formatPostSalary(post),
         remainingDays: formatClosedDate(post.closed_date),
         image: post.employer?.logo_img ?? "",
+        isUrgent: post.is_urgent === true,
     };
 }
 
 export async function fetchJobAlertPostCards(): Promise<AlertPostCardItem[]> {
-    return fetchAlertPostCards("job");
+    const { jobItems } = await fetchAlertPageData();
+    return jobItems;
 }
 
 export async function fetchVolunteerAlertPostCards(): Promise<AlertPostCardItem[]> {
-    return fetchAlertPostCards("volunteer");
+    const { volunteerItems } = await fetchAlertPageData();
+    return volunteerItems;
 }
 
-async function fetchAlertPostCards(category: AlertItemCategory): Promise<AlertPostCardItem[]> {
-    const [alertItems, profileResponse, posts] = await Promise.all([
+export type AlertPageData = {
+    jobItems: AlertPostCardItem[];
+    volunteerItems: AlertPostCardItem[];
+    alertItems: AlertItemApi[];
+};
+
+export async function fetchAlertPageData(): Promise<AlertPageData> {
+    const [alertItems, lookupValues] = await Promise.all([
         fetchAlertItems(),
-        fetchSeekerProfile(),
-        fetchPublicPosts({ type: category }),
+        fetchLookupValues(),
     ]);
 
-    const criteria = category === "job"
-        ? buildJobAlertCriteria(alertItems, profileResponse.profile.notify_setting)
-        : buildVolunteerAlertCriteria(alertItems, profileResponse.profile.notify_setting);
+    const [jobItems, volunteerItems] = await Promise.all([
+        buildAlertPostCards("job", alertItems, lookupValues),
+        buildAlertPostCards("volunteer", alertItems, lookupValues),
+    ]);
+
+    return { jobItems, volunteerItems, alertItems };
+}
+
+async function buildAlertPostCards(
+    alertType: AlertItemType,
+    alertItems: AlertItemApi[],
+    lookupValues: LookupValuesByType,
+): Promise<AlertPostCardItem[]> {
+    const criteria = buildAlertCriteria(alertItems, alertType, lookupValues);
 
     if (criteria.length === 0) {
         return [];
     }
 
-    const matchedPosts = posts.filter((post) =>
-        criteria.some((criterion) => postMatchesCriterion(post, criterion)),
+    const searchResults = await Promise.all(
+        criteria.map((criterion) => fetchSearchPosts(criterionToSearchParams(criterion, alertType))),
     );
 
-    const uniquePosts = new Map<number, PublicPostApi>();
-    for (const post of matchedPosts) {
-        uniquePosts.set(post.post_id, post);
-    }
+    const candidatePosts = dedupePostsById(searchResults.flat());
+    const matchedPosts = filterPostsMatchingAnyCriterion(candidatePosts, criteria);
 
-    return Array.from(uniquePosts.values()).map(toAlertPostCardItem);
+    return matchedPosts.map(toAlertPostCardItem);
 }

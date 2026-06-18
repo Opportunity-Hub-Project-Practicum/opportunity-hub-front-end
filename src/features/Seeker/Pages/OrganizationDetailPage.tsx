@@ -10,8 +10,8 @@ import {
     fetchPublicEmployerContacts,
     mapEmployerToCardCompany,
 } from "../services/employerService";
+import { fetchSearchPosts } from "../lib/searchPosts";
 import {
-    fetchPublicPosts,
     formatClosedDate,
     formatPostSalary,
 } from "../services/postApiService";
@@ -90,9 +90,9 @@ export default function OrganizationDetail() {
             setPostsLoading(true);
 
             try {
-                const data = await fetchPublicPosts({
+                const data = await fetchSearchPosts({
                     type: opportunityType,
-                    employerId,
+                    employer_id: employerId,
                 });
                 if (!isMounted) {
                     return;
@@ -217,6 +217,7 @@ export default function OrganizationDetail() {
                             salary={formatPostSalary(post)}
                             remainingDays={formatClosedDate(post.closed_date)}
                             image={employer.logo_img ?? ""}
+                            isUrgent={post.is_urgent === true}
                         />
                     ))}
                 </div>

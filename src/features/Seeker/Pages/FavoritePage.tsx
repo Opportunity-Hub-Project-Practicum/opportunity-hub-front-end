@@ -91,6 +91,7 @@ export default function Favorite() {
                         remainingDays={item.remainingDays}
                         image={item.image}
                         isBanned={item.postIsBanned}
+                        isUrgent={item.isUrgent}
                         isBookmarked
                         onBookmark={() => handleRemoveFavorite(item.favoritePostId)}
                     />

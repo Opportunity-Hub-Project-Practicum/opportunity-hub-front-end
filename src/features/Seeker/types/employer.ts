@@ -5,6 +5,7 @@ export type PublicEmployerApi = {
     logo_img: string | null;
     organization_type: string | null;
     industry_type: string | null;
+    map_location?: string | null;
     open_posts_count?: number;
 };
 

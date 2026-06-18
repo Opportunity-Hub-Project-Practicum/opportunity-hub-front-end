@@ -1,8 +1,10 @@
 import type { SeekerFormData } from "../../../GlobalComponents/SeekerProfileSection";
 import { uploadFile } from "../../../services/uploadService";
 import {
+    applyAlertItemsToNotifyForm,
     mapEducationEntryToApi,
     mapExperienceEntryToApi,
+    mapNotifyFormToSyncAlertItems,
     mapNotifyFormToUpdatePayload,
     mapProfileApiToSettings,
     mapProfileFormToUpdatePayload,
@@ -23,6 +25,7 @@ import {
     updateSeekerProfile,
     updateWorkExperience,
 } from "../services/seekerProfileService";
+import { fetchAlertItems, syncAlertItems } from "../services/alertItemService";
 
 async function uploadProfileImageIfNeeded(profile: SeekerFormData): Promise<string | null> {
     if (!profile.profileImageFile) {
@@ -232,10 +235,20 @@ export async function saveSeekerProfileSettings(
 export async function saveSeekerAccountSettings(
     notify: SeekerNotifyFormState,
 ): Promise<void> {
-    await updateNotifySettings(mapNotifyFormToUpdatePayload(notify));
+    await Promise.all([
+        updateNotifySettings(mapNotifyFormToUpdatePayload(notify)),
+        syncAlertItems(mapNotifyFormToSyncAlertItems(notify)),
+    ]);
 }
 
 export async function reloadSeekerSettings() {
-    const response = await fetchSeekerProfile();
-    return mapProfileApiToSettings(response.profile);
+    const [response, alertItems] = await Promise.all([
+        fetchSeekerProfile(),
+        fetchAlertItems(),
+    ]);
+    const mapped = mapProfileApiToSettings(response.profile);
+    return {
+        ...mapped,
+        notify: applyAlertItemsToNotifyForm(mapped.notify, alertItems),
+    };
 }

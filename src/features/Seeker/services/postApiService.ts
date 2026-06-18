@@ -12,6 +12,9 @@ export type FetchPublicPostsParams = {
     employerId?: number;
     search?: string;
     workPlaceType?: "remote" | "onsite" | "hybrid";
+    sort?: "latest" | "most_applications" | "urgent_first";
+    isUrgent?: boolean;
+    limit?: number;
 };
 
 export type PostListCardItem = {
@@ -23,6 +26,7 @@ export type PostListCardItem = {
     salary: string;
     remainingDays: string;
     image: string;
+    isUrgent: boolean;
 };
 
 export async function fetchPublicPosts(params?: FetchPublicPostsParams): Promise<PublicPostApi[]> {
@@ -44,6 +48,18 @@ export async function fetchPublicPosts(params?: FetchPublicPostsParams): Promise
         searchParams.set("work_place_type", params.workPlaceType);
     }
 
+    if (params?.sort) {
+        searchParams.set("sort", params.sort);
+    }
+
+    if (params?.isUrgent === true) {
+        searchParams.set("is_urgent", "1");
+    }
+
+    if (params?.limit != null) {
+        searchParams.set("limit", String(params.limit));
+    }
+
     const query = searchParams.toString();
     const response = await apiRequest<{ posts: PublicPostApi[] }>(
         `/posts${query ? `?${query}` : ""}`,
@@ -62,6 +78,21 @@ export async function fetchPostFilters(): Promise<PostFiltersData> {
     return response?.data ?? { filters: {}, categories: [], defaults: { sort: "", per_page: 10 } };
 }
 
+export type PopularCategoryApi = {
+    label: string;
+    value: string;
+    count: number;
+};
+
+export async function fetchPopularCategories(limit = 6): Promise<PopularCategoryApi[]> {
+    const response = await apiRequest<{ categories: PopularCategoryApi[] }>(
+        `/posts/popular-categories?limit=${limit}`,
+        {},
+        { auth: false },
+    );
+    return response.categories;
+}
+
 export async function fetchPostDetail(postId: number): Promise<PostDetailApi | null> {
     try {
         const response = await apiRequest<{ post: PostDetailApi }>(
@@ -76,26 +107,7 @@ export async function fetchPostDetail(postId: number): Promise<PostDetailApi | n
 }
 
 export async function fetchPostDetailWithEmployer(postId: number): Promise<PostDetailApi | null> {
-    const post = await fetchPostDetail(postId);
-    if (!post) {
-        return null;
-    }
-
-    if (post.employer?.user_id) {
-        return post;
-    }
-
-    const posts = await fetchPublicPosts({ type: post.type });
-    const listedPost = posts.find((item) => item.post_id === postId);
-
-    if (!listedPost?.employer) {
-        return post;
-    }
-
-    return {
-        ...post,
-        employer: listedPost.employer,
-    };
+    return fetchPostDetail(postId);
 }
 
 export function toPostListCardItem(post: PublicPostApi): PostListCardItem {
@@ -108,6 +120,7 @@ export function toPostListCardItem(post: PublicPostApi): PostListCardItem {
         salary: formatPostSalary(post),
         remainingDays: formatClosedDate(post.closed_date),
         image: post.employer?.logo_img ?? "",
+        isUrgent: post.is_urgent === true,
     };
 }
 

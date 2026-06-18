@@ -1,67 +1,24 @@
 import type {
     HomeCompanyCard,
     HomeHeroBanner,
+    HomePopularCategory,
     HomePostCard,
-    HomeRoleSummary,
     HomeSeekerData,
 } from "../types/homeSeeker";
 import type { PublicEmployerApi } from "../types/employer";
-import { getPostLookupName } from "../lib/postLookup";
 import type { PublicPostApi } from "../types/post";
-import type { PublicStats } from "../types/publicStats";
 import { fetchPublicEmployers } from "./employerService";
 import { fetchPublicStats } from "./publicStatsService";
 import {
-    fetchPostFilters,
+    fetchPopularCategories,
     fetchPublicPosts,
-    formatClosedDate,
-    formatPostSalary,
+    toPostListCardItem,
 } from "./postApiService";
 
-const FEATURED_LIMIT = 6;
-const ROLE_SUMMARY_LIMIT = 8;
+const POPULAR_CATEGORY_LIMIT = 6;
 const COMPANY_LIMIT = 8;
-const POPULAR_CATEGORY_LIMIT = 3;
-
-function toHomePostCard(post: PublicPostApi): HomePostCard {
-    return {
-        postId: post.post_id,
-        employerId: post.employer?.user_id ?? 0,
-        organizationName: post.employer?.company_name ?? "Unknown",
-        title: post.post_title,
-        engagementType: post.work_place_type ?? post.type,
-        location: getPostLookupName(post.location),
-        salary: formatPostSalary(post),
-        remainingDays: formatClosedDate(post.closed_date),
-        image: post.employer?.logo_img ?? "",
-    };
-}
-
-function buildRoleSummaries(posts: PublicPostApi[], type: "job" | "volunteer"): HomeRoleSummary[] {
-    const counts = new Map<string, number>();
-
-    for (const post of posts) {
-        if (post.type !== type) {
-            continue;
-        }
-
-        const role = getPostLookupName(post.job_role).trim();
-        if (!role) {
-            continue;
-        }
-        counts.set(role, (counts.get(role) ?? 0) + 1);
-    }
-
-    return Array.from(counts.entries())
-        .map(([label, count], index) => ({
-            id: index + 1,
-            label,
-            type,
-            count,
-        }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, ROLE_SUMMARY_LIMIT);
-}
+const LATEST_POST_LIMIT = 6;
+const FEATURED_POST_LIMIT = 6;
 
 function buildTopCompanies(employers: PublicEmployerApi[]): HomeCompanyCard[] {
     return employers
@@ -71,43 +28,103 @@ function buildTopCompanies(employers: PublicEmployerApi[]): HomeCompanyCard[] {
             image: employer.logo_img ?? "",
             openPositions: employer.open_posts_count ?? 0,
         }))
-        .sort((a, b) => b.openPositions - a.openPositions)
+        .sort((a, b) => {
+            if (b.openPositions !== a.openPositions) {
+                return b.openPositions - a.openPositions;
+            }
+
+            return a.name.localeCompare(b.name);
+        })
         .slice(0, COMPANY_LIMIT);
 }
 
 function buildHeroBanners(
     jobsCount: number,
     volunteersCount: number,
-    stats: PublicStats,
+    totalEmployers: number,
+    totalSeekers: number,
 ): HomeHeroBanner[] {
     return [
         { id: 1, label: "Live Job", count: jobsCount },
         { id: 2, label: "Live Volunteer", count: volunteersCount },
-        { id: 3, label: "Companies", count: stats.total_employers },
-        { id: 4, label: "Candidates", count: stats.total_seekers },
+        { id: 3, label: "Companies", count: totalEmployers },
+        { id: 4, label: "Candidates", count: totalSeekers },
     ];
 }
 
-export async function fetchHomeSeekerData(): Promise<HomeSeekerData> {
-    const [posts, filters, stats, employers] = await Promise.all([
-        fetchPublicPosts(),
-        fetchPostFilters(),
-        fetchPublicStats(),
-        fetchPublicEmployers(),
-    ]);
-
-    const jobs = posts.filter((post) => post.type === "job");
-    const volunteers = posts.filter((post) => post.type === "volunteer");
+export function toHomePostCard(post: PublicPostApi): HomePostCard {
+    const card = toPostListCardItem(post);
 
     return {
-        popularCategories: filters.categories
-            .slice(0, POPULAR_CATEGORY_LIMIT)
-            .map((category) => category.label),
-        heroBanners: buildHeroBanners(jobs.length, volunteers.length, stats),
-        popularJobs: buildRoleSummaries(posts, "job"),
-        popularVolunteers: buildRoleSummaries(posts, "volunteer"),
+        postId: card.postId,
+        employerId: post.employer?.user_id ?? 0,
+        organizationName: card.organizationName,
+        title: card.title,
+        engagementType: card.engagementType,
+        location: card.location,
+        salary: card.salary,
+        remainingDays: card.remainingDays,
+        image: card.image,
+        isUrgent: card.isUrgent,
+    };
+}
+
+export async function fetchHomeSeekerData(): Promise<HomeSeekerData> {
+    const [
+        popularCategories,
+        stats,
+        employers,
+        latestJobPosts,
+        latestVolunteerPosts,
+        featuredJobPosts,
+        featuredVolunteerPosts,
+    ] = await Promise.all([
+        fetchPopularCategories(POPULAR_CATEGORY_LIMIT),
+        fetchPublicStats(),
+        fetchPublicEmployers(),
+        fetchPublicPosts({
+            type: "job",
+            sort: "latest",
+            limit: LATEST_POST_LIMIT,
+        }),
+        fetchPublicPosts({
+            type: "volunteer",
+            sort: "latest",
+            limit: LATEST_POST_LIMIT,
+        }),
+        fetchPublicPosts({
+            type: "job",
+            sort: "most_applications",
+            limit: FEATURED_POST_LIMIT,
+        }),
+        fetchPublicPosts({
+            type: "volunteer",
+            sort: "most_applications",
+            limit: FEATURED_POST_LIMIT,
+        }),
+    ]);
+
+    const latestJobs = latestJobPosts.map(toHomePostCard);
+    const latestVolunteers = latestVolunteerPosts.map(toHomePostCard);
+    const featuredJobs = featuredJobPosts.map(toHomePostCard);
+    const featuredVolunteers = featuredVolunteerPosts.map(toHomePostCard);
+
+    return {
+        popularCategories: popularCategories.map((category): HomePopularCategory => ({
+            label: category.label,
+            value: category.value,
+            count: category.count,
+        })),
+        heroBanners: buildHeroBanners(
+            stats.open_jobs ?? 0,
+            stats.open_volunteers ?? 0,
+            stats.total_employers,
+            stats.total_seekers,
+        ),
         topCompanies: buildTopCompanies(employers),
-        featuredJobs: jobs.slice(0, FEATURED_LIMIT).map(toHomePostCard),
-        featuredVolunteers: volunteers.slice(0, FEATURED_LIMIT).map(toHomePostCard),
+        latestJobs,
+        latestVolunteers,
+        featuredJobs,
+        featuredVolunteers,
     };
 }

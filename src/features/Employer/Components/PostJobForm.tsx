@@ -37,6 +37,8 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
     const [error, setError] = useState<string | null>(null);
 
     const jobTypeOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobType);
+    const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
+    const jobRoleOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobRole);
     const workPlaceOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.workPlaceType);
     const educationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.education);
     const experienceOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.experience);
@@ -46,7 +48,8 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
         event.preventDefault();
         setError(null);
 
-        const formData = new FormData(event.currentTarget);
+        const form = event.currentTarget;
+        const formData = new FormData(form);
 
         try {
             await onSubmit({
@@ -59,13 +62,15 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                 workPlaceType: getString(formData.get("workPlaceType")) as JobPostSubmitPayload["workPlaceType"],
                 expirationDate: getString(formData.get("expirationDate")),
                 jobLevel: getString(formData.get("jobLevel")),
-                location: getString(formData.get("location")),
+                locationId: parseNumberOrNull(formData.get("locationId")),
+                jobRoleId: parseNumberOrNull(formData.get("jobRoleId")),
                 description,
                 responsibilities,
                 jobRequirements,
+                isUrgent: formData.get("isUrgent") === "on",
             });
 
-            event.currentTarget.reset();
+            form.reset();
             setDescription("");
             setResponsibilities("");
             setJobRequirements("");
@@ -94,7 +99,7 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
                     <div>
                         <label className="block text-sm font-medium mb-2 text-[#18191C]">Job Type</label>
                         <div className="relative">
@@ -115,13 +120,40 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                         </div>
                     </div>
                     <div>
+                        <label className="block text-sm font-medium mb-2 text-[#18191C]">Category</label>
+                        <div className="relative">
+                            <select
+                                name="jobRoleId"
+                                disabled={loading}
+                                className={selectClassName}
+                            >
+                                <option value="">Select...</option>
+                                {jobRoleOptions.map((option) => (
+                                    <option key={option.id} value={option.id}>
+                                        {option.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
+                        </div>
+                    </div>
+                    <div>
                         <label className="block text-sm font-medium mb-2 text-[#18191C]">Location</label>
-                        <input
-                            type="text"
-                            name="location"
-                            placeholder="City, Country"
-                            className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-blue-500 text-sm"
-                        />
+                        <div className="relative">
+                            <select
+                                name="locationId"
+                                disabled={loading}
+                                className={selectClassName}
+                            >
+                                <option value="">Select...</option>
+                                {locationOptions.map((option) => (
+                                    <option key={option.id} value={option.id}>
+                                        {option.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
+                        </div>
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-2 text-[#18191C]">Work Place Type</label>
@@ -232,6 +264,16 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                                 placeholder="DD/MM/YYYY"
                                 className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-blue-500 text-sm"
                             />
+                        </div>
+                        <div className="flex items-end">
+                            <label className="flex items-center gap-2 cursor-pointer text-sm text-[#18191C]">
+                                <input
+                                    type="checkbox"
+                                    name="isUrgent"
+                                    className="h-4 w-4 rounded border-[#E4E5E8] text-[#0A65CC] focus:ring-blue-500"
+                                />
+                                Urgent hiring needed
+                            </label>
                         </div>
                     </div>
                 </div>

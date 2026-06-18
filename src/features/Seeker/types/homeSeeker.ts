@@ -1,15 +1,14 @@
 import type { PublicPostApi } from "./post";
 
-export type HomeHeroBanner = {
-    id: number;
+export type HomePopularCategory = {
     label: string;
+    value: string;
     count: number;
 };
 
-export type HomeRoleSummary = {
+export type HomeHeroBanner = {
     id: number;
     label: string;
-    type: "job" | "volunteer";
     count: number;
 };
 
@@ -30,14 +29,15 @@ export type HomePostCard = {
     salary: string;
     remainingDays: string;
     image: string;
+    isUrgent: boolean;
 };
 
 export type HomeSeekerData = {
-    popularCategories: string[];
+    popularCategories: HomePopularCategory[];
     heroBanners: HomeHeroBanner[];
-    popularJobs: HomeRoleSummary[];
-    popularVolunteers: HomeRoleSummary[];
     topCompanies: HomeCompanyCard[];
+    latestJobs: HomePostCard[];
+    latestVolunteers: HomePostCard[];
     featuredJobs: HomePostCard[];
     featuredVolunteers: HomePostCard[];
 };

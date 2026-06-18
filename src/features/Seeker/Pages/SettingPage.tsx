@@ -3,12 +3,19 @@ import {
     CircleUserRound, Settings,
     Briefcase, MapPin,
 } from "lucide-react";
+import { getLookupOptions, useLookupValues } from "../../../hooks/useLookupValues";
+import { LOOKUP_TYPES } from "../../../types/lookupValue";
+import type { LookupValueItem } from "../../../types/lookupValue";
 import SeekerProfileSection, { type SeekerFormData } from "../../../GlobalComponents/SeekerProfileSection";
 import Password from "../../../GlobalComponents/Password";
+import AlertMultiSelectDropdown from "../Components/AlertMultiSelectDropdown";
 import { formatApiError } from "../../../services/apiClient";
 import { fetchSeekerProfile } from "../services/seekerProfileService";
+import { fetchAlertItems } from "../services/alertItemService";
 import {
+    applyAlertItemsToNotifyForm,
     mapProfileApiToSettings,
+    type SeekerAlertSelectionState,
     type SeekerNotifyFormState,
     type SeekerProfileMeta,
 } from "../lib/seekerProfileMappers";
@@ -26,12 +33,85 @@ const EMPTY_NOTIFY: SeekerNotifyFormState = {
         employerRejectedMe: false,
         notifyOnHire: false,
     },
-    jobAlerts: { role: "", location: "" },
-    volunteerAlerts: { role: "", location: "" },
-    alertCategory: "job",
+    jobAlerts: { categories: [], locations: [] },
+    volunteerAlerts: { categories: [], locations: [] },
 };
 
+function getAlertSelectionSummary(selection: SeekerAlertSelectionState): string {
+    const categoryCount = selection.categories.length;
+    const locationCount = selection.locations.length;
+
+    if (categoryCount === 0 && locationCount === 0) {
+        return "No alert criteria selected.";
+    }
+
+    const parts: string[] = [];
+    if (categoryCount > 0) {
+        parts.push(`${categoryCount} ${categoryCount === 1 ? "category" : "categories"}`);
+    }
+    if (locationCount > 0) {
+        parts.push(`${locationCount} ${locationCount === 1 ? "location" : "locations"}`);
+    }
+
+    const combinationNote = categoryCount > 0 && locationCount > 0
+        ? ` · up to ${categoryCount * locationCount} alert combinations`
+        : "";
+
+    return `Selected: ${parts.join(", ")}${combinationNote}`;
+}
+
+function AlertSelectionSection({
+    title,
+    selection,
+    jobRoleOptions,
+    locationOptions,
+    disabled,
+    onCategoriesChange,
+    onLocationsChange,
+}: {
+    title: string;
+    selection: SeekerAlertSelectionState;
+    jobRoleOptions: LookupValueItem[];
+    locationOptions: LookupValueItem[];
+    disabled?: boolean;
+    onCategoriesChange: (categories: string[]) => void;
+    onLocationsChange: (locations: string[]) => void;
+}) {
+    return (
+        <section className="mb-5">
+            <div className="flex flex-col gap-1 mb-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-lg font-semibold">{title}</h2>
+                <p className="text-xs text-slate-500">{getAlertSelectionSummary(selection)}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <AlertMultiSelectDropdown
+                    label="Category"
+                    placeholder="Select categories"
+                    icon={Briefcase}
+                    options={jobRoleOptions}
+                    selected={selection.categories}
+                    onChange={onCategoriesChange}
+                    disabled={disabled}
+                />
+                <AlertMultiSelectDropdown
+                    label="Location"
+                    placeholder="Select locations"
+                    icon={MapPin}
+                    options={locationOptions}
+                    selected={selection.locations}
+                    onChange={onLocationsChange}
+                    disabled={disabled}
+                />
+            </div>
+        </section>
+    );
+}
+
 export default function Setting() {
+    const { lookupValues, loading: lookupLoading, error: lookupError } = useLookupValues();
+    const jobRoleOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobRole);
+    const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
+
     const [seekerData, setSeekerData] = useState<SeekerFormData | null>(null);
     const [profileMeta, setProfileMeta] = useState<SeekerProfileMeta>({
         cvResumePath: null,
@@ -54,11 +134,14 @@ export default function Setting() {
         setError(null);
 
         try {
-            const response = await fetchSeekerProfile();
+            const [response, alertItems] = await Promise.all([
+                fetchSeekerProfile(),
+                fetchAlertItems(),
+            ]);
             const mapped = mapProfileApiToSettings(response.profile);
             setSeekerData(mapped.profile);
             setProfileMeta(mapped.meta);
-            setSeekerNotifySetting(mapped.notify);
+            setSeekerNotifySetting(applyAlertItemsToNotifyForm(mapped.notify, alertItems));
         } catch (err) {
             setError(formatApiError(err));
         } finally {
@@ -168,7 +251,7 @@ export default function Setting() {
 
             <p className="mb-4 text-xs text-slate-500">
                 Profile photos and resumes upload when you click Done.
-                Job and volunteer alerts share one backend alert slot — job alerts are saved by default.
+                Job and volunteer alert preferences are saved when you click Save Changes on the Account tab.
             </p>
 
             {isProfile && (
@@ -186,83 +269,48 @@ export default function Setting() {
 
             {!isProfile && (
                 <div className="w-full min-h-screen bg-white p-8 text-slate-700">
-                    <section className="mb-5">
-                        <h2 className="text-lg font-semibold mb-2">Job Alerts</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-sm text-gray-600">Role</label>
-                                <div className="relative">
-                                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500 w-5 h-5" />
-                                    <input
-                                        type="text"
-                                        value={seekerNotifySetting.jobAlerts.role}
-                                        onChange={(e) => setSeekerNotifySetting((prev) => ({
-                                            ...prev,
-                                            jobAlerts: { ...prev.jobAlerts, role: e.target.value },
-                                        }))}
-                                        placeholder="Your job roles"
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm text-gray-600">Location</label>
-                                <div className="relative">
-                                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-500 w-5 h-5" />
-                                    <input
-                                        type="text"
-                                        value={seekerNotifySetting.jobAlerts.location}
-                                        onChange={(e) => setSeekerNotifySetting((prev) => ({
-                                            ...prev,
-                                            jobAlerts: { ...prev.jobAlerts, location: e.target.value },
-                                        }))}
-                                        placeholder="City, state, country name"
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section className="mb-5">
-                        <h2 className="text-lg font-semibold mb-2">Volunteer Alerts</h2>
-                        <p className="text-xs text-amber-700 mb-2">
-                            Backend stores one alert category at a time. Saving account settings writes job alerts first.
+                    {lookupError && (
+                        <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            {lookupError}
                         </p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-sm text-gray-600">Role</label>
-                                <input
-                                    type="text"
-                                    value={seekerNotifySetting.volunteerAlerts.role}
-                                    onChange={(e) => setSeekerNotifySetting((prev) => ({
-                                        ...prev,
-                                        volunteerAlerts: { ...prev.volunteerAlerts, role: e.target.value },
-                                    }))}
-                                    placeholder="Volunteer roles"
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm text-gray-600">Location</label>
-                                <input
-                                    type="text"
-                                    value={seekerNotifySetting.volunteerAlerts.location}
-                                    onChange={(e) => setSeekerNotifySetting((prev) => ({
-                                        ...prev,
-                                        volunteerAlerts: { ...prev.volunteerAlerts, location: e.target.value },
-                                    }))}
-                                    placeholder="City, state, country name"
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                        </div>
-                    </section>
+                    )}
+
+                    <AlertSelectionSection
+                        title="Job Alerts"
+                        selection={seekerNotifySetting.jobAlerts}
+                        jobRoleOptions={jobRoleOptions}
+                        locationOptions={locationOptions}
+                        disabled={lookupLoading}
+                        onCategoriesChange={(categories) => setSeekerNotifySetting((prev) => ({
+                            ...prev,
+                            jobAlerts: { ...prev.jobAlerts, categories },
+                        }))}
+                        onLocationsChange={(locations) => setSeekerNotifySetting((prev) => ({
+                            ...prev,
+                            jobAlerts: { ...prev.jobAlerts, locations },
+                        }))}
+                    />
+
+                    <AlertSelectionSection
+                        title="Volunteer Alerts"
+                        selection={seekerNotifySetting.volunteerAlerts}
+                        jobRoleOptions={jobRoleOptions}
+                        locationOptions={locationOptions}
+                        disabled={lookupLoading}
+                        onCategoriesChange={(categories) => setSeekerNotifySetting((prev) => ({
+                            ...prev,
+                            volunteerAlerts: { ...prev.volunteerAlerts, categories },
+                        }))}
+                        onLocationsChange={(locations) => setSeekerNotifySetting((prev) => ({
+                            ...prev,
+                            volunteerAlerts: { ...prev.volunteerAlerts, locations },
+                        }))}
+                    />
 
                     <button
                         type="button"
                         onClick={() => void handleSaveAccountSettings()}
-                        disabled={isSaving}
+                        disabled={isSaving || lookupLoading}
                         className="bg-blue-600 text-white px-6 py-2 rounded font-medium hover:bg-blue-700 transition-colors mb-12 disabled:opacity-60"
                     >
                         {isSaving ? "Saving..." : "Save Changes"}

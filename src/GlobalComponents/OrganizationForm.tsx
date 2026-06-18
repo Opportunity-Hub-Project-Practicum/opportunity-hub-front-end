@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from "react"
 // Swap these imports to match your actual paths.
 import Upload from "../features/Seeker/libs/uploadFile"
 import type { File as UploadFile } from "../features/Seeker/libs/uploadFile"
+import { getLookupOptions, useLookupValues } from "../hooks/useLookupValues"
+import { LOOKUP_TYPES } from "../types/lookupValue"
+import LookupSelect from "./LookupSelect"
 import SocialLinksSection from "./socialLink"
 import TextAreaBox from "./textAreaBox"
 
@@ -91,6 +94,12 @@ export default function OrganizationForm({
         initialData?.socialLinks ?? [{ id: "1", platform: "website", url: "" }]
     )
 
+    const { lookupValues, loading: lookupLoading, error: lookupError } = useLookupValues()
+    const organizationTypeOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.organizationType)
+    const industryOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.industry)
+    const teamSizeOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.teamSize)
+    const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location)
+
     // Generic field updater — local state only; parent sync happens after render.
     const updateField = useCallback(
         <K extends keyof EmployerData>(key: K, value: EmployerData[K]) => {
@@ -162,6 +171,11 @@ export default function OrganizationForm({
                 {/* ── Company Info tab ───────────────────────────────────────── */}
                 {isCompanyInfo && (
                     <section className="w-full">
+                        {lookupError && (
+                            <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                {lookupError}
+                            </p>
+                        )}
 
                         {/* Logo + Social links */}
                         <div className="flex w-full gap-4">
@@ -214,16 +228,14 @@ export default function OrganizationForm({
                                     className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
                                 />
                             </div>
-                            <div className="flex flex-col gap-2">
-                                <span>Location</span>
-                                <input
-                                    value={employerData.location}
-                                    onChange={(e) => updateField("location", e.target.value)}
-                                    type="text"
-                                    placeholder="Location"
-                                    className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
-                                />
-                            </div>
+                            <LookupSelect
+                                label="Location"
+                                value={employerData.location}
+                                options={locationOptions}
+                                placeholder="Select location"
+                                disabled={lookupLoading}
+                                onChange={(value) => updateField("location", value)}
+                            />
                         </div>
 
                         {/* Phone + Email */}
@@ -307,39 +319,38 @@ export default function OrganizationForm({
                 {/* ── Company Detail tab ────────────────────────────────────── */}
                 {!isCompanyInfo && (
                     <section className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full">
+                        {lookupError && (
+                            <p className="md:col-span-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                {lookupError}
+                            </p>
+                        )}
 
-                        <div className="flex flex-col gap-2">
-                            <span className="text-sm">Organization Type</span>
-                            <select
-                                value={employerData.organizationType}
-                                onChange={(e) => updateField("organizationType", e.target.value)}
-                                className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
-                            >
-                                <option value="">Select organization type</option>
-                            </select>
-                        </div>
+                        <LookupSelect
+                            label="Organization Type"
+                            value={employerData.organizationType}
+                            options={organizationTypeOptions}
+                            placeholder="Select organization type"
+                            disabled={lookupLoading}
+                            onChange={(value) => updateField("organizationType", value)}
+                        />
 
-                        <div className="flex flex-col gap-2">
-                            <span className="text-sm">Industry Type</span>
-                            <select
-                                value={employerData.industryType}
-                                onChange={(e) => updateField("industryType", e.target.value)}
-                                className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
-                            >
-                                <option value="">Select industry</option>
-                            </select>
-                        </div>
+                        <LookupSelect
+                            label="Industry Type"
+                            value={employerData.industryType}
+                            options={industryOptions}
+                            placeholder="Select industry"
+                            disabled={lookupLoading}
+                            onChange={(value) => updateField("industryType", value)}
+                        />
 
-                        <div className="flex flex-col gap-2">
-                            <span className="text-sm">Team Size</span>
-                            <select
-                                value={employerData.teamSize}
-                                onChange={(e) => updateField("teamSize", e.target.value)}
-                                className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
-                            >
-                                <option value="">Select team size</option>
-                            </select>
-                        </div>
+                        <LookupSelect
+                            label="Team Size"
+                            value={employerData.teamSize}
+                            options={teamSizeOptions}
+                            placeholder="Select team size"
+                            disabled={lookupLoading}
+                            onChange={(value) => updateField("teamSize", value)}
+                        />
 
                         <div className="flex flex-col gap-2">
                             <span className="text-sm">Year of Establishment</span>

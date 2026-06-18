@@ -64,3 +64,5 @@ export function getLookupOptions(
 ) {
     return (lookupValues?.[type] ?? []).filter((item) => !excludeValues.includes(item.value));
 }
+
+export { resolveLookupNameToValue, resolveLookupStoredValue } from "../lib/lookupValueUtils";

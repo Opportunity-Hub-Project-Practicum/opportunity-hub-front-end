@@ -1,6 +1,15 @@
 import type { EmployerData, SocialLink } from "../../../GlobalComponents/OrganizationForm";
 import type { AuthUser } from "../../../types/auth";
+import { getLookupOptions } from "../../../hooks/useLookupValues";
+import { LOOKUP_TYPES } from "../../../types/lookupValue";
+import type { LookupValuesByType } from "../../../types/lookupValue";
 import { resolveAssetUrl } from "./resolveAssetUrl";
+import {
+    normalizeEmployerLookupFields,
+    resolveEmployerLookupForApi,
+    teamSizeLookupValueToNumber,
+    teamSizeNumberToLookupValue,
+} from "./employerLookupUtils";
 import type {
     EmployerContactApi,
     EmployerProfileApi,
@@ -96,36 +105,53 @@ function getEmployerMapLocation(user: AuthUser | null): string {
 export function mapProfileApiToSettings(
     profile: EmployerProfileApi,
     user: AuthUser | null,
+    lookupValues?: LookupValuesByType | null,
 ): EmployerSettingsBundle {
     const contacts = profile.contacts ?? [];
     const { links, socialContactIds } = mapSocialContactsToLinks(contacts, profile.social_link);
 
+    const formData: EmployerData = {
+        fullName: user?.full_name ?? "",
+        password: "",
+        confirmPassword: "",
+        currentPassword: "",
+        companyName: profile.company_name ?? "",
+        location: profile.map_location ?? getEmployerMapLocation(user),
+        phoneNumber: profile.company_phone_number ?? "",
+        email: profile.company_email ?? user?.email ?? "",
+        aboutCompany: profile.about_us ?? "",
+        organizationType: profile.organization_type ?? "",
+        industryType: profile.industry_type ?? "",
+        teamSize: profile.team_size != null ? String(profile.team_size) : "",
+        yearOfEstablishment: formatYearForDateInput(profile.year_establishment),
+        companyWebsite: profile.company_web_link ?? "",
+        companyVision: profile.company_vision ?? "",
+        logo: profile.logo_img
+            ? {
+                id: "logo",
+                name: profile.logo_img.split("/").pop() ?? "Logo",
+                size: "",
+                url: resolveAssetUrl(profile.logo_img),
+            }
+            : undefined,
+        socialLinks: links,
+    };
+
+    const normalizedLookupFields = lookupValues
+        ? normalizeEmployerLookupFields(formData, lookupValues)
+        : {
+            location: formData.location,
+            organizationType: formData.organizationType,
+            industryType: formData.industryType,
+            teamSize: profile.team_size != null
+                ? teamSizeNumberToLookupValue(profile.team_size)
+                : formData.teamSize,
+        };
+
     return {
         formData: {
-            fullName: user?.full_name ?? "",
-            password: "",
-            confirmPassword: "",
-            currentPassword: "",
-            companyName: profile.company_name ?? "",
-            location: profile.map_location ?? getEmployerMapLocation(user),
-            phoneNumber: profile.company_phone_number ?? "",
-            email: profile.company_email ?? user?.email ?? "",
-            aboutCompany: profile.about_us ?? "",
-            organizationType: profile.organization_type ?? "",
-            industryType: profile.industry_type ?? "",
-            teamSize: profile.team_size != null ? String(profile.team_size) : "",
-            yearOfEstablishment: formatYearForDateInput(profile.year_establishment),
-            companyWebsite: profile.company_web_link ?? "",
-            companyVision: profile.company_vision ?? "",
-            logo: profile.logo_img
-                ? {
-                    id: "logo",
-                    name: profile.logo_img.split("/").pop() ?? "Logo",
-                    size: "",
-                    url: resolveAssetUrl(profile.logo_img),
-                }
-                : undefined,
-            socialLinks: links,
+            ...formData,
+            ...normalizedLookupFields,
         },
         meta: {
             logoPath: profile.logo_img,
@@ -138,19 +164,24 @@ export function mapEmployerFormToUpdatePayload(
     data: EmployerData,
     meta: EmployerProfileMeta,
     uploadedLogoPath?: string | null,
+    lookupValues?: LookupValuesByType | null,
 ): UpdateEmployerProfilePayload {
+    const organizationOptions = getLookupOptions(lookupValues ?? null, LOOKUP_TYPES.organizationType);
+    const industryOptions = getLookupOptions(lookupValues ?? null, LOOKUP_TYPES.industry);
+    const locationOptions = getLookupOptions(lookupValues ?? null, LOOKUP_TYPES.location);
+
     const payload: UpdateEmployerProfilePayload = {
         company_name: data.companyName.trim(),
         company_email: data.email.trim() || null,
         company_phone_number: data.phoneNumber.trim() || null,
         about_us: data.aboutCompany || null,
-        organization_type: data.organizationType.trim() || null,
-        industry_type: data.industryType.trim() || null,
-        team_size: parseOptionalInt(data.teamSize) ?? null,
+        organization_type: resolveEmployerLookupForApi(data.organizationType, organizationOptions) ?? null,
+        industry_type: resolveEmployerLookupForApi(data.industryType, industryOptions) ?? null,
+        team_size: teamSizeLookupValueToNumber(data.teamSize) ?? null,
         year_establishment: parseYear(data.yearOfEstablishment) ?? null,
         company_web_link: data.companyWebsite.trim() || null,
         company_vision: data.companyVision || null,
-        map_location: data.location.trim() || null,
+        map_location: resolveEmployerLookupForApi(data.location, locationOptions) ?? null,
         social_link: firstSocialLink(data) ?? null,
     };
 
