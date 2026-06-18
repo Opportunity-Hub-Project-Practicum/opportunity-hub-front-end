@@ -8,6 +8,7 @@ import { useAuth } from "../../contexts/AuthContext"
 import { buildEmployerRegisterPayload } from "../Employer/lib/buildEmployerRegisterPayload"
 import { getHomeRouteForRole } from "./lib/authRoutes"
 import { formatApiError } from "../../services/apiClient"
+import { useLookupValues } from "../../hooks/useLookupValues"
 
 function validateEmployerForm(data: EmployerData): string | null {
     if (!data.fullName.trim()) {
@@ -36,6 +37,7 @@ function validateEmployerForm(data: EmployerData): string | null {
 export default function SignUpEmployerPage() {
     const navigate = useNavigate()
     const { registerEmployer } = useAuth()
+    const { lookupValues } = useLookupValues()
     const [employerData, setEmployerData] = useState<EmployerData>()
     const [companyInfoTab, setCompanyInfoTab] = useState(true)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -60,7 +62,7 @@ export default function SignUpEmployerPage() {
         setError(null)
 
         try {
-            const user = await registerEmployer(buildEmployerRegisterPayload(employerData))
+            const user = await registerEmployer(buildEmployerRegisterPayload(employerData, lookupValues))
             navigate(getHomeRouteForRole(user.role), { replace: true })
         } catch (err) {
             setError(formatApiError(err))

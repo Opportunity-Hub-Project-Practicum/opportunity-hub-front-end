@@ -1,5 +1,12 @@
 import type { EmployerData } from "../../../GlobalComponents/OrganizationForm";
 import type { EmployerRegisterPayload } from "../types/employerRegister";
+import type { LookupValuesByType } from "../../../types/lookupValue";
+import { LOOKUP_TYPES } from "../../../types/lookupValue";
+import { getLookupOptions } from "../../../hooks/useLookupValues";
+import {
+    resolveEmployerLookupForApi,
+    teamSizeLookupValueToNumber,
+} from "./employerLookupUtils";
 
 function parseOptionalInt(value: string): number | undefined {
     if (!value.trim()) {
@@ -39,8 +46,14 @@ export function toEmployerRegisterApiBody(
     );
 }
 
-export function buildEmployerRegisterPayload(company: EmployerData): EmployerRegisterPayload {
+export function buildEmployerRegisterPayload(
+    company: EmployerData,
+    lookupValues?: LookupValuesByType | null,
+): EmployerRegisterPayload {
     const email = company.email.trim();
+    const organizationOptions = getLookupOptions(lookupValues ?? null, LOOKUP_TYPES.organizationType);
+    const industryOptions = getLookupOptions(lookupValues ?? null, LOOKUP_TYPES.industry);
+    const locationOptions = getLookupOptions(lookupValues ?? null, LOOKUP_TYPES.location);
 
     return {
         full_name: company.fullName.trim(),
@@ -52,13 +65,13 @@ export function buildEmployerRegisterPayload(company: EmployerData): EmployerReg
         company_email: email,
         company_phone_number: company.phoneNumber.trim(),
         about_us: company.aboutCompany.trim() || undefined,
-        organization_type: company.organizationType.trim() || undefined,
-        industry_type: company.industryType.trim() || undefined,
-        team_size: parseOptionalInt(company.teamSize),
+        organization_type: resolveEmployerLookupForApi(company.organizationType, organizationOptions),
+        industry_type: resolveEmployerLookupForApi(company.industryType, industryOptions),
+        team_size: teamSizeLookupValueToNumber(company.teamSize),
         year_establishment: parseYear(company.yearOfEstablishment),
         company_web_link: company.companyWebsite.trim() || undefined,
         company_vision: company.companyVision.trim() || undefined,
-        map_location: company.location.trim() || undefined,
+        map_location: resolveEmployerLookupForApi(company.location, locationOptions),
         social_link: firstSocialLink(company),
     };
 }

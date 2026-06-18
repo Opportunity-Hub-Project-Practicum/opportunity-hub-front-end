@@ -11,8 +11,17 @@ import {
     UserRound,
 } from "lucide-react";
 import type { EmployerData } from "../../../GlobalComponents/OrganizationForm";
+import LookupSelect from "../../../GlobalComponents/LookupSelect";
+import RichTextContent from "../../../GlobalComponents/RichTextContent";
 import SocialLinksSection from "../../../GlobalComponents/socialLink";
 import TextAreaBox from "../../../GlobalComponents/textAreaBox";
+import { getLookupOptions, useLookupValues } from "../../../hooks/useLookupValues";
+import { resolveLookupStoredValue } from "../../../lib/lookupValueUtils";
+import { LOOKUP_TYPES } from "../../../types/lookupValue";
+import {
+    teamSizeLookupValueToNumber,
+    teamSizeNumberToLookupValue,
+} from "../lib/employerLookupUtils";
 import Upload from "../../Seeker/libs/uploadFile";
 
 type EmployerProfileSectionProps = {
@@ -131,9 +140,32 @@ export default function EmployerProfileSection({
 }: EmployerProfileSectionProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isCompanyInfo, setIsCompanyInfo] = useState(true);
+    const { lookupValues, loading: lookupLoading } = useLookupValues();
+    const organizationTypeOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.organizationType);
+    const industryOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.industry);
+    const teamSizeOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.teamSize);
+    const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
     const logoUrl = data.logo?.url;
     const activeSocialLinks = data.socialLinks.filter((link) => link.url.trim().length > 0);
     const editing = viewOnly ? false : isEditing;
+
+    const organizationTypeLabel = resolveLookupStoredValue(data.organizationType, organizationTypeOptions);
+    const industryTypeLabel = resolveLookupStoredValue(data.industryType, industryOptions);
+    const locationLabel = resolveLookupStoredValue(data.location, locationOptions);
+    const teamSizeLabel = (() => {
+        const fromLookup = resolveLookupStoredValue(data.teamSize, teamSizeOptions);
+        if (fromLookup) {
+            return fromLookup;
+        }
+
+        const numericTeamSize = teamSizeLookupValueToNumber(data.teamSize);
+        if (numericTeamSize !== undefined) {
+            const lookupValue = teamSizeNumberToLookupValue(numericTeamSize);
+            return resolveLookupStoredValue(lookupValue, teamSizeOptions) || String(numericTeamSize);
+        }
+
+        return data.teamSize;
+    })();
 
     return (
         <div className="page-container flex flex-col items-center  py-6">
@@ -282,11 +314,14 @@ export default function EmployerProfileSection({
                                         onChange={(value) => onFieldChange?.("companyName", value)}
                                         placeholder="Company name"
                                     />
-                                    <EditField
+                                    <LookupSelect
                                         label="Location"
                                         value={data.location}
+                                        options={locationOptions}
+                                        placeholder="Select location"
+                                        disabled={lookupLoading}
                                         onChange={(value) => onFieldChange?.("location", value)}
-                                        placeholder="Location"
+                                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-50"
                                     />
                                 </div>
 
@@ -324,16 +359,20 @@ export default function EmployerProfileSection({
                                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                                     <ViewField label="Full name" value={displayValue(data.fullName)} icon={<UserRound size={13} />} />
                                     <ViewField label="Company name" value={displayValue(data.companyName)} icon={<Building2 size={13} />} />
-                                    <ViewField label="Location" value={displayValue(data.location)} icon={<MapPin size={13} />} />
+                                    <ViewField label="Location" value={displayValue(locationLabel)} icon={<MapPin size={13} />} />
                                     <ViewField label="Phone number" value={displayValue(data.phoneNumber)} icon={<Phone size={13} />} />
                                     <ViewField label="Email" value={displayValue(data.email)} icon={<Mail size={13} />} />
                                 </div>
 
                                 <div>
                                     <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-500">About company</p>
-                                    <p className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-4 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
-                                        {displayValue(data.aboutCompany)}
-                                    </p>
+                                    <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-4 text-sm leading-relaxed text-slate-700">
+                                        <RichTextContent
+                                            value={data.aboutCompany}
+                                            className="text-sm leading-relaxed text-slate-700"
+                                            emptyText="—"
+                                        />
+                                    </div>
                                 </div>
                             </>
                         )}
@@ -342,23 +381,32 @@ export default function EmployerProfileSection({
                     <section className="w-full">
                         {editing ? (
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                <EditField
+                                <LookupSelect
                                     label="Organization type"
                                     value={data.organizationType}
+                                    options={organizationTypeOptions}
+                                    placeholder="Select organization type"
+                                    disabled={lookupLoading}
                                     onChange={(value) => onFieldChange?.("organizationType", value)}
-                                    placeholder="Organization type"
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-50"
                                 />
-                                <EditField
+                                <LookupSelect
                                     label="Industry type"
                                     value={data.industryType}
+                                    options={industryOptions}
+                                    placeholder="Select industry"
+                                    disabled={lookupLoading}
                                     onChange={(value) => onFieldChange?.("industryType", value)}
-                                    placeholder="Industry type"
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-50"
                                 />
-                                <EditField
+                                <LookupSelect
                                     label="Team size"
                                     value={data.teamSize}
+                                    options={teamSizeOptions}
+                                    placeholder="Select team size"
+                                    disabled={lookupLoading}
                                     onChange={(value) => onFieldChange?.("teamSize", value)}
-                                    placeholder="Team size"
+                                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-50"
                                 />
                                 <EditField
                                     label="Year of establishment"
@@ -390,9 +438,9 @@ export default function EmployerProfileSection({
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                                <ViewField label="Organization type" value={displayValue(data.organizationType)} />
-                                <ViewField label="Industry type" value={displayValue(data.industryType)} />
-                                <ViewField label="Team size" value={displayValue(data.teamSize)} />
+                                <ViewField label="Organization type" value={displayValue(organizationTypeLabel)} />
+                                <ViewField label="Industry type" value={displayValue(industryTypeLabel)} />
+                                <ViewField label="Team size" value={displayValue(teamSizeLabel)} />
                                 <ViewField
                                     label="Year of establishment"
                                     value={formatEstablishmentYear(data.yearOfEstablishment)}
@@ -405,9 +453,11 @@ export default function EmployerProfileSection({
                                 />
                                 <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3 md:col-span-3">
                                     <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-500">Company vision</div>
-                                    <p className="text-sm leading-relaxed text-slate-800 whitespace-pre-wrap">
-                                        {displayValue(data.companyVision)}
-                                    </p>
+                                    <RichTextContent
+                                        value={data.companyVision}
+                                        className="text-sm leading-relaxed text-slate-800"
+                                        emptyText="—"
+                                    />
                                 </div>
                             </div>
                         )}

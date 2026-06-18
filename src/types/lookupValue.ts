@@ -25,4 +25,7 @@ export const LOOKUP_TYPES = {
     languageRequirement: "language_requirement",
     location: "location",
     jobRole: "job_role",
+    organizationType: "organization_type",
+    industry: "industry",
+    teamSize: "team_size",
 } as const;
