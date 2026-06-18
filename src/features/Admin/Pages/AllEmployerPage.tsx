@@ -9,7 +9,6 @@ export default function AllEmployerPage() {
         ...a,
         school: 'RUPP'
     }
-    const c = 'name'
     return (
         <>
             <div>

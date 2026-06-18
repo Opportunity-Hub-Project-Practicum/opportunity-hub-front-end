@@ -7,6 +7,7 @@ import {
     fetchPublicPosts,
     formatWorkPlaceType,
 } from "../../Seeker/services/postApiService";
+import { getPostLookupName } from "../../Seeker/lib/postLookup";
 
 type Opportunity = {
     id: number;
@@ -85,9 +86,9 @@ export default function HomeEmployerPage() {
                 const mapped = posts.slice(0, 6).map((post) => ({
                     id: post.post_id,
                     title: post.post_title,
-                    location: post.location ?? formatWorkPlaceType(post.work_place_type),
+                    location: getPostLookupName(post.location) || formatWorkPlaceType(post.work_place_type),
                     type: post.type === "job" ? "Job" : "Volunteer",
-                    category: post.job_role ?? post.type,
+                    category: getPostLookupName(post.job_role) || post.type,
                     postedAt: post.closed_date
                         ? new Date(post.closed_date).toLocaleDateString("en-US", {
                             month: "short",

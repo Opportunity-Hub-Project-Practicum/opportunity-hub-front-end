@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { getPostLookupName, getPostLookupValue } from "../lib/postLookup";
 import {
     ArrowLeft,
     ArrowRight,
@@ -68,7 +69,7 @@ function buildRelatedPosts(post: PostDetailApi, posts: PublicPostApi[]): PublicP
         (item) =>
             item.post_id !== post.post_id &&
             post.job_role &&
-            item.job_role === post.job_role,
+            getPostLookupValue(item.job_role) === getPostLookupValue(post.job_role),
     );
 
     const source = sameRole.length > 0
@@ -136,7 +137,7 @@ function PostCardsSection({
                         organizationName={relatedPost.employer?.company_name ?? "Unknown"}
                         title={relatedPost.post_title}
                         engagementType={relatedPost.work_place_type ?? relatedPost.type}
-                        location={relatedPost.location ?? ""}
+                        location={getPostLookupName(relatedPost.location)}
                         salary={formatPostSalary(relatedPost)}
                         remainingDays={formatClosedDate(relatedPost.closed_date)}
                         image={relatedPost.employer?.logo_img ?? ""}
@@ -317,15 +318,15 @@ export default function PostDetail() {
             },
             {
                 label: "Location",
-                value: post.location ?? "",
+                value: getPostLookupName(post.location),
                 icon: MapPin,
-                show: !!post.location,
+                show: !!getPostLookupName(post.location),
             },
             {
                 label: "Job Role",
-                value: post.job_role ?? "",
+                value: getPostLookupName(post.job_role),
                 icon: Briefcase,
-                show: !isVolunteer && !!post.job_role,
+                show: !isVolunteer && !!getPostLookupName(post.job_role),
             },
             {
                 label: "Experience",

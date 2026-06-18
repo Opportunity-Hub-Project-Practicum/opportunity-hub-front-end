@@ -29,6 +29,8 @@ export default function SearchBar({ onResultsChange, onLoadingChange }: SearchBa
     const scheduleOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.schedule);
     const hoursOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.hoursPerWeek);
     const benefitOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.benefits);
+    const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
+    const categoryOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobRole);
     const languageOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.languageRequirement);
     const [searchTerm, setSearchTerm] = useState('');
     const [location, setLocation] = useState("");
@@ -155,10 +157,16 @@ export default function SearchBar({ onResultsChange, onLoadingChange }: SearchBa
                         <select
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
-                            className="flex-1 bg-transparent text-sm outline-none cursor-pointer"
+                            disabled={lookupLoading}
+                            className="flex-1 bg-transparent text-sm outline-none cursor-pointer disabled:cursor-wait"
                         >
                             <option value="">Location</option>
                             <option value="remote">Remote</option>
+                            {locationOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.name}
+                                </option>
+                            ))}
                         </select>
                         <MapPin size={18} className="text-slate-500" />
                     </div>
@@ -170,11 +178,15 @@ export default function SearchBar({ onResultsChange, onLoadingChange }: SearchBa
                         <select
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
-                            className="flex-1 bg-transparent text-sm outline-none cursor-pointer"
+                            disabled={lookupLoading}
+                            className="flex-1 bg-transparent text-sm outline-none cursor-pointer disabled:cursor-wait"
                         >
                             <option value="">Category</option>
-                            <option value="tech">Technology</option>
-                            <option value="health">Healthcare</option>
+                            {categoryOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.name}
+                                </option>
+                            ))}
                         </select>
                         <Layers size={18} className="text-slate-500" />
 

@@ -4,6 +4,7 @@ import type {
     FavoritePostsResponse,
 } from "../types/favoritePost";
 import type { PostDetailApi } from "../types/post";
+import { getPostLookupName } from "../lib/postLookup";
 import { apiRequest } from "../../../services/apiClient";
 import { fetchPostDetail, formatPostSalary } from "./postApiService";
 
@@ -61,8 +62,8 @@ function toFavoriteCardItem(
         organizationName: favorite.employer_name ?? post?.employer?.company_name ?? "",
         title: favorite.post_title ?? post?.post_title ?? "",
         engagementType: post?.work_place_type ?? postType,
-        location: post?.location ?? "",
-        salary: formatPostSalary(post),
+        location: getPostLookupName(post?.location),
+        salary: post ? formatPostSalary(post) : "",
         remainingDays: formatSavedDate(favorite.created_at),
         image: post?.employer?.logo_img ?? "",
         postIsBanned: Boolean(post?.is_ban ?? favorite.post_is_ban),

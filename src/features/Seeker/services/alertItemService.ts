@@ -7,6 +7,7 @@ import type {
     AlertPostCardItem,
     AlertItemCategory,
 } from "../types/alertItem";
+import { getPostLookupName } from "../lib/postLookup";
 import type { PublicPostApi } from "../types/post";
 import { fetchSeekerProfile } from "./seekerProfileService";
 import {
@@ -81,8 +82,8 @@ function postMatchesCriterion(post: PublicPostApi, criterion: AlertCriterion): b
     const roleQuery = criterion.roleName?.toLowerCase();
     const locationQuery = criterion.location?.toLowerCase();
 
-    const roleHaystack = `${post.post_title} ${post.job_role ?? ""}`.toLowerCase();
-    const locationHaystack = (post.location ?? "").toLowerCase();
+    const roleHaystack = `${post.post_title} ${getPostLookupName(post.job_role)}`.toLowerCase();
+    const locationHaystack = getPostLookupName(post.location).toLowerCase();
 
     const roleMatch = !roleQuery || roleHaystack.includes(roleQuery);
     const locationMatch = !locationQuery || locationHaystack.includes(locationQuery);
@@ -97,7 +98,7 @@ function toAlertPostCardItem(post: PublicPostApi): AlertPostCardItem {
         organizationName: post.employer?.company_name ?? "Unknown",
         title: post.post_title,
         engagementType: formatWorkPlaceType(post.work_place_type ?? post.type),
-        location: post.location ?? "",
+        location: getPostLookupName(post.location),
         salary: formatPostSalary(post),
         remainingDays: formatClosedDate(post.closed_date),
         image: post.employer?.logo_img ?? "",

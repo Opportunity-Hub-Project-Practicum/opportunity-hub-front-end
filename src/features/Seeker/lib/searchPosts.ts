@@ -1,4 +1,5 @@
 import type { PublicPostApi } from "../types/post";
+import { postMatchesLookupValue } from "./postLookup";
 import {
     fetchPublicPosts,
     toPostListCardItem,
@@ -73,11 +74,7 @@ export function applySearchFilters(posts: PublicPostApi[], payload: SearchPayloa
     const filters = payload.filters;
 
     if (payload.category?.trim()) {
-        const category = payload.category.trim().toLowerCase();
-        filtered = filtered.filter((post) =>
-            (post.job_role ?? "").toLowerCase().includes(category)
-            || (post.post_title ?? "").toLowerCase().includes(category),
-        );
+        filtered = filtered.filter((post) => postMatchesLookupValue(post.job_role, payload.category!));
     }
 
     if (!filters) {
@@ -163,10 +160,7 @@ export async function runPostSearch(payload: SearchPayload): Promise<PostListCar
     let filtered = posts;
 
     if (payload.location && payload.location !== "remote") {
-        const locationQuery = payload.location.trim().toLowerCase();
-        filtered = filtered.filter((post) =>
-            (post.location ?? "").toLowerCase().includes(locationQuery),
-        );
+        filtered = filtered.filter((post) => postMatchesLookupValue(post.location, payload.location!));
     }
 
     filtered = applySearchFilters(filtered, payload);

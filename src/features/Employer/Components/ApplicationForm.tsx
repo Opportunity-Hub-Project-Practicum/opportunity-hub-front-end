@@ -55,8 +55,16 @@ export default function ApplicationForm({
     const [reportMessage, setReportMessage] = useState<string | null>(null);
 
     useEffect(() => {
-        const seekerRef = application?.seekerUuid ?? application?.seekerId;
-        if (!isOpen || seekerRef == null) {
+        if (!isOpen || !application) {
+            setProfile(null);
+            setFavoriteCandidateId(null);
+            setFavoriteMessage(null);
+            setReportMessage(null);
+            return;
+        }
+
+        const seekerRef = application.seekerUuid ?? application.seekerId;
+        if (seekerRef == null) {
             setProfile(null);
             setFavoriteCandidateId(null);
             setFavoriteMessage(null);

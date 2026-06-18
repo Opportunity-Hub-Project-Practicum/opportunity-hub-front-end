@@ -1,3 +1,4 @@
+import { getPostLookupName } from "../lib/postLookup";
 import type {
     PostDetailApi,
     PostFiltersData,
@@ -103,7 +104,7 @@ export function toPostListCardItem(post: PublicPostApi): PostListCardItem {
         organizationName: post.employer?.company_name ?? "Unknown",
         title: post.post_title,
         engagementType: formatWorkPlaceType(post.work_place_type ?? post.type),
-        location: post.location ?? "",
+        location: getPostLookupName(post.location),
         salary: formatPostSalary(post),
         remainingDays: formatClosedDate(post.closed_date),
         image: post.employer?.logo_img ?? "",

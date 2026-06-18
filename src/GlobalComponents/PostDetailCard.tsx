@@ -23,10 +23,6 @@ interface Post {
     job_requirement?: string | null;
 }
 
-type OrgCategory = "web_url" | "social" | "phone";
-
-
-
 interface OverviewItem {
     icon: LucideIcon;
     label: string;

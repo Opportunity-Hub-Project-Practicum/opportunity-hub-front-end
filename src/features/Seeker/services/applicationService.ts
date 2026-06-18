@@ -4,6 +4,7 @@ import type {
     ApplicationsResponse,
 } from "../types/application";
 import type { PostDetailApi } from "../types/post";
+import { getPostLookupName } from "../lib/postLookup";
 import { apiRequest } from "../../../services/apiClient";
 import { fetchPostDetail, formatPostSalary } from "./postApiService";
 
@@ -60,8 +61,8 @@ function toAppliedCardItem(
         organizationName: application.employer_name ?? post?.employer?.company_name ?? "",
         title: application.post_title ?? post?.post_title ?? "",
         workPlaceType: post?.work_place_type ?? postType,
-        location: post?.location ?? "",
-        salary: formatPostSalary(post),
+        location: getPostLookupName(post?.location),
+        salary: post ? formatPostSalary(post) : "",
         appliedDate: formatAppliedDate(application.submission_date),
         status: application.status,
         postIsBanned: Boolean(post?.is_ban ?? application.post_is_ban),

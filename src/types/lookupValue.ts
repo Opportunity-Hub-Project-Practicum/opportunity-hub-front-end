@@ -22,4 +22,6 @@ export const LOOKUP_TYPES = {
     hoursPerWeek: "hours_per_week",
     benefits: "benefits",
     languageRequirement: "language_requirement",
+    location: "location",
+    jobRole: "job_role",
 } as const;

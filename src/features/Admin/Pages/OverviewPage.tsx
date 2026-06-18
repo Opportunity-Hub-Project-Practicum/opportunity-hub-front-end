@@ -1,5 +1,4 @@
 import { BellRing, BriefcaseBusiness, UserRoundCheck } from "lucide-react";
-import { useState } from "react";
 
 export default function OverviewPage() {
     const data = {
@@ -9,8 +8,6 @@ export default function OverviewPage() {
             volunteerPosts: 0,
         },
     }
-    const [overview, setOverview] = useState([])
-
     const metricCards = [
         { key: "saveCandidate", label: "Save Candidate", bg: "bg-subPrimary", icon: UserRoundCheck },
         { key: "jobPosts", label: "Job Posts", bg: "bg-subPrimary", icon: BriefcaseBusiness },

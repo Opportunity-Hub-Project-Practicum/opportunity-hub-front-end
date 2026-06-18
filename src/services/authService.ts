@@ -73,7 +73,7 @@ export function getStoredUser(): AuthUser | null {
 export async function register(payload: RegisterPayload): Promise<AuthResponse> {
     const data = await apiRequest<AuthResponse>("/auth/register", {
         method: "POST",
-        body: JSON.stringify({ role: "seeker", ...payload }),
+        body: JSON.stringify(payload),
     }, { auth: false });
 
     if (data.access_token) {

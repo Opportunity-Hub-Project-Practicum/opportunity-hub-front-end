@@ -1,3 +1,5 @@
+import type { PostLookupRef } from "../lib/postLookup";
+
 export type PostEmployerApi = {
     user_id: number;
     uuid: string;
@@ -15,7 +17,7 @@ export type PostDetailApi = {
     post_description: string | null;
     responsibility: string | null;
     work_place_type: string | null;
-    location: string | null;
+    location: string | PostLookupRef | null;
     duration: string | null;
     schedule: string | null;
     hours_per_week: number | null;
@@ -23,7 +25,7 @@ export type PostDetailApi = {
     language: string | null;
     min_salary: string | number | null;
     max_salary: string | number | null;
-    job_role: string | null;
+    job_role: string | PostLookupRef | null;
     job_education: string | null;
     job_experience: string | null;
     job_requirement: string | null;
@@ -39,10 +41,10 @@ export type PublicPostApi = {
     type: "job" | "volunteer";
     post_title: string;
     work_place_type: string | null;
-    location: string | null;
+    location: string | PostLookupRef | null;
     min_salary: string | number | null;
     max_salary: string | number | null;
-    job_role: string | null;
+    job_role: string | PostLookupRef | null;
     job_type: string | null;
     job_education: string | null;
     job_experience: string | null;
