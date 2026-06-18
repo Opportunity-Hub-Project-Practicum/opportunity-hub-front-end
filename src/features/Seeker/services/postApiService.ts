@@ -12,6 +12,8 @@ export type FetchPublicPostsParams = {
     employerId?: number;
     search?: string;
     workPlaceType?: "remote" | "onsite" | "hybrid";
+    sort?: "latest" | "most_applications";
+    limit?: number;
 };
 
 export type PostListCardItem = {
@@ -44,6 +46,14 @@ export async function fetchPublicPosts(params?: FetchPublicPostsParams): Promise
         searchParams.set("work_place_type", params.workPlaceType);
     }
 
+    if (params?.sort) {
+        searchParams.set("sort", params.sort);
+    }
+
+    if (params?.limit != null) {
+        searchParams.set("limit", String(params.limit));
+    }
+
     const query = searchParams.toString();
     const response = await apiRequest<{ posts: PublicPostApi[] }>(
         `/posts${query ? `?${query}` : ""}`,
@@ -60,6 +70,21 @@ export async function fetchPostFilters(): Promise<PostFiltersData> {
         { auth: false },
     );
     return response.data;
+}
+
+export type PopularCategoryApi = {
+    label: string;
+    value: string;
+    count: number;
+};
+
+export async function fetchPopularCategories(limit = 6): Promise<PopularCategoryApi[]> {
+    const response = await apiRequest<{ categories: PopularCategoryApi[] }>(
+        `/posts/popular-categories?limit=${limit}`,
+        {},
+        { auth: false },
+    );
+    return response.categories;
 }
 
 export async function fetchPostDetail(postId: number): Promise<PostDetailApi | null> {

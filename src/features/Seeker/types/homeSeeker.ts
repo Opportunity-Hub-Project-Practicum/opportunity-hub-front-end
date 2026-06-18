@@ -1,5 +1,11 @@
 import type { PublicPostApi } from "./post";
 
+export type HomePopularCategory = {
+    label: string;
+    value: string;
+    count: number;
+};
+
 export type HomeHeroBanner = {
     id: number;
     label: string;
@@ -33,7 +39,7 @@ export type HomePostCard = {
 };
 
 export type HomeSeekerData = {
-    popularCategories: string[];
+    popularCategories: HomePopularCategory[];
     heroBanners: HomeHeroBanner[];
     popularJobs: HomeRoleSummary[];
     popularVolunteers: HomeRoleSummary[];

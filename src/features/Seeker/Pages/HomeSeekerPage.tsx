@@ -9,7 +9,8 @@ import { ROUTES } from "../../../routes/path";
 import { useAuth } from "../../../contexts/AuthContext";
 import { formatApiError } from "../../../services/apiClient";
 import { fetchHomeSeekerData } from "../services/homeSeekerService";
-import type { HomeSeekerData } from "../types/homeSeeker";
+import { fetchRecommendedPosts } from "../services/recommendationService";
+import type { HomePostCard, HomeSeekerData } from "../types/homeSeeker";
 
 const EMPTY_HOME_DATA: HomeSeekerData = {
     popularCategories: [],
@@ -38,8 +39,13 @@ export default function HomeSeeker() {
     const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
     const [homeData, setHomeData] = useState<HomeSeekerData>(EMPTY_HOME_DATA);
+    const [recommendedJobs, setRecommendedJobs] = useState<HomePostCard[]>([]);
+    const [recommendedVolunteers, setRecommendedVolunteers] = useState<HomePostCard[]>([]);
     const [loading, setLoading] = useState(true);
+    const [recommendationsLoading, setRecommendationsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const showRecommendations = isAuthenticated && user?.role === "seeker";
 
     useEffect(() => {
         let isMounted = true;
@@ -73,7 +79,58 @@ export default function HomeSeeker() {
         };
     }, []);
 
+    useEffect(() => {
+        if (!showRecommendations) {
+            setRecommendedJobs([]);
+            setRecommendedVolunteers([]);
+            return;
+        }
+
+        let isMounted = true;
+
+        const loadRecommendations = async () => {
+            setRecommendationsLoading(true);
+
+            try {
+                const [jobs, volunteers] = await Promise.all([
+                    fetchRecommendedPosts("job", 6),
+                    fetchRecommendedPosts("volunteer", 6),
+                ]);
+                if (!isMounted) {
+                    return;
+                }
+                setRecommendedJobs(jobs);
+                setRecommendedVolunteers(volunteers);
+            } catch {
+                if (!isMounted) {
+                    return;
+                }
+                setRecommendedJobs([]);
+                setRecommendedVolunteers([]);
+            } finally {
+                if (isMounted) {
+                    setRecommendationsLoading(false);
+                }
+            }
+        };
+
+        loadRecommendations();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [showRecommendations]);
+
     const showRegistrationPromo = !(isAuthenticated && user?.role === "seeker");
+
+    const handlePopularCategoryClick = (categoryValue: string) => {
+        navigate(ROUTES.HOME.POST_LIST, {
+            state: {
+                category: categoryValue,
+                opportunityType: "job",
+            },
+        });
+    };
 
     return (
         <>
@@ -100,11 +157,16 @@ export default function HomeSeeker() {
                                     <li className="text-gray-500 text-sm">No categories yet</li>
                                 )}
                                 {homeData.popularCategories.map((category, index) => (
-                                    <li
-                                        key={category}
-                                        className={index === 0 ? "rounded px-2 bg-subPrimary" : ""}
-                                    >
-                                        {category}
+                                    <li key={category.value}>
+                                        <button
+                                            type="button"
+                                            onClick={() => handlePopularCategoryClick(category.value)}
+                                            className={`rounded px-2 transition-colors hover:bg-subPrimary ${
+                                                index === 0 ? "bg-subPrimary" : ""
+                                            }`}
+                                        >
+                                            {category.label}
+                                        </button>
                                     </li>
                                 ))}
                             </ul>
@@ -133,6 +195,68 @@ export default function HomeSeeker() {
                     })}
                 </div>
             </section>
+
+            {showRecommendations && (
+                <>
+                    <section className="page-container">
+                        <span className="text-big">Recommend Job for you</span>
+
+                        {recommendationsLoading && (
+                            <p className="my-5 text-sm text-gray-500">Loading recommendations...</p>
+                        )}
+
+                        {!recommendationsLoading && recommendedJobs.length === 0 && (
+                            <p className="my-5 text-sm text-gray-500">No job recommendations yet.</p>
+                        )}
+
+                        {!recommendationsLoading && recommendedJobs.length > 0 && (
+                            <div className="grid grid-cols-2 lg:grid-cols-3 justify-between gap-5 lg:gap-10 my-5">
+                                {recommendedJobs.map((item) => (
+                                    <div key={item.postId}>
+                                        <CardGrid
+                                            id={item.postId}
+                                            organizationName={item.organizationName}
+                                            title={item.title}
+                                            engagementType={item.engagementType}
+                                            location={item.location}
+                                            salary={item.salary}
+                                            remainingDays={item.remainingDays}
+                                            image={item.image}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+
+                    <section className="page-container">
+                        <span className="text-big">Recommend Volunteer for you</span>
+
+                        {!recommendationsLoading && recommendedVolunteers.length === 0 && (
+                            <p className="my-5 text-sm text-gray-500">No volunteer recommendations yet.</p>
+                        )}
+
+                        {!recommendationsLoading && recommendedVolunteers.length > 0 && (
+                            <div className="grid grid-cols-2 lg:grid-cols-3 justify-between gap-5 lg:gap-10 my-5">
+                                {recommendedVolunteers.map((item) => (
+                                    <div key={item.postId}>
+                                        <CardGrid
+                                            id={item.postId}
+                                            organizationName={item.organizationName}
+                                            title={item.title}
+                                            engagementType={item.engagementType}
+                                            location={item.location}
+                                            salary={item.salary}
+                                            remainingDays={item.remainingDays}
+                                            image={item.image}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+                </>
+            )}
 
             <section className="flex flex-col page-container">
                 <h2 className="text-big my-5">Most Popular Job Vacanies</h2>
@@ -223,6 +347,9 @@ export default function HomeSeeker() {
                 <span className="text-big">Feature job</span>
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 justify-between gap-5 lg:gap-10 my-5">
+                    {homeData.featuredJobs.length === 0 && (
+                        <p className="col-span-full text-sm text-gray-500">No featured jobs yet.</p>
+                    )}
                     {homeData.featuredJobs.map((item) => (
                         <div key={item.postId}>
                             <CardGrid
@@ -249,6 +376,9 @@ export default function HomeSeeker() {
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 justify-between gap-5 lg:gap-10 my-5">
+                    {homeData.featuredVolunteers.length === 0 && (
+                        <p className="col-span-full text-sm text-gray-500">No featured volunteers yet.</p>
+                    )}
                     {homeData.featuredVolunteers.map((item) => (
                         <div key={item.postId}>
                             <CardGrid

@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import CardList from "../Components/card/CardList";
 import { formatApiError } from "../../../services/apiClient";
-import {
-    fetchJobAlertPostCards,
-    fetchVolunteerAlertPostCards,
-} from "../services/alertItemService";
-import type { AlertPostCardItem } from "../types/alertItem";
+import { countAlertItemsByType } from "../lib/alertItemMappers";
+import { getAlertPageEmptyMessage } from "../lib/alertPageCopy";
+import { fetchAlertPageData } from "../services/alertItemService";
+import type { AlertItemApi, AlertPostCardItem } from "../types/alertItem";
 
 export default function Alert() {
     const [isJob, setIsJob] = useState<"job" | "volunteer">("job");
     const [jobItems, setJobItems] = useState<AlertPostCardItem[]>([]);
     const [volunteerItems, setVolunteerItems] = useState<AlertPostCardItem[]>([]);
+    const [alertItems, setAlertItems] = useState<AlertItemApi[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -22,17 +22,15 @@ export default function Alert() {
             setError(null);
 
             try {
-                const [jobs, volunteers] = await Promise.all([
-                    fetchJobAlertPostCards(),
-                    fetchVolunteerAlertPostCards(),
-                ]);
+                const data = await fetchAlertPageData();
 
                 if (!isMounted) {
                     return;
                 }
 
-                setJobItems(jobs);
-                setVolunteerItems(volunteers);
+                setJobItems(data.jobItems);
+                setVolunteerItems(data.volunteerItems);
+                setAlertItems(data.alertItems);
             } catch (err) {
                 if (!isMounted) {
                     return;
@@ -53,9 +51,8 @@ export default function Alert() {
     }, []);
 
     const activeItems = isJob === "job" ? jobItems : volunteerItems;
-    const emptyMessage = isJob === "job"
-        ? "No matching job posts found. Add job alerts in Account settings to see opportunities here."
-        : "No matching volunteer posts found. Add volunteer alerts in Account settings to see opportunities here.";
+    const alertItemCount = countAlertItemsByType(alertItems, isJob);
+    const emptyMessage = getAlertPageEmptyMessage(isJob, alertItemCount);
 
     return (
         <div>

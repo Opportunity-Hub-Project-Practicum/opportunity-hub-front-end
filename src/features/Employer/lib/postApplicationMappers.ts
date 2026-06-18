@@ -78,6 +78,7 @@ export function mapJobPostToApi(payload: JobPostSubmitPayload): CreateEmployerPo
         job_requirement: normalizeRichTextForStorage(payload.jobRequirements) || null,
         job_level: mapNullableCode(payload.jobLevel),
         location_id: payload.locationId,
+        job_role_id: payload.jobRoleId,
         closed_date: parseClosedDate(payload.expirationDate),
         language: "english",
     };
@@ -95,6 +96,7 @@ export function mapVolunteerPostToApi(payload: VolunteerPostSubmitPayload): Crea
         hours_per_week: mapNullableCode(payload.hoursPerWeek),
         benefits: payload.benefits.length > 0 ? payload.benefits : null,
         language: mapNullableCode(payload.language),
+        job_role_id: payload.jobRoleId,
         job_requirement: normalizeRichTextForStorage(payload.volunteerRequirements) || null,
     };
 }

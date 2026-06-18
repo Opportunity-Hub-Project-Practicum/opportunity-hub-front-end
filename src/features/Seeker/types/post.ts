@@ -65,7 +65,6 @@ export type PostFilterCategory = {
 
 export type PostFiltersData = {
     filters: Record<string, unknown>;
-    categories: PostFilterCategory[];
     defaults: {
         sort: string;
         per_page: number;

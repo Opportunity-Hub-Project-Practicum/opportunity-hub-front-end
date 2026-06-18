@@ -1,17 +1,23 @@
 import type {
     HomeCompanyCard,
     HomeHeroBanner,
+    HomePopularCategory,
     HomePostCard,
-    HomeRoleSummary,
     HomeSeekerData,
 } from "../types/homeSeeker";
 import type { PublicEmployerApi } from "../types/employer";
+import type { PublicPostApi } from "../types/post";
 import { fetchPublicEmployers } from "./employerService";
 import { fetchPublicStats } from "./publicStatsService";
-import { fetchPostFilters } from "./postApiService";
+import {
+    fetchPopularCategories,
+    fetchPublicPosts,
+    toPostListCardItem,
+} from "./postApiService";
 
-const POPULAR_CATEGORY_LIMIT = 3;
+const POPULAR_CATEGORY_LIMIT = 6;
 const COMPANY_LIMIT = 8;
+const FEATURED_POST_LIMIT = 6;
 
 function buildTopCompanies(employers: PublicEmployerApi[]): HomeCompanyCard[] {
     return employers
@@ -39,30 +45,56 @@ function buildHeroBanners(
     ];
 }
 
-export async function fetchHomeSeekerData(): Promise<HomeSeekerData> {
-    const [filters, stats, employers] = await Promise.all([
-        fetchPostFilters(),
-        fetchPublicStats(),
-        fetchPublicEmployers(),
-    ]);
-
-    const popularJobs: HomeRoleSummary[] = [];
-    const popularVolunteers: HomeRoleSummary[] = [];
-    const featuredJobs: HomePostCard[] = [];
-    const featuredVolunteers: HomePostCard[] = [];
+export function toHomePostCard(post: PublicPostApi): HomePostCard {
+    const card = toPostListCardItem(post);
 
     return {
-        popularCategories: filters.categories
-            .slice(0, POPULAR_CATEGORY_LIMIT)
-            .map((category) => category.label),
+        postId: card.postId,
+        employerId: post.employer?.user_id ?? 0,
+        organizationName: card.organizationName,
+        title: card.title,
+        engagementType: card.engagementType,
+        location: card.location,
+        salary: card.salary,
+        remainingDays: card.remainingDays,
+        image: card.image,
+    };
+}
+
+export async function fetchHomeSeekerData(): Promise<HomeSeekerData> {
+    const [popularCategories, stats, employers, featuredJobPosts, featuredVolunteerPosts] = await Promise.all([
+        fetchPopularCategories(POPULAR_CATEGORY_LIMIT),
+        fetchPublicStats(),
+        fetchPublicEmployers(),
+        fetchPublicPosts({
+            type: "job",
+            sort: "most_applications",
+            limit: FEATURED_POST_LIMIT,
+        }),
+        fetchPublicPosts({
+            type: "volunteer",
+            sort: "most_applications",
+            limit: FEATURED_POST_LIMIT,
+        }),
+    ]);
+
+    const featuredJobs = featuredJobPosts.map(toHomePostCard);
+    const featuredVolunteers = featuredVolunteerPosts.map(toHomePostCard);
+
+    return {
+        popularCategories: popularCategories.map((category): HomePopularCategory => ({
+            label: category.label,
+            value: category.value,
+            count: category.count,
+        })),
         heroBanners: buildHeroBanners(
             stats.open_jobs ?? 0,
             stats.open_volunteers ?? 0,
             stats.total_employers,
             stats.total_seekers,
         ),
-        popularJobs,
-        popularVolunteers,
+        popularJobs: [],
+        popularVolunteers: [],
         topCompanies: buildTopCompanies(employers),
         featuredJobs,
         featuredVolunteers,

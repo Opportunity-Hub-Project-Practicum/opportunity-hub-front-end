@@ -38,6 +38,7 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
 
     const jobTypeOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobType);
     const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
+    const jobRoleOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobRole);
     const workPlaceOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.workPlaceType);
     const educationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.education);
     const experienceOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.experience);
@@ -47,7 +48,8 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
         event.preventDefault();
         setError(null);
 
-        const formData = new FormData(event.currentTarget);
+        const form = event.currentTarget;
+        const formData = new FormData(form);
 
         try {
             await onSubmit({
@@ -61,12 +63,13 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                 expirationDate: getString(formData.get("expirationDate")),
                 jobLevel: getString(formData.get("jobLevel")),
                 locationId: parseNumberOrNull(formData.get("locationId")),
+                jobRoleId: parseNumberOrNull(formData.get("jobRoleId")),
                 description,
                 responsibilities,
                 jobRequirements,
             });
 
-            event.currentTarget.reset();
+            form.reset();
             setDescription("");
             setResponsibilities("");
             setJobRequirements("");
@@ -95,7 +98,7 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                     />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
                     <div>
                         <label className="block text-sm font-medium mb-2 text-[#18191C]">Job Type</label>
                         <div className="relative">
@@ -108,6 +111,24 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                                 <option value="">Select...</option>
                                 {jobTypeOptions.map((option) => (
                                     <option key={option.value} value={option.value}>
+                                        {option.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2 text-[#18191C]">Category</label>
+                        <div className="relative">
+                            <select
+                                name="jobRoleId"
+                                disabled={loading}
+                                className={selectClassName}
+                            >
+                                <option value="">Select...</option>
+                                {jobRoleOptions.map((option) => (
+                                    <option key={option.id} value={option.id}>
                                         {option.name}
                                     </option>
                                 ))}

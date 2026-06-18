@@ -22,6 +22,7 @@ export type CreateEmployerPostPayload = {
     job_experience?: string | null;
     job_requirement?: string | null;
     job_level?: string | null;
+    job_role_id?: number | null;
 };
 
 export type CreatedEmployerPost = {
@@ -47,6 +48,7 @@ export interface JobPostSubmitPayload {
     expirationDate: string;
     jobLevel: string;
     locationId: number | null;
+    jobRoleId: number | null;
     description: string;
     responsibilities: string;
     jobRequirements: string;
@@ -54,6 +56,7 @@ export interface JobPostSubmitPayload {
 
 export interface VolunteerPostSubmitPayload {
     title: string;
+    jobRoleId: number | null;
     duration: PostDuration | "";
     volunteerPlaceType: string;
     schedule: PostSchedule | "";

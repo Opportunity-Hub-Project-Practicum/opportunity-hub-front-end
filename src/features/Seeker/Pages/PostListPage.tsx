@@ -2,10 +2,11 @@ import SearchBar, { type SearchBarInitialState } from "../Components/searchBar";
 import CardGrid from "../Components/card/CardGrid";
 import CardList from "../Components/card/CardList";
 import FilterBox from "../Components/FilterBox";
-import { useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import type { PostListCardItem } from "../services/postApiService";
 import type { SearchFilters } from "../lib/searchPosts";
+import { setOpportunityTypeContext } from "../../../contexts/Context";
 
 type PostListNavigationState = {
     results?: PostListCardItem[];
@@ -13,12 +14,14 @@ type PostListNavigationState = {
     searchTerm?: string;
     location?: string;
     category?: string;
+    opportunityType?: "job" | "volunteer";
 };
 
 export default function PostList() {
     const [viewType, setViewType] = useState("grid");
     const [searchResults, setSearchResults] = useState<PostListCardItem[]>([]);
     const location = useLocation();
+    const setOpportunityType = useContext(setOpportunityTypeContext);
     const navigationState = location.state as PostListNavigationState | null;
     const searchBarInitialState = useMemo<SearchBarInitialState>(
         () => ({
@@ -29,6 +32,12 @@ export default function PostList() {
         }),
         [location.key],
     );
+
+    useEffect(() => {
+        if (navigationState?.opportunityType) {
+            setOpportunityType(navigationState.opportunityType);
+        }
+    }, [location.key, navigationState?.opportunityType, setOpportunityType]);
 
     useEffect(() => {
         if (navigationState?.results) {

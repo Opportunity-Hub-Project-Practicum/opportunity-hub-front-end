@@ -11,6 +11,13 @@ import type {
     UpdateSeekerNotifyPayload,
     UpdateSeekerProfilePayload,
 } from "../types/seekerProfile";
+import type { AlertItemApi, AlertSelectionState, SyncAlertItemPayload } from "../types/alertItem";
+import {
+    alertItemsToFormState,
+    formStateToAlertItems,
+} from "./alertItemMappers";
+
+export type SeekerAlertSelectionState = AlertSelectionState;
 
 export interface SeekerNotifyFormState {
     notifications: {
@@ -20,10 +27,14 @@ export interface SeekerNotifyFormState {
         employerRejectedMe: boolean;
         notifyOnHire: boolean;
     };
-    jobAlerts: { role: string; location: string };
-    volunteerAlerts: { role: string; location: string };
-    alertCategory: "job" | "volunteer" | null;
+    jobAlerts: SeekerAlertSelectionState;
+    volunteerAlerts: SeekerAlertSelectionState;
 }
+
+const EMPTY_ALERT_SELECTION: SeekerAlertSelectionState = {
+    categories: [],
+    locations: [],
+};
 
 export interface SeekerProfileMeta {
     phoneContactId?: number;
@@ -103,24 +114,53 @@ function parseBirthDateForApi(value: string): string | undefined {
     return undefined;
 }
 
-function yearToStartDate(year: string): string {
-    if (!year || year === "Present") {
+function monthYearToStartDate(value: string): string {
+    if (!value || value === "Present") {
         return `${new Date().getFullYear()}-01-01`;
     }
-    return `${year}-01-01`;
+
+    const monthYearMatch = value.match(/^(\d{1,2})\/(\d{4})$/);
+    if (monthYearMatch) {
+        const [, month, year] = monthYearMatch;
+        return `${year}-${month.padStart(2, "0")}-01`;
+    }
+
+    if (/^\d{4}$/.test(value)) {
+        return `${value}-01-01`;
+    }
+
+    return `${new Date().getFullYear()}-01-01`;
 }
 
-function yearToEndDate(year: string): string | null {
-    if (!year || year === "Present") {
+function monthYearToEndDate(value: string): string | null {
+    if (!value || value === "Present") {
         return null;
     }
-    return `${year}-12-31`;
+
+    const monthYearMatch = value.match(/^(\d{1,2})\/(\d{4})$/);
+    if (monthYearMatch) {
+        const [, month, year] = monthYearMatch;
+        const lastDay = new Date(Number(year), Number(month), 0).getDate();
+        return `${year}-${month.padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    }
+
+    if (/^\d{4}$/.test(value)) {
+        return `${value}-12-31`;
+    }
+
+    return null;
 }
 
-function dateToYear(value: string | null | undefined): string {
+function dateToMonthYear(value: string | null | undefined): string {
     if (!value) {
         return "";
     }
+
+    const [year, month] = value.split("-");
+    if (year && month) {
+        return `${month.padStart(2, "0")}/${year}`;
+    }
+
     return value.slice(0, 4);
 }
 
@@ -176,8 +216,8 @@ export function mapProfileApiToSettings(profile: SeekerProfileApi): SeekerSettin
         areaOfStudy: "",
         location: item.location,
         country: item.country,
-        from: dateToYear(item.start_date),
-        to: item.end_date ? dateToYear(item.end_date) : "Present",
+        from: dateToMonthYear(item.start_date),
+        to: item.end_date ? dateToMonthYear(item.end_date) : "Present",
     }));
 
     const experience: ExperienceEntry[] = (profile.work_experiences ?? []).map((item) => ({
@@ -187,17 +227,12 @@ export function mapProfileApiToSettings(profile: SeekerProfileApi): SeekerSettin
         jobRole: item.job_role,
         yearsOfExperience: String(item.year_of_experience),
         industry: item.industry,
-        from: dateToYear(item.start_date),
-        to: item.end_date ? dateToYear(item.end_date) : "Present",
+        from: dateToMonthYear(item.start_date),
+        to: item.end_date ? dateToMonthYear(item.end_date) : "Present",
         jobDescription: item.description ?? "",
     }));
 
     const notifySetting = profile.notify_setting;
-    const alertCategory = notifySetting?.category ?? "job";
-    const alerts = {
-        role: notifySetting?.role_name ?? "",
-        location: notifySetting?.location ?? "",
-    };
 
     return {
         profile: {
@@ -238,18 +273,13 @@ export function mapProfileApiToSettings(profile: SeekerProfileApi): SeekerSettin
                 .filter((id): id is number => id != null),
             socialContactIds,
         },
-        notify: mapNotifyApiToForm(notifySetting, alertCategory, alerts),
+        notify: mapNotifyApiToForm(notifySetting),
     };
 }
 
 export function mapNotifyApiToForm(
     setting: SeekerNotifySettingApi | null | undefined,
-    alertCategory: "job" | "volunteer" | null = "job",
-    alerts: { role: string; location: string } = { role: "", location: "" },
 ): SeekerNotifyFormState {
-    const jobAlerts = alertCategory === "job" ? alerts : { role: "", location: "" };
-    const volunteerAlerts = alertCategory === "volunteer" ? alerts : { role: "", location: "" };
-
     return {
         notifications: {
             employerShortlistedMe: setting?.notify_on_shortlist ?? false,
@@ -258,10 +288,34 @@ export function mapNotifyApiToForm(
             employerRejectedMe: setting?.notify_on_reject ?? false,
             notifyOnHire: setting?.notify_on_hire ?? false,
         },
-        jobAlerts,
-        volunteerAlerts,
-        alertCategory,
+        jobAlerts: { ...EMPTY_ALERT_SELECTION },
+        volunteerAlerts: { ...EMPTY_ALERT_SELECTION },
     };
+}
+
+export {
+    alertItemsToFormState,
+    formStateToAlertItems,
+} from "./alertItemMappers";
+
+export function applyAlertItemsToNotifyForm(
+    notify: SeekerNotifyFormState,
+    alertItems: AlertItemApi[],
+): SeekerNotifyFormState {
+    const alertFormState = alertItemsToFormState(alertItems);
+
+    return {
+        ...notify,
+        jobAlerts: alertFormState.job,
+        volunteerAlerts: alertFormState.volunteer,
+    };
+}
+
+export function mapNotifyFormToSyncAlertItems(notify: SeekerNotifyFormState): SyncAlertItemPayload[] {
+    return formStateToAlertItems({
+        job: notify.jobAlerts,
+        volunteer: notify.volunteerAlerts,
+    });
 }
 
 export function mapProfileFormToUpdatePayload(
@@ -296,21 +350,12 @@ export function mapProfileFormToUpdatePayload(
 
 export function mapNotifyFormToUpdatePayload(
     notify: SeekerNotifyFormState,
-    preferVolunteerAlerts = false,
 ): UpdateSeekerNotifyPayload {
-    const activeAlerts = preferVolunteerAlerts && notify.volunteerAlerts.role
-        ? notify.volunteerAlerts
-        : notify.jobAlerts;
-    const category = preferVolunteerAlerts && notify.volunteerAlerts.role ? "volunteer" : "job";
-
     return {
         notify_on_shortlist: notify.notifications.employerShortlistedMe,
         notify_on_reject: notify.notifications.employerRejectedMe,
         notify_on_hire: notify.notifications.notifyOnHire,
         notify_on_opportunities: notify.notifications.newOpportunity,
-        category,
-        role_name: activeAlerts.role || null,
-        location: activeAlerts.location || null,
     };
 }
 
@@ -324,8 +369,8 @@ export function mapEducationEntryToApi(entry: EducationEntry) {
         degree: degree?.trim() || "Degree",
         location: entry.location?.trim() || entry.country?.trim() || "N/A",
         country: entry.country?.trim() || "N/A",
-        start_date: yearToStartDate(entry.from ?? ""),
-        end_date: yearToEndDate(entry.to ?? ""),
+        start_date: monthYearToStartDate(entry.from ?? ""),
+        end_date: monthYearToEndDate(entry.to ?? ""),
     };
 }
 
@@ -336,8 +381,8 @@ export function mapExperienceEntryToApi(entry: ExperienceEntry) {
         job_role: entry.jobRole?.trim() || entry.jobTitle?.trim() || "Role",
         year_of_experience: parseYearsOfExperience(entry.yearsOfExperience ?? entry.from),
         industry: entry.industry?.trim() || "General",
-        start_date: yearToStartDate(entry.from ?? ""),
-        end_date: yearToEndDate(entry.to ?? ""),
+        start_date: monthYearToStartDate(entry.from ?? ""),
+        end_date: monthYearToEndDate(entry.to ?? ""),
         description: entry.jobDescription?.trim() || null,
     };
 }
