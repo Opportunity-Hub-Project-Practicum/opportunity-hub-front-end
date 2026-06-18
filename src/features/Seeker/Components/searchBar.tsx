@@ -5,18 +5,52 @@ import { opportunityTypeContext, setOpportunityTypeContext } from "../../../cont
 import { useNavigate } from "react-router-dom";
 import type { PostListCardItem } from "../services/postApiService";
 import type { SearchFilters } from "../lib/searchPosts";
-import { runPostSearch } from "../lib/searchPosts";
+import { hasActiveSearch, runPostSearch } from "../lib/searchPosts";
 import { getLookupOptions, useLookupValues } from "../../../hooks/useLookupValues";
 import { LOOKUP_TYPES } from "../../../types/lookupValue";
 
 const SALARY_FILTER_OPTIONS = ["All", "$100+", "$300+", "$500+", "$800+", "$1000+", "$1500+", "$2000+"];
 
+export type SearchBarInitialState = {
+    searchTerm?: string;
+    location?: string;
+    category?: string;
+    filters?: SearchFilters;
+};
+
 interface SearchBarProps {
     onResultsChange?: (results: PostListCardItem[]) => void;
     onLoadingChange?: (loading: boolean) => void;
+    initialState?: SearchBarInitialState;
 }
 
-export default function SearchBar({ onResultsChange, onLoadingChange }: SearchBarProps) {
+function restoreFilterFields(filters: SearchFilters): {
+    experience: string;
+    salary: string;
+    jobLevel: string;
+    jobTypes: string[];
+    education: string[];
+    duration: string;
+    schedule: string[];
+    hoursPerWeek: string;
+    benefits: string[];
+    languageRequirement: string;
+} {
+    return {
+        experience: filters.experience ?? "",
+        salary: filters.salary ?? "",
+        jobLevel: filters.jobLevel ?? "",
+        jobTypes: filters.jobTypes ?? [],
+        education: filters.education ?? [],
+        duration: filters.duration ?? "",
+        schedule: filters.schedule ?? [],
+        hoursPerWeek: filters.hoursPerWeek ?? "",
+        benefits: filters.benefits ?? [],
+        languageRequirement: filters.languageRequirement ?? "",
+    };
+}
+
+export default function SearchBar({ onResultsChange, onLoadingChange, initialState }: SearchBarProps) {
     const navigate = useNavigate();
     const opportunityType = useContext(opportunityTypeContext);
     const setOpportunityType = useContext(setOpportunityTypeContext);
@@ -32,27 +66,28 @@ export default function SearchBar({ onResultsChange, onLoadingChange }: SearchBa
     const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
     const categoryOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobRole);
     const languageOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.languageRequirement);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [location, setLocation] = useState("");
-    const [category, setCategory] = useState("");
+    const restoredFilters = restoreFilterFields(initialState?.filters ?? {});
+    const [searchTerm, setSearchTerm] = useState(initialState?.searchTerm ?? "");
+    const [location, setLocation] = useState(initialState?.location ?? "");
+    const [category, setCategory] = useState(initialState?.category ?? "");
     const [advancedFilter, setAdvancedFilter] = useState(false);
 
     // Job Filter states
-    const [experience, setExperience] = useState("");
-    const [salary, setSalary] = useState("");
-    const [jobLevel, setJobLevel] = useState("");
-    const [jobTypes, setJobTypes] = useState<string[]>([]);
-    const [education, setEducation] = useState<string[]>([]);
+    const [experience, setExperience] = useState(restoredFilters.experience);
+    const [salary, setSalary] = useState(restoredFilters.salary);
+    const [jobLevel, setJobLevel] = useState(restoredFilters.jobLevel);
+    const [jobTypes, setJobTypes] = useState<string[]>(restoredFilters.jobTypes);
+    const [education, setEducation] = useState<string[]>(restoredFilters.education);
 
     // Volunteer Filter states
-    const [duration, setDuration] = useState("");
-    const [schedule, setSchedule] = useState<string[]>([]);
-    const [hoursPerWeek, setHoursPerWeek] = useState("");
-    const [benefits, setBenefits] = useState<string[]>([]);
-    const [languageRequirement, setLanguageRequirement] = useState("");
+    const [duration, setDuration] = useState(restoredFilters.duration);
+    const [schedule, setSchedule] = useState<string[]>(restoredFilters.schedule);
+    const [hoursPerWeek, setHoursPerWeek] = useState(restoredFilters.hoursPerWeek);
+    const [benefits, setBenefits] = useState<string[]>(restoredFilters.benefits);
+    const [languageRequirement, setLanguageRequirement] = useState(restoredFilters.languageRequirement);
 
     // Track applied filters - only updated on Apply button click
-    const [appliedFilters, setAppliedFilters] = useState<SearchFilters>({});
+    const [appliedFilters, setAppliedFilters] = useState<SearchFilters>(initialState?.filters ?? {});
 
     // Toggle helpers
     const toggleArray = (
@@ -67,7 +102,7 @@ export default function SearchBar({ onResultsChange, onLoadingChange }: SearchBa
         );
     };
 
-    const { results, loading } = useSearch({
+    const { results, loading, debouncedPayload, debouncedSerialized, resultsPayload, invalidatePendingSearch } = useSearch({
         query: searchTerm,
         location,
         category,
@@ -76,18 +111,29 @@ export default function SearchBar({ onResultsChange, onLoadingChange }: SearchBa
     });
 
     useEffect(() => {
-        onResultsChange?.(results);
-    }, [results, onResultsChange]);
+        if (!onResultsChange || !resultsPayload || !hasActiveSearch(debouncedPayload)) {
+            return;
+        }
+
+        if (resultsPayload !== debouncedSerialized) {
+            return;
+        }
+
+        onResultsChange(results);
+    }, [results, resultsPayload, debouncedSerialized, debouncedPayload, onResultsChange]);
 
     useEffect(() => {
         onLoadingChange?.(loading);
     }, [loading, onLoadingChange]);
 
-    const navigateToResults = (nextResults: PostListCardItem[]) => {
+    const navigateToResults = (
+        nextResults: PostListCardItem[],
+        nextFilters: SearchFilters,
+    ) => {
         navigate("/postList", {
             state: {
                 results: nextResults,
-                filters: appliedFilters,
+                filters: nextFilters,
                 searchTerm,
                 location,
                 category,
@@ -102,6 +148,7 @@ export default function SearchBar({ onResultsChange, onLoadingChange }: SearchBa
             : { duration, schedule, hoursPerWeek, benefits, languageRequirement };
 
         setAppliedFilters(nextFilters);
+        invalidatePendingSearch();
 
         void (async () => {
             const nextResults = await runPostSearch({
@@ -111,21 +158,32 @@ export default function SearchBar({ onResultsChange, onLoadingChange }: SearchBa
                 opportunityType,
                 filters: nextFilters,
             });
-            navigateToResults(nextResults);
+
+            onResultsChange?.(nextResults);
+            navigateToResults(nextResults, nextFilters);
         })();
     };
 
     const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
+            const nextFilters: SearchFilters = opportunityType === "job"
+                ? { experience, salary, jobLevel, jobTypes, education }
+                : { duration, schedule, hoursPerWeek, benefits, languageRequirement };
+
+            setAppliedFilters(nextFilters);
+            invalidatePendingSearch();
+
             void (async () => {
                 const nextResults = await runPostSearch({
                     query: searchTerm,
                     location,
                     category,
                     opportunityType,
-                    filters: appliedFilters,
+                    filters: nextFilters,
                 });
-                navigateToResults(nextResults);
+
+                onResultsChange?.(nextResults);
+                navigateToResults(nextResults, nextFilters);
             })();
         }
     };

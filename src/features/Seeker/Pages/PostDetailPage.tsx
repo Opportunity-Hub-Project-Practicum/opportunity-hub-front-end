@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { getPostLookupName, getPostLookupValue } from "../lib/postLookup";
+import { fetchSearchPosts } from "../lib/searchPosts";
 import {
     ArrowLeft,
     ArrowRight,
@@ -36,7 +37,6 @@ import {
 import { fetchSeekerProfile } from "../services/seekerProfileService";
 import {
     fetchPostDetailWithEmployer,
-    fetchPublicPosts,
     formatClosedDate,
     formatPostSalary,
     formatWorkPlaceType,
@@ -196,12 +196,15 @@ export default function PostDetail() {
                 setPost(postData);
 
                 const employerId = postData.employer?.user_id;
-                const [employerProfile, contacts, allPosts, companyPosts] = await Promise.all([
+                const jobRoleSlug = getPostLookupValue(postData.job_role);
+                const [employerProfile, contacts, relatedSearch, companyPosts] = await Promise.all([
                     employerId ? fetchPublicEmployer(employerId) : Promise.resolve(null),
                     employerId ? fetchPublicEmployerContacts(employerId) : Promise.resolve([]),
-                    fetchPublicPosts({ type: postData.type }),
+                    jobRoleSlug
+                        ? fetchSearchPosts({ type: postData.type, job_role: jobRoleSlug })
+                        : Promise.resolve([]),
                     employerId
-                        ? fetchPublicPosts({ type: postData.type, employerId })
+                        ? fetchSearchPosts({ type: postData.type, employer_id: employerId })
                         : Promise.resolve([]),
                 ]);
 
@@ -221,7 +224,7 @@ export default function PostDetail() {
                     setOrganization(undefined);
                 }
 
-                setRelatedPosts(buildRelatedPosts(postData, allPosts));
+                setRelatedPosts(buildRelatedPosts(postData, relatedSearch));
                 setSameCompanyPosts(buildSameCompanyPosts(postData, companyPosts));
             } catch (err) {
                 if (!isMounted) {

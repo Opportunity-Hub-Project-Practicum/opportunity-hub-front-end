@@ -76,26 +76,7 @@ export async function fetchPostDetail(postId: number): Promise<PostDetailApi | n
 }
 
 export async function fetchPostDetailWithEmployer(postId: number): Promise<PostDetailApi | null> {
-    const post = await fetchPostDetail(postId);
-    if (!post) {
-        return null;
-    }
-
-    if (post.employer?.user_id) {
-        return post;
-    }
-
-    const posts = await fetchPublicPosts({ type: post.type });
-    const listedPost = posts.find((item) => item.post_id === postId);
-
-    if (!listedPost?.employer) {
-        return post;
-    }
-
-    return {
-        ...post,
-        employer: listedPost.employer,
-    };
+    return fetchPostDetail(postId);
 }
 
 export function toPostListCardItem(post: PublicPostApi): PostListCardItem {

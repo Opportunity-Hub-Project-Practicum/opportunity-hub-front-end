@@ -1,13 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Briefcase, Users, BarChart2, Clipboard, FileText, Star, Zap, Megaphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../routes/path";
-import { formatApiError } from "../../../services/apiClient";
-import {
-    fetchPublicPosts,
-    formatWorkPlaceType,
-} from "../../Seeker/services/postApiService";
-import { getPostLookupName } from "../../Seeker/lib/postLookup";
 
 type Opportunity = {
     id: number;
@@ -65,57 +59,11 @@ function FeatureCard({
 }
 
 export default function HomeEmployerPage() {
+    const [featuredOpportunities] = useState<Opportunity[]>([]);
+    const loadingOpportunities = false;
+    const opportunitiesError: string | null = null;
+
     const navigate = useNavigate();
-    const [featuredOpportunities, setFeaturedOpportunities] = useState<Opportunity[]>([]);
-    const [loadingOpportunities, setLoadingOpportunities] = useState(true);
-    const [opportunitiesError, setOpportunitiesError] = useState<string | null>(null);
-
-    useEffect(() => {
-        let isMounted = true;
-
-        const loadFeaturedOpportunities = async () => {
-            setLoadingOpportunities(true);
-            setOpportunitiesError(null);
-
-            try {
-                const posts = await fetchPublicPosts();
-                if (!isMounted) {
-                    return;
-                }
-
-                const mapped = posts.slice(0, 6).map((post) => ({
-                    id: post.post_id,
-                    title: post.post_title,
-                    location: getPostLookupName(post.location) || formatWorkPlaceType(post.work_place_type),
-                    type: post.type === "job" ? "Job" : "Volunteer",
-                    category: getPostLookupName(post.job_role) || post.type,
-                    postedAt: post.closed_date
-                        ? new Date(post.closed_date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                        })
-                        : "Open",
-                }));
-
-                setFeaturedOpportunities(mapped);
-            } catch (error) {
-                if (!isMounted) {
-                    return;
-                }
-                setOpportunitiesError(formatApiError(error));
-            } finally {
-                if (isMounted) {
-                    setLoadingOpportunities(false);
-                }
-            }
-        };
-
-        void loadFeaturedOpportunities();
-
-        return () => {
-            isMounted = false;
-        };
-    }, []);
 
     return (
         <>

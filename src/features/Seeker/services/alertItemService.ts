@@ -8,10 +8,10 @@ import type {
     AlertItemCategory,
 } from "../types/alertItem";
 import { getPostLookupName } from "../lib/postLookup";
+import { fetchSearchPosts } from "../lib/searchPosts";
 import type { PublicPostApi } from "../types/post";
 import { fetchSeekerProfile } from "./seekerProfileService";
 import {
-    fetchPublicPosts,
     formatClosedDate,
     formatPostSalary,
     formatWorkPlaceType,
@@ -114,10 +114,9 @@ export async function fetchVolunteerAlertPostCards(): Promise<AlertPostCardItem[
 }
 
 async function fetchAlertPostCards(category: AlertItemCategory): Promise<AlertPostCardItem[]> {
-    const [alertItems, profileResponse, posts] = await Promise.all([
+    const [alertItems, profileResponse] = await Promise.all([
         fetchAlertItems(),
         fetchSeekerProfile(),
-        fetchPublicPosts({ type: category }),
     ]);
 
     const criteria = category === "job"
@@ -128,14 +127,23 @@ async function fetchAlertPostCards(category: AlertItemCategory): Promise<AlertPo
         return [];
     }
 
-    const matchedPosts = posts.filter((post) =>
-        criteria.some((criterion) => postMatchesCriterion(post, criterion)),
+    const searchResults = await Promise.all(
+        criteria.map((criterion) => fetchSearchPosts({
+            type: category,
+            search: [criterion.roleName, criterion.location].filter(Boolean).join(" ") || undefined,
+        })),
     );
 
     const uniquePosts = new Map<number, PublicPostApi>();
-    for (const post of matchedPosts) {
-        uniquePosts.set(post.post_id, post);
+    for (const posts of searchResults) {
+        for (const post of posts) {
+            uniquePosts.set(post.post_id, post);
+        }
     }
 
-    return Array.from(uniquePosts.values()).map(toAlertPostCardItem);
+    const matchedPosts = Array.from(uniquePosts.values()).filter((post) =>
+        criteria.some((criterion) => postMatchesCriterion(post, criterion)),
+    );
+
+    return matchedPosts.map(toAlertPostCardItem);
 }
