@@ -77,6 +77,7 @@ export function mapJobPostToApi(payload: JobPostSubmitPayload): CreateEmployerPo
         job_experience: mapNullableCode(payload.experience),
         job_requirement: normalizeRichTextForStorage(payload.jobRequirements) || null,
         job_level: mapNullableCode(payload.jobLevel),
+        location_id: payload.locationId,
         closed_date: parseClosedDate(payload.expirationDate),
         language: "english",
     };

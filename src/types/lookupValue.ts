@@ -1,4 +1,5 @@
 export type LookupValueItem = {
+    id: number;
     value: string;
     name: string;
 };

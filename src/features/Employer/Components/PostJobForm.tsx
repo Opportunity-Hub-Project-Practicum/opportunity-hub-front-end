@@ -37,6 +37,7 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
     const [error, setError] = useState<string | null>(null);
 
     const jobTypeOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobType);
+    const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
     const workPlaceOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.workPlaceType);
     const educationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.education);
     const experienceOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.experience);
@@ -59,7 +60,7 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                 workPlaceType: getString(formData.get("workPlaceType")) as JobPostSubmitPayload["workPlaceType"],
                 expirationDate: getString(formData.get("expirationDate")),
                 jobLevel: getString(formData.get("jobLevel")),
-                location: getString(formData.get("location")),
+                locationId: parseNumberOrNull(formData.get("locationId")),
                 description,
                 responsibilities,
                 jobRequirements,
@@ -116,12 +117,21 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-2 text-[#18191C]">Location</label>
-                        <input
-                            type="text"
-                            name="location"
-                            placeholder="City, Country"
-                            className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-blue-500 text-sm"
-                        />
+                        <div className="relative">
+                            <select
+                                name="locationId"
+                                disabled={loading}
+                                className={selectClassName}
+                            >
+                                <option value="">Select...</option>
+                                {locationOptions.map((option) => (
+                                    <option key={option.id} value={option.id}>
+                                        {option.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
+                        </div>
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-2 text-[#18191C]">Work Place Type</label>

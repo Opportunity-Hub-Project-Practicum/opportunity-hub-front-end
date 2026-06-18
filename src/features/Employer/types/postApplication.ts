@@ -46,7 +46,7 @@ export interface JobPostSubmitPayload {
     workPlaceType: WorkPlaceType | "";
     expirationDate: string;
     jobLevel: string;
-    location: string;
+    locationId: number | null;
     description: string;
     responsibilities: string;
     jobRequirements: string;
