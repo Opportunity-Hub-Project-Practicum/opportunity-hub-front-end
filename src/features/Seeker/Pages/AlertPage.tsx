@@ -93,6 +93,7 @@ export default function Alert() {
                             salary={item.salary}
                             remainingDays={item.remainingDays}
                             image={item.image}
+                            isUrgent={item.isUrgent}
                         />
                     ))}
                 </div>

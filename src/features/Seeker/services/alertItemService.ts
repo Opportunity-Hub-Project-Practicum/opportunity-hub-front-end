@@ -77,6 +77,7 @@ function toAlertPostCardItem(post: PublicPostApi): AlertPostCardItem {
         salary: formatPostSalary(post),
         remainingDays: formatClosedDate(post.closed_date),
         image: post.employer?.logo_img ?? "",
+        isUrgent: post.is_urgent === true,
     };
 }
 

@@ -67,6 +67,7 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                 description,
                 responsibilities,
                 jobRequirements,
+                isUrgent: formData.get("isUrgent") === "on",
             });
 
             form.reset();
@@ -263,6 +264,16 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                                 placeholder="DD/MM/YYYY"
                                 className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-blue-500 text-sm"
                             />
+                        </div>
+                        <div className="flex items-end">
+                            <label className="flex items-center gap-2 cursor-pointer text-sm text-[#18191C]">
+                                <input
+                                    type="checkbox"
+                                    name="isUrgent"
+                                    className="h-4 w-4 rounded border-[#E4E5E8] text-[#0A65CC] focus:ring-blue-500"
+                                />
+                                Urgent hiring needed
+                            </label>
                         </div>
                     </div>
                 </div>

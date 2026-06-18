@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { BANNED_POST_STATUS_LABEL } from "../../lib/seekerPostBan";
 
+import UrgentBadge from "../UrgentBadge";
+
 interface CardListProps {
     id: number;
     organizationName: string;
@@ -13,6 +15,7 @@ interface CardListProps {
     remainingDays: string;
     image?: string;
     isBanned?: boolean;
+    isUrgent?: boolean;
     isBookmarked?: boolean;
     onBookmark?: () => void;
 }
@@ -28,6 +31,7 @@ export default function CardList({
     remainingDays,
     image,
     isBanned = false,
+    isUrgent = false,
     isBookmarked = false,
     onBookmark,
 }: CardListProps) {
@@ -47,8 +51,9 @@ export default function CardList({
             <div className="flex gap-2 lg:gap-5">
                 <img src={image || ""} alt={title} className="rounded-lg border w-15 h-15" />
                 <div className="flex flex-col justify-around w-full">
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-wrap items-center">
                         <p className="font-semibold">{organizationName} - {title}</p>
+                        {isUrgent && <UrgentBadge />}
                         <span className="rounded-2xl bg-subPrimary px-2 text-primaryDark w-fit text-sm">{engagementType}</span>
                     </div>
                     <div className="flex gap-2 flex-wrap">

@@ -17,6 +17,7 @@ import {
 
 const POPULAR_CATEGORY_LIMIT = 6;
 const COMPANY_LIMIT = 8;
+const LATEST_POST_LIMIT = 6;
 const FEATURED_POST_LIMIT = 6;
 
 function buildTopCompanies(employers: PublicEmployerApi[]): HomeCompanyCard[] {
@@ -27,7 +28,13 @@ function buildTopCompanies(employers: PublicEmployerApi[]): HomeCompanyCard[] {
             image: employer.logo_img ?? "",
             openPositions: employer.open_posts_count ?? 0,
         }))
-        .sort((a, b) => b.openPositions - a.openPositions)
+        .sort((a, b) => {
+            if (b.openPositions !== a.openPositions) {
+                return b.openPositions - a.openPositions;
+            }
+
+            return a.name.localeCompare(b.name);
+        })
         .slice(0, COMPANY_LIMIT);
 }
 
@@ -58,14 +65,33 @@ export function toHomePostCard(post: PublicPostApi): HomePostCard {
         salary: card.salary,
         remainingDays: card.remainingDays,
         image: card.image,
+        isUrgent: card.isUrgent,
     };
 }
 
 export async function fetchHomeSeekerData(): Promise<HomeSeekerData> {
-    const [popularCategories, stats, employers, featuredJobPosts, featuredVolunteerPosts] = await Promise.all([
+    const [
+        popularCategories,
+        stats,
+        employers,
+        latestJobPosts,
+        latestVolunteerPosts,
+        featuredJobPosts,
+        featuredVolunteerPosts,
+    ] = await Promise.all([
         fetchPopularCategories(POPULAR_CATEGORY_LIMIT),
         fetchPublicStats(),
         fetchPublicEmployers(),
+        fetchPublicPosts({
+            type: "job",
+            sort: "latest",
+            limit: LATEST_POST_LIMIT,
+        }),
+        fetchPublicPosts({
+            type: "volunteer",
+            sort: "latest",
+            limit: LATEST_POST_LIMIT,
+        }),
         fetchPublicPosts({
             type: "job",
             sort: "most_applications",
@@ -78,6 +104,8 @@ export async function fetchHomeSeekerData(): Promise<HomeSeekerData> {
         }),
     ]);
 
+    const latestJobs = latestJobPosts.map(toHomePostCard);
+    const latestVolunteers = latestVolunteerPosts.map(toHomePostCard);
     const featuredJobs = featuredJobPosts.map(toHomePostCard);
     const featuredVolunteers = featuredVolunteerPosts.map(toHomePostCard);
 
@@ -93,9 +121,9 @@ export async function fetchHomeSeekerData(): Promise<HomeSeekerData> {
             stats.total_employers,
             stats.total_seekers,
         ),
-        popularJobs: [],
-        popularVolunteers: [],
         topCompanies: buildTopCompanies(employers),
+        latestJobs,
+        latestVolunteers,
         featuredJobs,
         featuredVolunteers,
     };

@@ -217,6 +217,7 @@ export default function OrganizationDetail() {
                             salary={formatPostSalary(post)}
                             remainingDays={formatClosedDate(post.closed_date)}
                             image={employer.logo_img ?? ""}
+                            isUrgent={post.is_urgent === true}
                         />
                     ))}
                 </div>

@@ -67,6 +67,7 @@ function toFavoriteCardItem(
         remainingDays: formatSavedDate(favorite.created_at),
         image: post?.employer?.logo_img ?? "",
         postIsBanned: Boolean(post?.is_ban ?? favorite.post_is_ban),
+        isUrgent: post?.is_urgent === true,
     };
 }
 

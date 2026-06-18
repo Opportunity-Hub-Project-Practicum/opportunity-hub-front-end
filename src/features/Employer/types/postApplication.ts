@@ -23,6 +23,7 @@ export type CreateEmployerPostPayload = {
     job_requirement?: string | null;
     job_level?: string | null;
     job_role_id?: number | null;
+    is_urgent?: boolean;
 };
 
 export type CreatedEmployerPost = {
@@ -52,6 +53,7 @@ export interface JobPostSubmitPayload {
     description: string;
     responsibilities: string;
     jobRequirements: string;
+    isUrgent: boolean;
 }
 
 export interface VolunteerPostSubmitPayload {
@@ -66,4 +68,5 @@ export interface VolunteerPostSubmitPayload {
     description: string;
     responsibilities: string;
     volunteerRequirements: string;
+    isUrgent: boolean;
 }

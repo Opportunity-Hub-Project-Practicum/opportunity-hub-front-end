@@ -14,6 +14,7 @@ import {
     MapPin,
     Star,
 } from "lucide-react";
+import UrgentBadge from "../Components/UrgentBadge";
 import BackButton from "../Components/BackButton";
 import { useEffect, useMemo, useState } from "react";
 import CardCompany from "../Components/card/CardCompany";
@@ -141,6 +142,7 @@ function PostCardsSection({
                         salary={formatPostSalary(relatedPost)}
                         remainingDays={formatClosedDate(relatedPost.closed_date)}
                         image={relatedPost.employer?.logo_img ?? ""}
+                        isUrgent={relatedPost.is_urgent === true}
                     />
                 ))}
             </div>
@@ -472,8 +474,9 @@ export default function PostDetail() {
                         )}
 
                         <div className="flex flex-col">
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-wrap items-center">
                                 <h1 className="text-2xl font-bold">{post.post_title}</h1>
+                                {post.is_urgent && <UrgentBadge />}
                                 <p className="flex px-1 text-small bg-subPrimary rounded-lg justify-center items-center">
                                     {engagementLabel}
                                 </p>

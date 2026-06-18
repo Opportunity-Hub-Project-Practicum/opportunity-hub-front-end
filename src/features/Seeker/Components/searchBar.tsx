@@ -35,6 +35,7 @@ function restoreFilterFields(filters: SearchFilters): {
     hoursPerWeek: string;
     benefits: string[];
     languageRequirement: string;
+    urgentOnly: boolean;
 } {
     return {
         experience: filters.experience ?? "",
@@ -47,6 +48,7 @@ function restoreFilterFields(filters: SearchFilters): {
         hoursPerWeek: filters.hoursPerWeek ?? "",
         benefits: filters.benefits ?? [],
         languageRequirement: filters.languageRequirement ?? "",
+        urgentOnly: filters.urgentOnly ?? false,
     };
 }
 
@@ -85,6 +87,7 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
     const [hoursPerWeek, setHoursPerWeek] = useState(restoredFilters.hoursPerWeek);
     const [benefits, setBenefits] = useState<string[]>(restoredFilters.benefits);
     const [languageRequirement, setLanguageRequirement] = useState(restoredFilters.languageRequirement);
+    const [urgentOnly, setUrgentOnly] = useState(restoredFilters.urgentOnly);
 
     // Track applied filters - only updated on Apply button click
     const [appliedFilters, setAppliedFilters] = useState<SearchFilters>(initialState?.filters ?? {});
@@ -142,11 +145,32 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
         });
     };
 
-    const handleApplyFilters = () => {
-        const nextFilters: SearchFilters = opportunityType === "job"
-            ? { experience, salary, jobLevel, jobTypes, education }
-            : { duration, schedule, hoursPerWeek, benefits, languageRequirement };
+    const buildNextFilters = (): SearchFilters => {
+        const sharedFilters = { urgentOnly };
 
+        if (opportunityType === "job") {
+            return {
+                experience,
+                salary,
+                jobLevel,
+                jobTypes,
+                education,
+                ...sharedFilters,
+            };
+        }
+
+        return {
+            duration,
+            schedule,
+            hoursPerWeek,
+            benefits,
+            languageRequirement,
+            ...sharedFilters,
+        };
+    };
+
+    const handleApplyFilters = () => {
+        const nextFilters = buildNextFilters();
         setAppliedFilters(nextFilters);
         invalidatePendingSearch();
 
@@ -166,10 +190,7 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
 
     const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
-            const nextFilters: SearchFilters = opportunityType === "job"
-                ? { experience, salary, jobLevel, jobTypes, education }
-                : { duration, schedule, hoursPerWeek, benefits, languageRequirement };
-
+            const nextFilters = buildNextFilters();
             setAppliedFilters(nextFilters);
             invalidatePendingSearch();
 
@@ -473,6 +494,17 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
                                 </div>
                             </div>
                         )}
+                        <div className="mt-6 border-t border-slate-100 pt-4">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={urgentOnly}
+                                    onChange={(event) => setUrgentOnly(event.target.checked)}
+                                    className="h-4 w-4 rounded text-blue-600 cursor-pointer"
+                                />
+                                <span className="text-sm font-semibold text-slate-900">Urgent hiring only</span>
+                            </label>
+                        </div>
                         {/*for apply button*/}
 
                         <button onClick={handleApplyFilters} className="btn-primary-blue">

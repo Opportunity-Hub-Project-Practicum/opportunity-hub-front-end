@@ -81,6 +81,7 @@ export function mapJobPostToApi(payload: JobPostSubmitPayload): CreateEmployerPo
         job_role_id: payload.jobRoleId,
         closed_date: parseClosedDate(payload.expirationDate),
         language: "english",
+        is_urgent: payload.isUrgent,
     };
 }
 
@@ -98,5 +99,6 @@ export function mapVolunteerPostToApi(payload: VolunteerPostSubmitPayload): Crea
         language: mapNullableCode(payload.language),
         job_role_id: payload.jobRoleId,
         job_requirement: normalizeRichTextForStorage(payload.volunteerRequirements) || null,
+        is_urgent: payload.isUrgent,
     };
 }

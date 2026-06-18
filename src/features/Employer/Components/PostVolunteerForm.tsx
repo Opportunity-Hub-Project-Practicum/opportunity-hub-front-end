@@ -63,6 +63,7 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
                 description,
                 responsibilities,
                 volunteerRequirements,
+                isUrgent: formData.get("isUrgent") === "on",
             });
 
             form.reset();
@@ -220,6 +221,17 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
                         <label className="block text-sm font-medium mb-2 text-[#18191C]">Volunteer Requirements</label>
                         <TextAreaBox value={volunteerRequirements} onChange={setVolunteerRequirements} />
                     </div>
+                </div>
+
+                <div className="pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm text-[#18191C]">
+                        <input
+                            type="checkbox"
+                            name="isUrgent"
+                            className="h-4 w-4 rounded border-[#E4E5E8] text-[#0A65CC] focus:ring-blue-500"
+                        />
+                        Urgent hiring needed
+                    </label>
                 </div>
 
                 <div className="pt-4">

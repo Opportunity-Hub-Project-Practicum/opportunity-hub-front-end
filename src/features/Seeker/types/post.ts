@@ -12,6 +12,7 @@ export type PostDetailApi = {
     uuid: string;
     type: "job" | "volunteer";
     post_status: "open" | "closed";
+    is_urgent?: boolean;
     is_ban?: boolean;
     post_title: string;
     post_description: string | null;
@@ -39,6 +40,7 @@ export type PublicPostApi = {
     post_id: number;
     uuid: string;
     type: "job" | "volunteer";
+    is_urgent?: boolean;
     post_title: string;
     work_place_type: string | null;
     location: string | PostLookupRef | null;

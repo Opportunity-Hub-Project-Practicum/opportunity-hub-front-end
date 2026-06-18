@@ -15,9 +15,9 @@ import type { HomePostCard, HomeSeekerData } from "../types/homeSeeker";
 const EMPTY_HOME_DATA: HomeSeekerData = {
     popularCategories: [],
     heroBanners: [],
-    popularJobs: [],
-    popularVolunteers: [],
     topCompanies: [],
+    latestJobs: [],
+    latestVolunteers: [],
     featuredJobs: [],
     featuredVolunteers: [],
 };
@@ -151,7 +151,7 @@ export default function HomeSeeker() {
                         </span>
 
                         <div className="flex gap-3">
-                            <span className="flex">Popular job:</span>
+                            <span className="flex">Popular categories:</span>
                             <ul className="flex gap-2">
                                 {homeData.popularCategories.length === 0 && (
                                     <li className="text-gray-500 text-sm">No categories yet</li>
@@ -161,9 +161,8 @@ export default function HomeSeeker() {
                                         <button
                                             type="button"
                                             onClick={() => handlePopularCategoryClick(category.value)}
-                                            className={`rounded px-2 transition-colors hover:bg-subPrimary ${
-                                                index === 0 ? "bg-subPrimary" : ""
-                                            }`}
+                                            className={`rounded px-2 transition-colors hover:bg-subPrimary ${index === 0 ? "bg-subPrimary" : ""
+                                                }`}
                                         >
                                             {category.label}
                                         </button>
@@ -222,6 +221,7 @@ export default function HomeSeeker() {
                                             salary={item.salary}
                                             remainingDays={item.remainingDays}
                                             image={item.image}
+                                            isUrgent={item.isUrgent}
                                         />
                                     </div>
                                 ))}
@@ -249,6 +249,7 @@ export default function HomeSeeker() {
                                             salary={item.salary}
                                             remainingDays={item.remainingDays}
                                             image={item.image}
+                                            isUrgent={item.isUrgent}
                                         />
                                     </div>
                                 ))}
@@ -258,39 +259,72 @@ export default function HomeSeeker() {
                 </>
             )}
 
-            <section className="flex flex-col page-container">
-                <h2 className="text-big my-5">Most Popular Job Vacanies</h2>
+            <section className="page-container">
+                <div className="flex justify-between">
+                    <span className="text-big">Latest Job</span>
+                    <Link
+                        to={ROUTES.HOME.POST_LIST}
+                        state={{ opportunityType: "job" }}
+                        className="text-primary underline"
+                    >
+                        View more
+                    </Link>
+                </div>
 
-                <ul className="custom-list-layout">
-                    {homeData.popularJobs.length === 0 && (
-                        <li className="text-gray-500 text-sm">No job roles found.</li>
+                <div className="grid grid-cols-2 lg:grid-cols-3 justify-between gap-5 lg:gap-10 my-5">
+                    {homeData.latestJobs.length === 0 && (
+                        <p className="col-span-full text-sm text-gray-500">No latest jobs yet.</p>
                     )}
-                    {homeData.popularJobs.map((item) => (
-                        <li
-                            key={item.id}
-                            className="flex flex-col rounded-lg border border-slate-100 bg-white p-2.5 shadow-sm hover:shadow-md hover:border-subPrimary transition-shadow"
-                        >
-                            <span>{item.label}</span>
-                            <small className="text-primary">{item.count} Open positions</small>
-                        </li>
+                    {homeData.latestJobs.map((item) => (
+                        <div key={item.postId}>
+                            <CardGrid
+                                id={item.postId}
+                                organizationName={item.organizationName}
+                                title={item.title}
+                                engagementType={item.engagementType}
+                                location={item.location}
+                                salary={item.salary}
+                                remainingDays={item.remainingDays}
+                                image={item.image}
+                                isUrgent={item.isUrgent}
+                            />
+                        </div>
                     ))}
-                </ul>
+                </div>
+            </section>
 
-                <h2 className="text-big my-5">Most Popular Volunteer</h2>
-                <ul className="custom-list-layout">
-                    {homeData.popularVolunteers.length === 0 && (
-                        <li className="text-gray-500 text-sm">No volunteer roles found.</li>
+            <section className="page-container">
+                <div className="flex justify-between">
+                    <span className="text-big">Latest Volunteer</span>
+                    <Link
+                        to={ROUTES.HOME.POST_LIST}
+                        state={{ opportunityType: "volunteer" }}
+                        className="text-primary underline"
+                    >
+                        View more
+                    </Link>
+                </div>
+
+                <div className="grid grid-cols-2 lg:grid-cols-3 justify-between gap-5 lg:gap-10 my-5">
+                    {homeData.latestVolunteers.length === 0 && (
+                        <p className="col-span-full text-sm text-gray-500">No latest volunteers yet.</p>
                     )}
-                    {homeData.popularVolunteers.map((item) => (
-                        <li
-                            key={item.id}
-                            className="flex flex-col rounded-lg border border-slate-100 bg-white p-2.5 shadow-sm hover:shadow-md hover:border-subPrimary transition-shadow"
-                        >
-                            <span>{item.label}</span>
-                            <small className="text-primary">{item.count} Open positions</small>
-                        </li>
+                    {homeData.latestVolunteers.map((item) => (
+                        <div key={item.postId}>
+                            <CardGrid
+                                id={item.postId}
+                                organizationName={item.organizationName}
+                                title={item.title}
+                                engagementType={item.engagementType}
+                                location={item.location}
+                                salary={item.salary}
+                                remainingDays={item.remainingDays}
+                                image={item.image}
+                                isUrgent={item.isUrgent}
+                            />
+                        </div>
                     ))}
-                </ul>
+                </div>
             </section>
 
             <section>
@@ -361,6 +395,7 @@ export default function HomeSeeker() {
                                 salary={item.salary}
                                 remainingDays={item.remainingDays}
                                 image={item.image}
+                                isUrgent={item.isUrgent}
                             />
                         </div>
                     ))}
@@ -390,6 +425,7 @@ export default function HomeSeeker() {
                                 salary={item.salary}
                                 remainingDays={item.remainingDays}
                                 image={item.image}
+                                isUrgent={item.isUrgent}
                             />
                         </div>
                     ))}

@@ -12,7 +12,8 @@ export type FetchPublicPostsParams = {
     employerId?: number;
     search?: string;
     workPlaceType?: "remote" | "onsite" | "hybrid";
-    sort?: "latest" | "most_applications";
+    sort?: "latest" | "most_applications" | "urgent_first";
+    isUrgent?: boolean;
     limit?: number;
 };
 
@@ -25,6 +26,7 @@ export type PostListCardItem = {
     salary: string;
     remainingDays: string;
     image: string;
+    isUrgent: boolean;
 };
 
 export async function fetchPublicPosts(params?: FetchPublicPostsParams): Promise<PublicPostApi[]> {
@@ -48,6 +50,10 @@ export async function fetchPublicPosts(params?: FetchPublicPostsParams): Promise
 
     if (params?.sort) {
         searchParams.set("sort", params.sort);
+    }
+
+    if (params?.isUrgent === true) {
+        searchParams.set("is_urgent", "1");
     }
 
     if (params?.limit != null) {
@@ -114,6 +120,7 @@ export function toPostListCardItem(post: PublicPostApi): PostListCardItem {
         salary: formatPostSalary(post),
         remainingDays: formatClosedDate(post.closed_date),
         image: post.employer?.logo_img ?? "",
+        isUrgent: post.is_urgent === true,
     };
 }
 

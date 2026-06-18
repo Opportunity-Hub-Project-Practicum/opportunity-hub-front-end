@@ -46,6 +46,7 @@ export type AlertPostCardItem = {
     salary: string;
     remainingDays: string;
     image: string;
+    isUrgent: boolean;
 };
 
 export type AlertItemPayload = {

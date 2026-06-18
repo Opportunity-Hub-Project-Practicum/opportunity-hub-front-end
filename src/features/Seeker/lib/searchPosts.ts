@@ -17,6 +17,7 @@ export type SearchFilters = {
     hoursPerWeek?: string;
     benefits?: string[];
     languageRequirement?: string;
+    urgentOnly?: boolean;
 };
 
 export type SearchPayload = {
@@ -44,6 +45,7 @@ export type SearchPostsParams = {
     hours_per_week?: string;
     benefits?: string[];
     language?: string;
+    is_urgent?: boolean;
 };
 
 const SALARY_MIN_BY_LABEL: Record<string, number> = {
@@ -135,6 +137,10 @@ export function buildSearchPostsParams(payload: SearchPayload): SearchPostsParam
         params.language = filters.languageRequirement;
     }
 
+    if (filters.urgentOnly) {
+        params.is_urgent = true;
+    }
+
     return params;
 }
 
@@ -154,6 +160,7 @@ export function hasSearchParams(params: SearchPostsParams): boolean {
         "duration",
         "hours_per_week",
         "language",
+        "is_urgent",
     ];
 
     for (const key of scalarKeys) {
@@ -227,6 +234,10 @@ export async function fetchSearchPosts(params: SearchPostsParams): Promise<Publi
 
     if (params.language) {
         searchParams.set("language", params.language);
+    }
+
+    if (params.is_urgent === true) {
+        searchParams.set("is_urgent", "1");
     }
 
     appendArrayParams(searchParams, "job_type", params.job_type);

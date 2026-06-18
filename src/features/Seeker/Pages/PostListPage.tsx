@@ -7,6 +7,7 @@ import { useLocation } from "react-router-dom";
 import type { PostListCardItem } from "../services/postApiService";
 import type { SearchFilters } from "../lib/searchPosts";
 import { setOpportunityTypeContext } from "../../../contexts/Context";
+import { sortPostListItems, type PostListSortOption } from "../lib/sortPostListItems";
 
 type PostListNavigationState = {
     results?: PostListCardItem[];
@@ -19,6 +20,7 @@ type PostListNavigationState = {
 
 export default function PostList() {
     const [viewType, setViewType] = useState("grid");
+    const [sortBy, setSortBy] = useState<PostListSortOption>("latest");
     const [searchResults, setSearchResults] = useState<PostListCardItem[]>([]);
     const location = useLocation();
     const setOpportunityType = useContext(setOpportunityTypeContext);
@@ -45,6 +47,11 @@ export default function PostList() {
         }
     }, [location.key, navigationState?.results]);
 
+    const displayedResults = useMemo(
+        () => sortPostListItems(searchResults, sortBy),
+        [searchResults, sortBy],
+    );
+
     return (
         <div>
             <SearchBar
@@ -52,16 +59,21 @@ export default function PostList() {
                 initialState={searchBarInitialState}
                 onResultsChange={setSearchResults}
             />
-            <FilterBox viewType={viewType} setViewType={setViewType} />
+            <FilterBox
+                viewType={viewType}
+                setViewType={setViewType}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+            />
 
             <section className="page-container">
-                {searchResults.length === 0 && (
+                {displayedResults.length === 0 && (
                     <p className="text-sm text-gray-500">Search for jobs or volunteers to see results.</p>
                 )}
 
                 {viewType === "grid" && (
                     <div className="grid grid-cols-2 gap-5 y-5 lg:grid-cols-3">
-                        {searchResults.map((item) => (
+                        {displayedResults.map((item) => (
                             <div key={item.postId}>
                                 <CardGrid
                                     id={item.postId}
@@ -72,6 +84,7 @@ export default function PostList() {
                                     salary={item.salary}
                                     remainingDays={item.remainingDays}
                                     image={item.image}
+                                    isUrgent={item.isUrgent}
                                 />
                             </div>
                         ))}
@@ -80,7 +93,7 @@ export default function PostList() {
 
                 {viewType !== "grid" && (
                     <div className="flex flex-col gap-5">
-                        {searchResults.map((item) => (
+                        {displayedResults.map((item) => (
                             <CardList
                                 key={item.postId}
                                 id={item.postId}
@@ -91,6 +104,7 @@ export default function PostList() {
                                 salary={item.salary}
                                 remainingDays={item.remainingDays}
                                 image={item.image}
+                                isUrgent={item.isUrgent}
                             />
                         ))}
                     </div>

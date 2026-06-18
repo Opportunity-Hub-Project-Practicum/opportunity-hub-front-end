@@ -1,15 +1,14 @@
 import { ChevronDown, Grid3x3, List } from "lucide-react";
-import { useState } from "react";
+import type { PostListSortOption } from "../lib/sortPostListItems";
 
 interface FilterBarProps {
     viewType: string;
     setViewType: (view: string) => void;
+    sortBy: PostListSortOption;
+    onSortChange: (sort: PostListSortOption) => void;
 }
 
-export default function FilterBox({ viewType, setViewType }: FilterBarProps) {
-    const [sortBy, setSortBy] = useState("latest");
-    // const [itemsPerPage, setItemsPerPage] = useState("12");
-
+export default function FilterBox({ viewType, setViewType, sortBy, onSortChange }: FilterBarProps) {
     return (
         <div className="w-full bg-white px-4 md:px-6 lg:px-8 py-4  border-slate-200">
             <div className="mx-auto max-w-7xl ">
@@ -22,14 +21,11 @@ export default function FilterBox({ viewType, setViewType }: FilterBarProps) {
                         <div className="relative">
                             <select
                                 value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value)}
+                                onChange={(event) => onSortChange(event.target.value as PostListSortOption)}
                                 className="appearance-none bg-white border border-slate-200 rounded-md px-3 py-2 text-sm text-slate-700 outline-none cursor-pointer pr-8 hover:border-slate-300 focus:ring-2 focus:ring-blue-500"
                             >
-                                <option value="relevance">Most Relevant</option>
                                 <option value="latest">Latest</option>
-                                <option value="popular">Most Popular</option>
-                                <option value="salary-high">Highest Salary</option>
-                                <option value="salary-low">Lowest Salary</option>
+                                <option value="urgent-first">Urgent first</option>
                             </select>
                             <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" />
                         </div>
