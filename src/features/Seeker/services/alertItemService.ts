@@ -5,7 +5,9 @@ import type {
     AlertItemApi,
     AlertItemsResponse,
     AlertPostCardItem,
+    AlertItemCategory,
 } from "../types/alertItem";
+import { getPostLookupName } from "../lib/postLookup";
 import type { PublicPostApi } from "../types/post";
 import { fetchSeekerProfile } from "./seekerProfileService";
 import {
@@ -34,14 +36,15 @@ function toCriterion(
     return { roleName: role, location: loc };
 }
 
-function buildJobAlertCriteria(
+function buildAlertCriteria(
     alertItems: AlertItemApi[],
     notifySetting: SeekerNotifySettingApi | null | undefined,
+    category: AlertItemCategory,
 ): AlertCriterion[] {
     const criteria: AlertCriterion[] = [];
 
     for (const item of alertItems) {
-        if (item.category != null && item.category !== "job") {
+        if (item.category != null && item.category !== category) {
             continue;
         }
 
@@ -51,7 +54,7 @@ function buildJobAlertCriteria(
         }
     }
 
-    if (notifySetting?.category === "job") {
+    if (notifySetting?.category === category) {
         const notifyCriterion = toCriterion(notifySetting.role_name, notifySetting.location);
         if (notifyCriterion) {
             criteria.push(notifyCriterion);
@@ -61,12 +64,26 @@ function buildJobAlertCriteria(
     return criteria;
 }
 
+function buildJobAlertCriteria(
+    alertItems: AlertItemApi[],
+    notifySetting: SeekerNotifySettingApi | null | undefined,
+): AlertCriterion[] {
+    return buildAlertCriteria(alertItems, notifySetting, "job");
+}
+
+function buildVolunteerAlertCriteria(
+    alertItems: AlertItemApi[],
+    notifySetting: SeekerNotifySettingApi | null | undefined,
+): AlertCriterion[] {
+    return buildAlertCriteria(alertItems, notifySetting, "volunteer");
+}
+
 function postMatchesCriterion(post: PublicPostApi, criterion: AlertCriterion): boolean {
     const roleQuery = criterion.roleName?.toLowerCase();
     const locationQuery = criterion.location?.toLowerCase();
 
-    const roleHaystack = `${post.post_title} ${post.job_role ?? ""}`.toLowerCase();
-    const locationHaystack = (post.location ?? "").toLowerCase();
+    const roleHaystack = `${post.post_title} ${getPostLookupName(post.job_role)}`.toLowerCase();
+    const locationHaystack = getPostLookupName(post.location).toLowerCase();
 
     const roleMatch = !roleQuery || roleHaystack.includes(roleQuery);
     const locationMatch = !locationQuery || locationHaystack.includes(locationQuery);
@@ -81,7 +98,7 @@ function toAlertPostCardItem(post: PublicPostApi): AlertPostCardItem {
         organizationName: post.employer?.company_name ?? "Unknown",
         title: post.post_title,
         engagementType: formatWorkPlaceType(post.work_place_type ?? post.type),
-        location: post.location ?? "",
+        location: getPostLookupName(post.location),
         salary: formatPostSalary(post),
         remainingDays: formatClosedDate(post.closed_date),
         image: post.employer?.logo_img ?? "",
@@ -89,16 +106,23 @@ function toAlertPostCardItem(post: PublicPostApi): AlertPostCardItem {
 }
 
 export async function fetchJobAlertPostCards(): Promise<AlertPostCardItem[]> {
+    return fetchAlertPostCards("job");
+}
+
+export async function fetchVolunteerAlertPostCards(): Promise<AlertPostCardItem[]> {
+    return fetchAlertPostCards("volunteer");
+}
+
+async function fetchAlertPostCards(category: AlertItemCategory): Promise<AlertPostCardItem[]> {
     const [alertItems, profileResponse, posts] = await Promise.all([
         fetchAlertItems(),
         fetchSeekerProfile(),
-        fetchPublicPosts({ type: "job" }),
+        fetchPublicPosts({ type: category }),
     ]);
 
-    const criteria = buildJobAlertCriteria(
-        alertItems,
-        profileResponse.profile.notify_setting,
-    );
+    const criteria = category === "job"
+        ? buildJobAlertCriteria(alertItems, profileResponse.profile.notify_setting)
+        : buildVolunteerAlertCriteria(alertItems, profileResponse.profile.notify_setting);
 
     if (criteria.length === 0) {
         return [];

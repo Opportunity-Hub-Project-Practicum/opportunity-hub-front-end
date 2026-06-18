@@ -15,6 +15,7 @@ import {
     formatClosedDate,
     formatPostSalary,
 } from "../services/postApiService";
+import { getPostLookupName } from "../lib/postLookup";
 import type { EmployerContactApi, PublicEmployerDetailApi } from "../types/employer";
 import type { PublicPostApi } from "../types/post";
 
@@ -212,7 +213,7 @@ export default function OrganizationDetail() {
                             organizationName={employer.company_name}
                             title={post.post_title}
                             engagementType={post.work_place_type ?? post.type}
-                            location={post.location ?? ""}
+                            location={getPostLookupName(post.location)}
                             salary={formatPostSalary(post)}
                             remainingDays={formatClosedDate(post.closed_date)}
                             image={employer.logo_img ?? ""}

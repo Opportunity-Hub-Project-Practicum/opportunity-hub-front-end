@@ -100,7 +100,7 @@ export default function ReportedPostDetailPage() {
     }, [postId, reportStatus]);
 
     const backPath = useMemo(
-        () => `${ROUTES.ADMIN.ROOT}/${ROUTES.ADMIN.REPORTED}?status=${reportStatus}`,
+        () => `${ROUTES.ADMIN.ROOT}/${ROUTES.ADMIN.REPORTED}?status=${reportStatus}&type=post`,
         [reportStatus],
     );
 
@@ -225,6 +225,7 @@ export default function ReportedPostDetailPage() {
                                     employment_type: formatWorkPlaceType(postDetail.work_place_type),
                                     post_description: postDetail.post_description ?? "",
                                     responsibility: postDetail.responsibility ?? "",
+                                    job_requirement: postDetail.job_requirement ?? "",
                                 }}
                                 organization={buildPostOrganization(postDetail)}
                                 overviewItems={buildPostOverviewItems(postDetail)}

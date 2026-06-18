@@ -1,3 +1,4 @@
+import { getPostLookupName } from "../lib/postLookup";
 import type {
     PostDetailApi,
     PostFiltersData,
@@ -9,6 +10,19 @@ import { apiRequest } from "../../../services/apiClient";
 export type FetchPublicPostsParams = {
     type?: "job" | "volunteer";
     employerId?: number;
+    search?: string;
+    workPlaceType?: "remote" | "onsite" | "hybrid";
+};
+
+export type PostListCardItem = {
+    postId: number;
+    organizationName: string;
+    title: string;
+    engagementType: string;
+    location: string;
+    salary: string;
+    remainingDays: string;
+    image: string;
 };
 
 export async function fetchPublicPosts(params?: FetchPublicPostsParams): Promise<PublicPostApi[]> {
@@ -20,6 +34,14 @@ export async function fetchPublicPosts(params?: FetchPublicPostsParams): Promise
 
     if (params?.employerId != null) {
         searchParams.set("employer_id", String(params.employerId));
+    }
+
+    if (params?.search?.trim()) {
+        searchParams.set("search", params.search.trim());
+    }
+
+    if (params?.workPlaceType) {
+        searchParams.set("work_place_type", params.workPlaceType);
     }
 
     const query = searchParams.toString();
@@ -73,6 +95,19 @@ export async function fetchPostDetailWithEmployer(postId: number): Promise<PostD
     return {
         ...post,
         employer: listedPost.employer,
+    };
+}
+
+export function toPostListCardItem(post: PublicPostApi): PostListCardItem {
+    return {
+        postId: post.post_id,
+        organizationName: post.employer?.company_name ?? "Unknown",
+        title: post.post_title,
+        engagementType: formatWorkPlaceType(post.work_place_type ?? post.type),
+        location: getPostLookupName(post.location),
+        salary: formatPostSalary(post),
+        remainingDays: formatClosedDate(post.closed_date),
+        image: post.employer?.logo_img ?? "",
     };
 }
 

@@ -6,6 +6,7 @@ import {
     Layers,
     PlusCircle,
     Settings,
+    Tags,
     X,
 } from "lucide-react";
 import { useState } from "react";
@@ -23,6 +24,7 @@ const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
         { name: "Manage User", icon: PlusCircle, path: ROUTES.ADMIN.MANAGE_USER },
         { name: "All Posts", icon: Briefcase, path: ROUTES.ADMIN.ALL_POST },
         { name: "Reported Post", icon: Settings, path: ROUTES.ADMIN.REPORTED },
+        { name: "Manage Values", icon: Tags, path: ROUTES.ADMIN.MANAGE_VALUES },
         { name: "Profile", icon: CircleUserRound, path: ROUTES.ADMIN.PROFILE },
     ];
     const [section, setSection] = useState("Overview");

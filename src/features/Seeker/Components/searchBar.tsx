@@ -1,20 +1,37 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext, type Dispatch, type SetStateAction } from "react";
 import { Search, MapPin, Layers, ChevronDown } from "lucide-react";
 import { useSearch } from "../hooks/useSearch";
 import { opportunityTypeContext, setOpportunityTypeContext } from "../../../contexts/Context";
-import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { Posts } from "../../../services/postService";
+import type { PostListCardItem } from "../services/postApiService";
+import type { SearchFilters } from "../lib/searchPosts";
+import { runPostSearch } from "../lib/searchPosts";
+import { getLookupOptions, useLookupValues } from "../../../hooks/useLookupValues";
+import { LOOKUP_TYPES } from "../../../types/lookupValue";
+
+const SALARY_FILTER_OPTIONS = ["All", "$100+", "$300+", "$500+", "$800+", "$1000+", "$1500+", "$2000+"];
 
 interface SearchBarProps {
-    onResultsChange?: (results: any[]) => void;
+    onResultsChange?: (results: PostListCardItem[]) => void;
     onLoadingChange?: (loading: boolean) => void;
 }
 
-export default function SearchBar({ onResultsChange }: SearchBarProps) {
+export default function SearchBar({ onResultsChange, onLoadingChange }: SearchBarProps) {
     const navigate = useNavigate();
     const opportunityType = useContext(opportunityTypeContext);
     const setOpportunityType = useContext(setOpportunityTypeContext);
+    const { lookupValues, loading: lookupLoading } = useLookupValues();
+    const experienceOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.experience);
+    const jobTypeOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobType);
+    const educationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.education);
+    const jobLevelOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobLevel);
+    const durationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.duration);
+    const scheduleOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.schedule);
+    const hoursOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.hoursPerWeek);
+    const benefitOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.benefits);
+    const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
+    const categoryOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobRole);
+    const languageOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.languageRequirement);
     const [searchTerm, setSearchTerm] = useState('');
     const [location, setLocation] = useState("");
     const [category, setCategory] = useState("");
@@ -35,10 +52,14 @@ export default function SearchBar({ onResultsChange }: SearchBarProps) {
     const [languageRequirement, setLanguageRequirement] = useState("");
 
     // Track applied filters - only updated on Apply button click
-    const [appliedFilters, setAppliedFilters] = useState<any>({});
+    const [appliedFilters, setAppliedFilters] = useState<SearchFilters>({});
 
     // Toggle helpers
-    const toggleArray = (value: string, setter: Function, state: string[]) => {
+    const toggleArray = (
+        value: string,
+        setter: Dispatch<SetStateAction<string[]>>,
+        state: string[],
+    ) => {
         setter(
             state.includes(value)
                 ? state.filter((v) => v !== value)
@@ -46,68 +67,66 @@ export default function SearchBar({ onResultsChange }: SearchBarProps) {
         );
     };
 
-    // Handle Apply button click
-    const handleApplyFilters = () => {
-        setAppliedFilters(
-            opportunityType === "job"
-                ? { experience, salary, jobLevel, jobTypes, education }
-                : { duration, schedule, hoursPerWeek, benefits, languageRequirement }
-        );
-
-        // Navigate to PostList with results
-        navigate('/postList', {
-            state: {
-                results,
-                filters: opportunityType === "job"
-                    ? { experience, salary, jobLevel, jobTypes, education }
-                    : { duration, schedule, hoursPerWeek, benefits, languageRequirement },
-                searchTerm,
-                location,
-                category,
-                opportunityType
-            }
-        });
-    };
-
-    //  Payload (core of modern search)
-    const payload = {
+    const { results, loading } = useSearch({
         query: searchTerm,
         location,
         category,
         opportunityType,
         filters: appliedFilters,
-    };
-
-    //  Hook handles debounce + API
-    const { results } = useSearch(payload);
+    });
 
     useEffect(() => {
         onResultsChange?.(results);
-    }, [results, onResultsChange, searchTerm]);
+    }, [results, onResultsChange]);
 
-    // Handle Enter key press
-    const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            // Filter Posts based on search input
-            const filteredResults = Posts.filter(post => {
-                const matchesType = post.type === opportunityType;
-                const matchesSearchTerm = !searchTerm || post.title.toLowerCase().includes(searchTerm.toLowerCase());
-                const matchesLocation = !location || post.location === location;
-                const matchesCategory = !category || post.category === category;
+    useEffect(() => {
+        onLoadingChange?.(loading);
+    }, [loading, onLoadingChange]);
 
-                return matchesType && matchesSearchTerm && matchesLocation && matchesCategory;
+    const navigateToResults = (nextResults: PostListCardItem[]) => {
+        navigate("/postList", {
+            state: {
+                results: nextResults,
+                filters: appliedFilters,
+                searchTerm,
+                location,
+                category,
+                opportunityType,
+            },
+        });
+    };
+
+    const handleApplyFilters = () => {
+        const nextFilters: SearchFilters = opportunityType === "job"
+            ? { experience, salary, jobLevel, jobTypes, education }
+            : { duration, schedule, hoursPerWeek, benefits, languageRequirement };
+
+        setAppliedFilters(nextFilters);
+
+        void (async () => {
+            const nextResults = await runPostSearch({
+                query: searchTerm,
+                location,
+                category,
+                opportunityType,
+                filters: nextFilters,
             });
+            navigateToResults(nextResults);
+        })();
+    };
 
-            navigate('/postList', {
-                state: {
-                    results: filteredResults,
-                    filters: appliedFilters,
-                    searchTerm,
+    const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            void (async () => {
+                const nextResults = await runPostSearch({
+                    query: searchTerm,
                     location,
                     category,
-                    opportunityType
-                }
-            });
+                    opportunityType,
+                    filters: appliedFilters,
+                });
+                navigateToResults(nextResults);
+            })();
         }
     };
 
@@ -138,10 +157,16 @@ export default function SearchBar({ onResultsChange }: SearchBarProps) {
                         <select
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
-                            className="flex-1 bg-transparent text-sm outline-none cursor-pointer"
+                            disabled={lookupLoading}
+                            className="flex-1 bg-transparent text-sm outline-none cursor-pointer disabled:cursor-wait"
                         >
                             <option value="">Location</option>
                             <option value="remote">Remote</option>
+                            {locationOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.name}
+                                </option>
+                            ))}
                         </select>
                         <MapPin size={18} className="text-slate-500" />
                     </div>
@@ -153,11 +178,15 @@ export default function SearchBar({ onResultsChange }: SearchBarProps) {
                         <select
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
-                            className="flex-1 bg-transparent text-sm outline-none cursor-pointer"
+                            disabled={lookupLoading}
+                            className="flex-1 bg-transparent text-sm outline-none cursor-pointer disabled:cursor-wait"
                         >
                             <option value="">Category</option>
-                            <option value="tech">Technology</option>
-                            <option value="health">Healthcare</option>
+                            {categoryOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.name}
+                                </option>
+                            ))}
                         </select>
                         <Layers size={18} className="text-slate-500" />
 
@@ -201,38 +230,34 @@ export default function SearchBar({ onResultsChange }: SearchBarProps) {
                 {/* ADVANCED FILTER */}
                 {advancedFilter && (
                     <div className="mt-4 bg-white p-6 border rounded-lg shadow">
+                        {lookupLoading && (
+                            <p className="mb-4 text-sm text-slate-500">Loading filter options...</p>
+                        )}
 
                         {opportunityType === "job" ? (
-                            // Job Filters
                             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
-                                {/* 1. Experience */}
                                 <div>
-                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                                        Experience
-                                    </h4>
+                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Experience</h4>
                                     <div className="space-y-2">
-                                        {["Freshers", "1 - 2 Years", "2 - 4 Years", "6 - 8 Years", "8 - 10 Years", "10 - 15 Years", "15+ Years"].map((exp) => (
-                                            <label key={exp} className="flex items-center gap-2 cursor-pointer">
+                                        {experienceOptions.map((option) => (
+                                            <label key={option.value} className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="radio"
-                                                    value={exp}
-                                                    checked={experience === exp}
-                                                    onChange={() => setExperience(exp)}
+                                                    value={option.value}
+                                                    checked={experience === option.value}
+                                                    onChange={() => setExperience(option.value)}
                                                     className="w-4 h-4 text-blue-600 cursor-pointer"
                                                 />
-                                                <span className="text-sm text-slate-700">{exp}</span>
+                                                <span className="text-sm text-slate-700">{option.name}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
 
-                                {/* 2. Salary */}
                                 <div>
-                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                                        Salary
-                                    </h4>
+                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Salary</h4>
                                     <div className="space-y-2">
-                                        {["$50 - $1,000", "$1,000 - $5,000", "$5,000 - $10,000", "$10,000 - $15,000", "$15,000+"].map((sal) => (
+                                        {SALARY_FILTER_OPTIONS.map((sal) => (
                                             <label key={sal} className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="radio"
@@ -247,168 +272,143 @@ export default function SearchBar({ onResultsChange }: SearchBarProps) {
                                     </div>
                                 </div>
 
-                                {/* 3. Job Type */}
                                 <div>
-                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                                        Job Type
-                                    </h4>
+                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Job Type</h4>
                                     <div className="space-y-2">
-                                        {["All", "Part Time", "Internship", "Remote", "Temporary", "Contract Base"].map((type) => (
-                                            <label key={type} className="flex items-center gap-2 cursor-pointer">
+                                        {jobTypeOptions.map((option) => (
+                                            <label key={option.value} className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="checkbox"
-                                                    checked={jobTypes.includes(type)}
-                                                    onChange={() => toggleArray(type, setJobTypes, jobTypes)}
+                                                    checked={jobTypes.includes(option.value)}
+                                                    onChange={() => toggleArray(option.value, setJobTypes, jobTypes)}
                                                     className="w-4 h-4 text-blue-600 rounded cursor-pointer"
                                                 />
-                                                <span className="text-sm text-slate-700">{type}</span>
+                                                <span className="text-sm text-slate-700">{option.name}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
 
-                                {/* 4. Education */}
                                 <div>
-                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                                        Education
-                                    </h4>
+                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Education</h4>
                                     <div className="space-y-2">
-                                        {["All", "High School", "Intermediate", "Bachelor Degree", "Master Degree"].map((edu) => (
-                                            <label key={edu} className="flex items-center gap-2 cursor-pointer">
+                                        {educationOptions.map((option) => (
+                                            <label key={option.value} className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="checkbox"
-                                                    onChange={() => toggleArray(edu, setEducation, education)}
-                                                    checked={education.includes(edu)}
+                                                    onChange={() => toggleArray(option.value, setEducation, education)}
+                                                    checked={education.includes(option.value)}
                                                     className="w-4 h-4 text-blue-600 rounded cursor-pointer"
                                                 />
-                                                <span className="text-sm text-slate-700">{edu}</span>
+                                                <span className="text-sm text-slate-700">{option.name}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
 
-                                {/* 5. Job Level */}
                                 <div>
-                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                                        Job Level
-                                    </h4>
+                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Job Level</h4>
                                     <div className="space-y-2">
-                                        {["Entry Level", "Expert Level"].map((level) => (
-                                            <label key={level} className="flex items-center gap-2 cursor-pointer">
+                                        {jobLevelOptions.map((option) => (
+                                            <label key={option.value} className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="radio"
-                                                    value={level}
-                                                    onChange={() => setJobLevel(level)}
-                                                    checked={jobLevel === level}
+                                                    value={option.value}
+                                                    onChange={() => setJobLevel(option.value)}
+                                                    checked={jobLevel === option.value}
                                                     className="w-4 h-4 text-blue-600 cursor-pointer"
                                                 />
-                                                <span className="text-sm text-slate-700">{level}</span>
+                                                <span className="text-sm text-slate-700">{option.name}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
                             </div>
                         ) : (
-                            // Volunteer Filters
                             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
-                                {/* 1. Duration */}
                                 <div>
-                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                                        Duration
-                                    </h4>
+                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Duration</h4>
                                     <div className="space-y-2">
-                                        {["One-Time", "Short-Term (1-4 weeks)", "Long-Term (1+ months)"].map((dur) => (
-                                            <label key={dur} className="flex items-center gap-2 cursor-pointer">
+                                        {durationOptions.map((option) => (
+                                            <label key={option.value} className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="radio"
-                                                    value={dur}
-                                                    onChange={() => setDuration(dur)}
-                                                    checked={duration === dur}
+                                                    value={option.value}
+                                                    onChange={() => setDuration(option.value)}
+                                                    checked={duration === option.value}
                                                     className="w-4 h-4 text-blue-600 cursor-pointer"
                                                 />
-                                                <span className="text-sm text-slate-700">{dur}</span>
+                                                <span className="text-sm text-slate-700">{option.name}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
 
-                                {/* 2. Schedule */}
                                 <div>
-                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                                        Schedule
-                                    </h4>
+                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Schedule</h4>
                                     <div className="space-y-2">
-                                        {["Weekdays", "Weekend", "Flexible"].map((sched) => (
-                                            <label key={sched} className="flex items-center gap-2 cursor-pointer">
+                                        {scheduleOptions.map((option) => (
+                                            <label key={option.value} className="flex items-center gap-2 cursor-pointer">
                                                 <input
-                                                    onChange={() => toggleArray(sched, setSchedule, schedule)}
+                                                    onChange={() => toggleArray(option.value, setSchedule, schedule)}
                                                     type="checkbox"
-                                                    checked={schedule.includes(sched)}
+                                                    checked={schedule.includes(option.value)}
                                                     className="w-4 h-4 text-blue-600 rounded cursor-pointer"
                                                 />
-                                                <span className="text-sm text-slate-700">{sched}</span>
+                                                <span className="text-sm text-slate-700">{option.name}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
 
-                                {/* 3. Hours per week */}
                                 <div>
-                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                                        Hours per week
-                                    </h4>
+                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Hours per week</h4>
                                     <div className="space-y-2">
-                                        {["<5", "5 - 10", "10+"].map((hours) => (
-                                            <label key={hours} className="flex items-center gap-2 cursor-pointer">
+                                        {hoursOptions.map((option) => (
+                                            <label key={option.value} className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="radio"
-                                                    onChange={() => setHoursPerWeek(hours)}
-                                                    value={hours}
-                                                    checked={hoursPerWeek === hours}
+                                                    onChange={() => setHoursPerWeek(option.value)}
+                                                    value={option.value}
+                                                    checked={hoursPerWeek === option.value}
                                                     className="w-4 h-4 text-blue-600 cursor-pointer"
                                                 />
-                                                <span className="text-sm text-slate-700">{hours}</span>
+                                                <span className="text-sm text-slate-700">{option.name}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
 
-                                {/* 4. Benefits */}
                                 <div>
-                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                                        Benefits
-                                    </h4>
+                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Benefits</h4>
                                     <div className="space-y-2">
-                                        {["All", "Training", "Certificate", "Transportation / meals", "Stipend"].map((ben) => (
-                                            <label key={ben} className="flex items-center gap-2 cursor-pointer">
+                                        {benefitOptions.map((option) => (
+                                            <label key={option.value} className="flex items-center gap-2 cursor-pointer">
                                                 <input
-                                                    onChange={() => toggleArray(ben, setBenefits, benefits)}
+                                                    onChange={() => toggleArray(option.value, setBenefits, benefits)}
                                                     type="checkbox"
-                                                    checked={benefits.includes(ben)}
+                                                    checked={benefits.includes(option.value)}
                                                     className="w-4 h-4 text-blue-600 rounded cursor-pointer"
                                                 />
-                                                <span className="text-sm text-slate-700">{ben}</span>
+                                                <span className="text-sm text-slate-700">{option.name}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
 
-                                {/* 5. Language Requirement */}
                                 <div>
-                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">
-                                        Language Requirement
-                                    </h4>
+                                    <h4 className="text-sm font-semibold text-slate-900 mb-3">Language Requirement</h4>
                                     <div className="space-y-2">
-                                        {["None", "English", "Chinese"].map((lang) => (
-                                            <label key={lang} className="flex items-center gap-2 cursor-pointer">
+                                        {languageOptions.map((option) => (
+                                            <label key={option.value} className="flex items-center gap-2 cursor-pointer">
                                                 <input
                                                     type="radio"
-                                                    onChange={() => setLanguageRequirement(lang)}
-                                                    value={lang}
-                                                    checked={languageRequirement === lang}
+                                                    onChange={() => setLanguageRequirement(option.value)}
+                                                    value={option.value}
+                                                    checked={languageRequirement === option.value}
                                                     className="w-4 h-4 text-blue-600 cursor-pointer"
                                                 />
-                                                <span className="text-sm text-slate-700">{lang}</span>
+                                                <span className="text-sm text-slate-700">{option.name}</span>
                                             </label>
                                         ))}
                                     </div>

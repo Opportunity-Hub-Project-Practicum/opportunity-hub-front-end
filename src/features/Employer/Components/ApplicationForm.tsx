@@ -5,6 +5,7 @@ import {
     Cake,
     Download,
     FileText,
+    Flag,
     Globe,
     GraduationCap,
     Mail,
@@ -20,8 +21,10 @@ import {
     removeFavoriteCandidate,
 } from "../services/favoriteCandidateService";
 import { updateEmployerApplicationStatus } from "../services/employerApplicationService";
+import { submitSeekerProfileReport } from "../services/seekerProfileReportService";
 import { formatDisplayDate, formatLabel } from "../../Seeker/lib/seekerProfileFormatters";
 import { fetchPublicSeekerProfile } from "../../Seeker/services/seekerPublicService";
+import ReportModal from "../../Seeker/Components/modal/ReportModal";
 import type { KanbanApplication } from "../types/employerApplication";
 import type { SeekerProfileApi } from "../../Seeker/types/seekerProfile";
 
@@ -47,13 +50,25 @@ export default function ApplicationForm({
     const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
     const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [isReportOpen, setIsReportOpen] = useState(false);
+    const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+    const [reportMessage, setReportMessage] = useState<string | null>(null);
 
     useEffect(() => {
-        const seekerRef = application?.seekerUuid ?? application?.seekerId;
-        if (!isOpen || seekerRef == null) {
+        if (!isOpen || !application) {
             setProfile(null);
             setFavoriteCandidateId(null);
             setFavoriteMessage(null);
+            setReportMessage(null);
+            return;
+        }
+
+        const seekerRef = application.seekerUuid ?? application.seekerId;
+        if (seekerRef == null) {
+            setProfile(null);
+            setFavoriteCandidateId(null);
+            setFavoriteMessage(null);
+            setReportMessage(null);
             return;
         }
 
@@ -156,6 +171,26 @@ export default function ApplicationForm({
         }
     };
 
+    const handleReportSubmit = async (reportReason: string) => {
+        if (!application?.seekerId || isSubmittingReport) {
+            return;
+        }
+
+        setIsSubmittingReport(true);
+        setError(null);
+        setReportMessage(null);
+
+        try {
+            await submitSeekerProfileReport(application.seekerId, reportReason);
+            setReportMessage("Report submitted successfully.");
+            setIsReportOpen(false);
+        } catch (reportError) {
+            setError(formatApiError(reportError));
+        } finally {
+            setIsSubmittingReport(false);
+        }
+    };
+
     return (
         <div className="w-full overflow-y-auto rounded-lg border border-slate-200 bg-slate-200 p-8">
             <button className="mb-5" onClick={onClose} type="button">
@@ -171,6 +206,12 @@ export default function ApplicationForm({
             {favoriteMessage && (
                 <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
                     {favoriteMessage}
+                </div>
+            )}
+
+            {reportMessage && (
+                <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                    {reportMessage}
                 </div>
             )}
 
@@ -197,6 +238,17 @@ export default function ApplicationForm({
                 </div>
 
                 <div className="flex w-full flex-wrap items-center gap-3 md:w-auto">
+                    <button
+                        type="button"
+                        disabled={isSubmittingReport}
+                        onClick={() => setIsReportOpen(true)}
+                        title="Report profile"
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[#E4E5E8] px-5 py-3 text-sm font-semibold text-[#5E6670] transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-60 md:flex-none"
+                    >
+                        <Flag className="h-4 w-4" />
+                        <span>Report</span>
+                    </button>
+
                     <button
                         type="button"
                         disabled={isFavoriteLoading || isUpdatingStatus}
@@ -377,6 +429,14 @@ export default function ApplicationForm({
                     </div>
                 </div>
             </div>
+
+            {isReportOpen && (
+                <ReportModal
+                    variant="profile"
+                    onClose={() => setIsReportOpen(false)}
+                    onSubmit={(reportReason) => void handleReportSubmit(reportReason)}
+                />
+            )}
         </div>
     );
 }

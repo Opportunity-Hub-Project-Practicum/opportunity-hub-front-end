@@ -200,10 +200,8 @@ export default function ManageUserPage() {
         <div>
             <SearchBox search={search} setSearch={setSearch} />
 
-            <div className="mb-5">
-                <label htmlFor="entity-filter" className="mb-2 block text-sm font-medium text-[#474C54]">
-                    Show
-                </label>
+            <div className="flex justify-end m-5">
+
                 <select
                     id="entity-filter"
                     value={entityFilter}
@@ -343,17 +341,16 @@ export default function ManageUserPage() {
                                     type="button"
                                     onClick={handleToggleBan}
                                     disabled={banActionLoading}
-                                    className={`rounded-sm px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${
-                                        selectedIsBanned
-                                            ? "bg-[#28A745] text-white hover:bg-[#218838]"
-                                            : "bg-[#DC3545] text-white hover:bg-[#c82333]"
-                                    }`}
+                                    className={`rounded-sm px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-60 ${selectedIsBanned
+                                        ? "bg-[#28A745] text-white hover:bg-[#218838]"
+                                        : "bg-[#DC3545] text-white hover:bg-[#c82333]"
+                                        }`}
                                 >
                                     {banActionLoading
                                         ? "Saving..."
                                         : selectedIsBanned
-                                          ? "Unban"
-                                          : "Ban"}
+                                            ? "Unban"
+                                            : "Ban"}
                                 </button>
                             )}
                             <button

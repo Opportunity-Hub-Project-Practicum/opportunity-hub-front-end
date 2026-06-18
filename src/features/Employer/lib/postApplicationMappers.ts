@@ -1,12 +1,12 @@
 import type {
     CreateEmployerPostPayload,
-    JobLevel,
     JobPostSubmitPayload,
     PostDuration,
     PostSchedule,
     VolunteerPostSubmitPayload,
     WorkPlaceType,
 } from "../types/postApplication";
+import { normalizeRichTextForStorage } from "../../../utils/richText";
 
 function parseClosedDate(value: string): string | null {
     const trimmed = value.trim();
@@ -29,14 +29,6 @@ function parseClosedDate(value: string): string | null {
         return parsed.toISOString().slice(0, 10);
     }
 
-    return null;
-}
-
-function mapJobLevel(value: string): JobLevel | null {
-    const normalized = value.trim() as JobLevel;
-    if (normalized === "entry_level" || normalized === "mid_level" || normalized === "expert_level") {
-        return normalized;
-    }
     return null;
 }
 
@@ -64,40 +56,29 @@ function mapSchedule(value: string): PostSchedule | null {
     return null;
 }
 
-function mapVolunteerLanguage(languages: string[]): string | null {
-    if (languages.length === 0) {
-        return null;
-    }
-
-    const labels: Record<string, string> = {
-        khmer: "Khmer",
-        english: "English",
-        other: "Other",
-    };
-
-    return languages
-        .map((language) => labels[language.toLowerCase()] ?? language)
-        .join(", ");
+function mapNullableCode(value: string): string | null {
+    const trimmed = value.trim();
+    return trimmed || null;
 }
 
 export function mapJobPostToApi(payload: JobPostSubmitPayload): CreateEmployerPostPayload {
     return {
         type: "job",
         post_title: payload.title.trim(),
-        post_description: payload.description.trim() || null,
-        responsibility: payload.responsibilities.trim() || null,
-        work_place_type: mapWorkPlaceType(payload.jobType),
-        location: payload.location.trim() || null,
+        post_description: normalizeRichTextForStorage(payload.description) || null,
+        responsibility: normalizeRichTextForStorage(payload.responsibilities) || null,
+        work_place_type: mapWorkPlaceType(payload.workPlaceType),
         duration: "long-term",
         schedule: "flexible",
         min_salary: payload.minSalary,
         max_salary: payload.maxSalary,
-        job_role: payload.jobRole.trim() || null,
-        job_education: payload.education.trim() || null,
-        job_experience: payload.experience.trim() || null,
-        job_level: mapJobLevel(payload.jobLevel),
+        job_type: mapNullableCode(payload.jobType),
+        job_education: mapNullableCode(payload.education),
+        job_experience: mapNullableCode(payload.experience),
+        job_requirement: normalizeRichTextForStorage(payload.jobRequirements) || null,
+        job_level: mapNullableCode(payload.jobLevel),
         closed_date: parseClosedDate(payload.expirationDate),
-        language: "English",
+        language: "english",
     };
 }
 
@@ -105,13 +86,14 @@ export function mapVolunteerPostToApi(payload: VolunteerPostSubmitPayload): Crea
     return {
         type: "volunteer",
         post_title: payload.title.trim(),
-        post_description: payload.description.trim() || null,
-        responsibility: payload.responsibilities.trim() || null,
+        post_description: normalizeRichTextForStorage(payload.description) || null,
+        responsibility: normalizeRichTextForStorage(payload.responsibilities) || null,
         work_place_type: mapWorkPlaceType(payload.volunteerPlaceType),
         duration: mapDuration(payload.duration),
         schedule: mapSchedule(payload.schedule),
-        hours_per_week: payload.hoursPerWeek,
+        hours_per_week: mapNullableCode(payload.hoursPerWeek),
         benefits: payload.benefits.length > 0 ? payload.benefits : null,
-        language: mapVolunteerLanguage(payload.languages),
+        language: mapNullableCode(payload.language),
+        job_requirement: normalizeRichTextForStorage(payload.volunteerRequirements) || null,
     };
 }

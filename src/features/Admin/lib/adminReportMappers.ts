@@ -13,6 +13,7 @@ import {
     formatClosedDate,
     formatPostSalary,
 } from "../../Seeker/services/postApiService";
+import { getPostLookupName } from "../../Seeker/lib/postLookup";
 import type { PostDetailApi } from "../../Seeker/types/post";
 
 function formatPostedDate(isoDate: string | null): string {
@@ -57,15 +58,15 @@ export function buildPostOverviewItems(post: PostDetailApi) {
         },
         {
             label: "Location",
-            value: post.location ?? "",
+            value: getPostLookupName(post.location),
             icon: MapPin,
-            show: !!post.location,
+            show: !!getPostLookupName(post.location),
         },
         {
             label: "Job Role",
-            value: post.job_role ?? "",
+            value: getPostLookupName(post.job_role),
             icon: Briefcase,
-            show: !isVolunteer && !!post.job_role,
+            show: !isVolunteer && !!getPostLookupName(post.job_role),
         },
         {
             label: "Experience",

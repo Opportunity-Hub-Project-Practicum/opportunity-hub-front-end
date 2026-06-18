@@ -3,6 +3,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import { useEffect } from "react";
+import { isEmptyRichText } from "../utils/richText";
 
 import {
     Bold,
@@ -49,7 +50,8 @@ const TextAreaBox: React.FC<TextAreaBoxProps> = ({
 
         onUpdate: ({ editor }: { editor: any }) => {
             if (!readOnly) {
-                onChange(editor.getHTML());
+                const html = editor.getHTML();
+                onChange(isEmptyRichText(html) ? "" : html);
             }
         },
     });

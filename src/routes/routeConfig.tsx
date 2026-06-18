@@ -8,6 +8,7 @@ import { Navigate } from "react-router-dom";
 //pages for seeker
 import SignUpSeeker from "../features/Auth/SignUpPage";
 import LoginPage from "../features/Auth/LoginPage";
+import ForgotPasswordPage from "../features/Auth/ForgotPasswordPage";
 import PostList from "../features/Seeker/Pages/PostListPage";
 import HomeSeeker from "../features/Seeker/Pages/HomeSeekerPage";
 import PostDetail from "../features/Seeker/Pages/PostDetailPage";
@@ -36,6 +37,8 @@ import ManageUserPage from "../features/Admin/Pages/ManageUserPage";
 import ProfilePage from "../features/Admin/Pages/ProfilePage";
 import ReportedPage from "../features/Admin/Pages/ReportedPage";
 import ReportedPostDetailPage from "../features/Admin/Pages/ReportedPostDetailPage";
+import ReportedSeekerDetailPage from "../features/Admin/Pages/ReportedSeekerDetailPage";
+import ManageValuesPage from "../features/Admin/Pages/ManageValuesPage";
 import { createRoleLoader } from "./loaders";
 export interface RouteConfig {
     path?: string;
@@ -58,6 +61,11 @@ export const routeConfig: RouteConfig[] = [
         path: ROUTES.AUTH.LOGIN,
         label: 'LoginPage',
         layout: LoginPage,
+    },
+    {
+        path: ROUTES.AUTH.FORGOT_PASSWORD,
+        label: 'ForgotPassword',
+        layout: ForgotPasswordPage,
     },
 
     {
@@ -217,6 +225,12 @@ export const routeConfig: RouteConfig[] = [
             }, {
                 path: ROUTES.ADMIN.REPORTED,
                 component: ReportedPage,
+            }, {
+                path: ROUTES.ADMIN.MANAGE_VALUES,
+                component: ManageValuesPage,
+            }, {
+                path: ROUTES.ADMIN.REPORTED_USER_DETAIL_ROUTE,
+                component: ReportedSeekerDetailPage,
             }, {
                 path: ROUTES.ADMIN.REPORTED_DETAIL_ROUTE,
                 component: ReportedPostDetailPage,

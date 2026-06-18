@@ -3,7 +3,7 @@ export const ROUTES = {
         SIGNUP_SEEKER: "/signUpSeeker",
         LOGIN: "/loginPage",
         SIGNUP_EMPLOYER: "/accountSetup",
-      
+        FORGOT_PASSWORD: "/forgot-password",
     },
 
     HOME: {
@@ -45,10 +45,24 @@ export const ROUTES = {
       MANAGE_USER:'manageUser',
       PROFILE:'profile',
       REPORTED:'reported',
+      MANAGE_VALUES:'manageValues',
       REPORTED_DETAIL_ROUTE: 'reported/:postId',
       REPORTED_DETAIL: (postId: string | number, status?: 'pending' | 'resolved') => {
         const base = `/admin/reported/${postId}`;
         return status ? `${base}?status=${status}` : base;
+      },
+      REPORTED_USER_DETAIL_ROUTE: 'reported/user/:seekerId',
+      REPORTED_USER_DETAIL: (seekerId: string | number, status?: 'pending' | 'resolved', type?: 'user') => {
+        const base = `/admin/reported/user/${seekerId}`;
+        const params = new URLSearchParams();
+        if (status) {
+          params.set('status', status);
+        }
+        if (type) {
+          params.set('type', type);
+        }
+        const query = params.toString();
+        return query ? `${base}?${query}` : base;
       },
     
        

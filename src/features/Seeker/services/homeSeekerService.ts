@@ -6,6 +6,7 @@ import type {
     HomeSeekerData,
 } from "../types/homeSeeker";
 import type { PublicEmployerApi } from "../types/employer";
+import { getPostLookupName } from "../lib/postLookup";
 import type { PublicPostApi } from "../types/post";
 import type { PublicStats } from "../types/publicStats";
 import { fetchPublicEmployers } from "./employerService";
@@ -29,7 +30,7 @@ function toHomePostCard(post: PublicPostApi): HomePostCard {
         organizationName: post.employer?.company_name ?? "Unknown",
         title: post.post_title,
         engagementType: post.work_place_type ?? post.type,
-        location: post.location ?? "",
+        location: getPostLookupName(post.location),
         salary: formatPostSalary(post),
         remainingDays: formatClosedDate(post.closed_date),
         image: post.employer?.logo_img ?? "",
@@ -40,10 +41,14 @@ function buildRoleSummaries(posts: PublicPostApi[], type: "job" | "volunteer"): 
     const counts = new Map<string, number>();
 
     for (const post of posts) {
-        if (post.type !== type || !post.job_role?.trim()) {
+        if (post.type !== type) {
             continue;
         }
-        const role = post.job_role.trim();
+
+        const role = getPostLookupName(post.job_role).trim();
+        if (!role) {
+            continue;
+        }
         counts.set(role, (counts.get(role) ?? 0) + 1);
     }
 
