@@ -27,6 +27,9 @@ import { fetchPublicSeekerProfile } from "../../Seeker/services/seekerPublicServ
 import ReportModal from "../../Seeker/Components/modal/ReportModal";
 import { submitSeekerProfileReport } from "../services/seekerProfileReportService";
 import type { SeekerProfileApi } from "../../Seeker/types/seekerProfile";
+import { getLookupOptions, useLookupValues } from "../../../hooks/useLookupValues";
+import { resolveLookupStoredValue } from "../../../lib/lookupValueUtils";
+import { LOOKUP_TYPES } from "../../../types/lookupValue";
 
 export default function EmployerSeekerProfilePage() {
     const navigate = useNavigate();
@@ -40,6 +43,9 @@ export default function EmployerSeekerProfilePage() {
     const [isProfilePrivate, setIsProfilePrivate] = useState(false);
     const [favoriteCandidateId, setFavoriteCandidateId] = useState<number | null>(null);
     const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+    const { lookupValues } = useLookupValues();
+    const industryOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.industry);
+    const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
     const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
     const [isReportOpen, setIsReportOpen] = useState(false);
     const [isSubmittingReport, setIsSubmittingReport] = useState(false);
@@ -274,7 +280,13 @@ export default function EmployerSeekerProfilePage() {
                                             <p className="font-medium text-[#18191C]">{experience.job_title}</p>
                                             <p className="text-sm text-[#5E6670]">{experience.company_name}</p>
                                             <p className="mt-1 text-sm text-[#767F8C]">
-                                                {experience.year_of_experience} years · {experience.industry}
+                                                {experience.year_of_experience} years
+                                                {experience.industry && (
+                                                    <> · {resolveLookupStoredValue(experience.industry, industryOptions)}</>
+                                                )}
+                                                {experience.location && (
+                                                    <> · {resolveLookupStoredValue(experience.location, locationOptions)}</>
+                                                )}
                                             </p>
                                             {experience.description && (
                                                 <p className="mt-2 text-sm text-gray-600">{experience.description}</p>
