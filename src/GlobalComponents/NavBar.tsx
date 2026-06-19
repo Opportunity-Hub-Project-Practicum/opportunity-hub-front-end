@@ -21,7 +21,7 @@ export default function PublicNavBar() {
                 <h1 className="whitespace-nowrap text-big text-primary"><Link to='/'>Opportunity Hub</Link></h1>
                 <nav className={mode === 'employer' ? "hidden" : ""}>
                     <ul className="flex gap-5">
-                        <li className="whitespace-nowrap"><Link to='/postList'>Opportunities</Link></li>
+                        <li className="whitespace-nowrap"><Link to={ROUTES.HOME.ROOT}>Opportunities</Link></li>
                         <li className="whitespace-nowrap"><Link to='/organizationList'>Find Employer</Link></li>
                     </ul>
                 </nav>
