@@ -6,6 +6,8 @@ import { Link, useNavigate } from "react-router-dom"
 import { ROUTES } from "../../routes/path"
 import { useAuth } from "../../contexts/AuthContext"
 import { buildEmployerRegisterPayload } from "../Employer/lib/buildEmployerRegisterPayload"
+import { uploadLogoIfNeeded } from "../Employer/lib/employerProfileSave"
+import { updateEmployerProfile } from "../Employer/services/employerProfileService"
 import { getHomeRouteForRole } from "./lib/authRoutes"
 import { formatApiError } from "../../services/apiClient"
 import { useLookupValues } from "../../hooks/useLookupValues"
@@ -63,6 +65,12 @@ export default function SignUpEmployerPage() {
 
         try {
             const user = await registerEmployer(buildEmployerRegisterPayload(employerData, lookupValues))
+
+            const uploadedLogoPath = await uploadLogoIfNeeded(employerData)
+            if (uploadedLogoPath) {
+                await updateEmployerProfile({ logo_img: uploadedLogoPath })
+            }
+
             navigate(getHomeRouteForRole(user.role), { replace: true })
         } catch (err) {
             setError(formatApiError(err))

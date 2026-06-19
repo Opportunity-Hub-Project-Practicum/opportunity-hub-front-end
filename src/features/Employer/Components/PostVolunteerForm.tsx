@@ -13,6 +13,12 @@ interface PostVolunteerFormProps {
 const selectClassName =
     "w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10";
 
+const minExpirationDate = (() => {
+    const minDate = new Date();
+    minDate.setDate(minDate.getDate() + 1);
+    return minDate.toISOString().slice(0, 10);
+})();
+
 const parseNumberOrNull = (value: FormDataEntryValue | null) => {
     if (value === null) {
         return null;
@@ -36,6 +42,7 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
 
     const durationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.duration);
     const jobRoleOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobRole);
+    const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
     const workPlaceOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.workPlaceType);
     const scheduleOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.schedule);
     const hoursOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.hoursPerWeek);
@@ -54,6 +61,7 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
             await onSubmit({
                 title: formData.get("title")?.toString().trim() ?? "",
                 jobRoleId: parseNumberOrNull(formData.get("jobRoleId")),
+                locationId: parseNumberOrNull(formData.get("locationId")),
                 duration: (formData.get("duration")?.toString().trim() ?? "") as PostDuration | "",
                 volunteerPlaceType: formData.get("volunteerPlaceType")?.toString().trim() ?? "",
                 schedule: (formData.get("schedule")?.toString().trim() ?? "") as PostSchedule | "",
@@ -63,6 +71,7 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
                 description,
                 responsibilities,
                 volunteerRequirements,
+                expirationDate: formData.get("expirationDate")?.toString().trim() ?? "",
                 isUrgent: formData.get("isUrgent") === "on",
             });
 
@@ -95,18 +104,34 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
                     />
                 </div>
 
-                <div className="w-full max-w-md">
-                    <label className="block text-sm font-medium mb-2 text-[#18191C]">Category</label>
-                    <div className="relative">
-                        <select name="jobRoleId" disabled={loading} className={selectClassName}>
-                            <option value="">Select...</option>
-                            {jobRoleOptions.map((option) => (
-                                <option key={option.id} value={option.id}>
-                                    {option.name}
-                                </option>
-                            ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+                    <div>
+                        <label className="block text-sm font-medium mb-2 text-[#18191C]">Category</label>
+                        <div className="relative">
+                            <select name="jobRoleId" disabled={loading} className={selectClassName}>
+                                <option value="">Select...</option>
+                                {jobRoleOptions.map((option) => (
+                                    <option key={option.id} value={option.id}>
+                                        {option.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2 text-[#18191C]">Location</label>
+                        <div className="relative">
+                            <select name="locationId" disabled={loading} className={selectClassName}>
+                                <option value="">Select...</option>
+                                {locationOptions.map((option) => (
+                                    <option key={option.id} value={option.id}>
+                                        {option.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-3.5 h-4 w-4 text-[#767F8C] pointer-events-none" />
+                        </div>
                     </div>
                 </div>
 
@@ -223,15 +248,26 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
                     </div>
                 </div>
 
-                <div className="pt-2">
-                    <label className="flex items-center gap-2 cursor-pointer text-sm text-[#18191C]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full pt-2">
+                    <div>
+                        <label className="block text-sm font-medium mb-2 text-[#18191C]">Expiration Date</label>
                         <input
-                            type="checkbox"
-                            name="isUrgent"
-                            className="h-4 w-4 rounded border-[#E4E5E8] text-[#0A65CC] focus:ring-blue-500"
+                            type="date"
+                            name="expirationDate"
+                            min={minExpirationDate}
+                            className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-blue-500 text-sm"
                         />
-                        Urgent hiring needed
-                    </label>
+                    </div>
+                    <div className="flex items-end">
+                        <label className="flex items-center gap-2 cursor-pointer text-sm text-[#18191C]">
+                            <input
+                                type="checkbox"
+                                name="isUrgent"
+                                className="h-4 w-4 rounded border-[#E4E5E8] text-[#0A65CC] focus:ring-blue-500"
+                            />
+                            Urgent hiring needed
+                        </label>
+                    </div>
                 </div>
 
                 <div className="pt-4">

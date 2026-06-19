@@ -62,7 +62,18 @@ export default function OverviewActivity() {
 
     return (
         <div className="page-container flex flex-col gap-5 ">
-            <span>Hello, {overviewData?.userName ?? "User"}</span>
+            <div className="flex items-center gap-3">
+                {overviewData?.profileImage ? (
+                    <img
+                        src={overviewData.profileImage}
+                        alt={overviewData.userName}
+                        className="h-12 w-12 rounded-full border object-cover"
+                    />
+                ) : (
+                    <div className="h-12 w-12 rounded-full bg-gray-200" aria-hidden />
+                )}
+                <span>Hello, {overviewData?.userName ?? "User"}</span>
+            </div>
 
 
             {loading && <p className="text-gray-500">Loading activity...</p>}

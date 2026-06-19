@@ -195,68 +195,52 @@ export default function HomeSeeker() {
                 </div>
             </section>
 
-            {showRecommendations && (
-                <>
-                    <section className="page-container">
-                        <span className="text-big">Recommend Job for you</span>
+            {showRecommendations && !recommendationsLoading && recommendedJobs.length > 0 && (
+                <section className="page-container">
+                    <span className="text-big">Recommend Job for you</span>
 
-                        {recommendationsLoading && (
-                            <p className="my-5 text-sm text-gray-500">Loading recommendations...</p>
-                        )}
-
-                        {!recommendationsLoading && recommendedJobs.length === 0 && (
-                            <p className="my-5 text-sm text-gray-500">No job recommendations yet.</p>
-                        )}
-
-                        {!recommendationsLoading && recommendedJobs.length > 0 && (
-                            <div className="grid grid-cols-2 lg:grid-cols-3 justify-between gap-5 lg:gap-10 my-5">
-                                {recommendedJobs.map((item) => (
-                                    <div key={item.postId}>
-                                        <CardGrid
-                                            id={item.postId}
-                                            organizationName={item.organizationName}
-                                            title={item.title}
-                                            engagementType={item.engagementType}
-                                            location={item.location}
-                                            salary={item.salary}
-                                            remainingDays={item.remainingDays}
-                                            image={item.image}
-                                            isUrgent={item.isUrgent}
-                                        />
-                                    </div>
-                                ))}
+                    <div className="grid grid-cols-2 lg:grid-cols-3 justify-between gap-5 lg:gap-10 my-5">
+                        {recommendedJobs.map((item) => (
+                            <div key={item.postId}>
+                                <CardGrid
+                                    id={item.postId}
+                                    organizationName={item.organizationName}
+                                    title={item.title}
+                                    engagementType={item.engagementType}
+                                    location={item.location}
+                                    salary={item.salary}
+                                    remainingDays={item.remainingDays}
+                                    image={item.image}
+                                    isUrgent={item.isUrgent}
+                                />
                             </div>
-                        )}
-                    </section>
+                        ))}
+                    </div>
+                </section>
+            )}
 
-                    <section className="page-container">
-                        <span className="text-big">Recommend Volunteer for you</span>
+            {showRecommendations && !recommendationsLoading && recommendedVolunteers.length > 0 && (
+                <section className="page-container">
+                    <span className="text-big">Recommend Volunteer for you</span>
 
-                        {!recommendationsLoading && recommendedVolunteers.length === 0 && (
-                            <p className="my-5 text-sm text-gray-500">No volunteer recommendations yet.</p>
-                        )}
-
-                        {!recommendationsLoading && recommendedVolunteers.length > 0 && (
-                            <div className="grid grid-cols-2 lg:grid-cols-3 justify-between gap-5 lg:gap-10 my-5">
-                                {recommendedVolunteers.map((item) => (
-                                    <div key={item.postId}>
-                                        <CardGrid
-                                            id={item.postId}
-                                            organizationName={item.organizationName}
-                                            title={item.title}
-                                            engagementType={item.engagementType}
-                                            location={item.location}
-                                            salary={item.salary}
-                                            remainingDays={item.remainingDays}
-                                            image={item.image}
-                                            isUrgent={item.isUrgent}
-                                        />
-                                    </div>
-                                ))}
+                    <div className="grid grid-cols-2 lg:grid-cols-3 justify-between gap-5 lg:gap-10 my-5">
+                        {recommendedVolunteers.map((item) => (
+                            <div key={item.postId}>
+                                <CardGrid
+                                    id={item.postId}
+                                    organizationName={item.organizationName}
+                                    title={item.title}
+                                    engagementType={item.engagementType}
+                                    location={item.location}
+                                    salary={item.salary}
+                                    remainingDays={item.remainingDays}
+                                    image={item.image}
+                                    isUrgent={item.isUrgent}
+                                />
                             </div>
-                        )}
-                    </section>
-                </>
+                        ))}
+                    </div>
+                </section>
             )}
 
             <section className="page-container">

@@ -11,6 +11,7 @@ export type OverviewActivityCounts = {
 
 export type OverviewActivityData = {
     userName: string;
+    profileImage: string | null;
     counts: OverviewActivityCounts;
     recentItems: {
         job: AppliedCardItem[];

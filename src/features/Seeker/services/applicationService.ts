@@ -67,7 +67,7 @@ function toAppliedCardItem(
         appliedDate: formatAppliedDate(application.submission_date),
         status: application.status,
         postIsBanned: Boolean(post?.is_ban ?? application.post_is_ban),
-        image: resolveAssetUrl(post?.employer?.logo_img),
+        image: resolveAssetUrl(application.employer_logo_img ?? post?.employer?.logo_img),
     };
 }
 

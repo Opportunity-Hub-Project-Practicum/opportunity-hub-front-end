@@ -17,11 +17,12 @@ function parseClosedDate(value: string): string | null {
     const slashMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (slashMatch) {
         const [, day, month, year] = slashMatch;
-        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+        const normalized = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+        return new Date(`${normalized}T23:59:59`).toISOString();
     }
 
     if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-        return trimmed;
+        return new Date(`${trimmed}T23:59:59`).toISOString();
     }
 
     const parsed = new Date(trimmed);
@@ -92,6 +93,7 @@ export function mapVolunteerPostToApi(payload: VolunteerPostSubmitPayload): Crea
         post_description: normalizeRichTextForStorage(payload.description) || null,
         responsibility: normalizeRichTextForStorage(payload.responsibilities) || null,
         work_place_type: mapWorkPlaceType(payload.volunteerPlaceType),
+        location_id: payload.locationId,
         duration: mapDuration(payload.duration),
         schedule: mapSchedule(payload.schedule),
         hours_per_week: mapNullableCode(payload.hoursPerWeek),
@@ -99,6 +101,7 @@ export function mapVolunteerPostToApi(payload: VolunteerPostSubmitPayload): Crea
         language: mapNullableCode(payload.language),
         job_role_id: payload.jobRoleId,
         job_requirement: normalizeRichTextForStorage(payload.volunteerRequirements) || null,
+        closed_date: parseClosedDate(payload.expirationDate),
         is_urgent: payload.isUrgent,
     };
 }

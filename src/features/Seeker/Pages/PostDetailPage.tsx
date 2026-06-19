@@ -5,11 +5,11 @@ import {
     ArrowLeft,
     ArrowRight,
     Bookmark,
-    Briefcase,
     Calendar,
     Clock,
     DollarSign,
     GraduationCap,
+    Layers,
     Link2Icon,
     MapPin,
     Star,
@@ -335,10 +335,10 @@ export default function PostDetail() {
                 show: !!getPostLookupName(post.location),
             },
             {
-                label: "Job Role",
+                label: "Category",
                 value: getPostLookupName(post.job_role),
-                icon: Briefcase,
-                show: !isVolunteer && !!getPostLookupName(post.job_role),
+                icon: Layers,
+                show: !!getPostLookupName(post.job_role),
             },
             {
                 label: "Experience",
@@ -468,6 +468,7 @@ export default function PostDetail() {
     }
 
     const engagementLabel = formatWorkPlaceType(post.work_place_type) || post.type;
+    const categoryName = getPostLookupName(post.job_role);
     const isPostBanned = isPostBannedForSeeker(post.is_ban);
 
     return (
@@ -497,7 +498,7 @@ export default function PostDetail() {
                             <div className="w-16 h-16 bg-slate-300 rounded-lg" />
                         )}
 
-                        <div className="flex flex-col">
+                        <div className="flex flex-col gap-1">
                             <div className="flex gap-2 flex-wrap items-center">
                                 <h1 className="text-2xl font-bold">{post.post_title}</h1>
                                 {post.is_urgent && <UrgentBadge />}
@@ -522,6 +523,7 @@ export default function PostDetail() {
                                     </div>
                                 )}
                             </div>
+
                         </div>
                     </div>
 
@@ -535,8 +537,8 @@ export default function PostDetail() {
                                 <Bookmark
                                     size={18}
                                     className={`transition-colors ${isBookmarked
-                                            ? "fill-yellow-400 stroke-yellow-500 text-yellow-500"
-                                            : "stroke-slate-400 text-slate-400"
+                                        ? "fill-yellow-400 stroke-yellow-500 text-yellow-500"
+                                        : "stroke-slate-400 text-slate-400"
                                         }`}
                                 />
                             </button>
