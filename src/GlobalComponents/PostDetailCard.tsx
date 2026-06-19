@@ -34,17 +34,19 @@ interface PostDetailCardProps {
     organization: Organization;
     overviewItems?: OverviewItem[];
     isVolunteer?: boolean;
-    isBookmarked: boolean;
-    onBookmark: () => void;
+    showActions?: boolean;
+    isBookmarked?: boolean;
+    onBookmark?: () => void;
     onApply?: () => void;
-    onReport: () => void;
+    onReport?: () => void;
 }
 export default function PostDetailCard({
     post,
     organization,
     overviewItems = [],
     isVolunteer = false,
-    isBookmarked,
+    showActions = true,
+    isBookmarked = false,
     onBookmark,
     onApply,
     onReport,
@@ -84,27 +86,29 @@ export default function PostDetailCard({
                     </div>
                 </div>
 
-                <div className="flex gap-3">
-                    <button
-                        onClick={onBookmark}
-                        className="flex items-center justify-center w-10 h-10 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
-                    >
-                        <Bookmark
-                            size={18}
-                            className={`transition-colors ${isBookmarked
-                                    ? "fill-yellow-400 stroke-yellow-500 text-yellow-500"
-                                    : "stroke-slate-400 text-slate-400"
-                                }`}
-                        />
-                    </button>
-                    <button
-                        onClick={onApply}
-                        className="btn-primary-blue flex items-center gap-2"
-                    >
-                        {isVolunteer ? "Join Now" : "Apply Now"}
-                        <ArrowRight size={16} />
-                    </button>
-                </div>
+                {showActions && (
+                    <div className="flex gap-3">
+                        <button
+                            onClick={onBookmark}
+                            className="flex items-center justify-center w-10 h-10 bg-blue-50 hover:bg-blue-100 rounded transition-colors"
+                        >
+                            <Bookmark
+                                size={18}
+                                className={`transition-colors ${isBookmarked
+                                        ? "fill-yellow-400 stroke-yellow-500 text-yellow-500"
+                                        : "stroke-slate-400 text-slate-400"
+                                    }`}
+                            />
+                        </button>
+                        <button
+                            onClick={onApply}
+                            className="btn-primary-blue flex items-center gap-2"
+                        >
+                            {isVolunteer ? "Join Now" : "Apply Now"}
+                            <ArrowRight size={16} />
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Main Content */}
@@ -159,12 +163,14 @@ export default function PostDetailCard({
 
                     <CardCompany organization={organization} />
 
-                    <button
-                        onClick={onReport}
-                        className="bg-red-600 text-white rounded-lg p-2"
-                    >
-                        Report Post
-                    </button>
+                    {showActions && (
+                        <button
+                            onClick={onReport}
+                            className="bg-red-600 text-white rounded-lg p-2"
+                        >
+                            Report Post
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

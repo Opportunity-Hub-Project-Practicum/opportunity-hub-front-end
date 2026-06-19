@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, Clock, ShieldAlert, Users, XCircle } from "lucide-react";
+import { CheckCircle2, ShieldAlert, Users, XCircle } from "lucide-react";
 import type { ListingItem } from "../lib/myJobMappers";
 import PostBanReasonModal from "./PostBanReasonModal";
 
@@ -11,6 +11,7 @@ type EmployerPostListTableProps = {
     onTabChange: (tab: EmployerPostTab) => void;
     onViewApplications: (postId: number) => void;
     onTogglePostStatus?: (item: ListingItem) => void;
+    onClosePost?: (item: ListingItem) => void;
     updatingPostId?: number | null;
     loading?: boolean;
     error?: string | null;
@@ -25,6 +26,7 @@ export default function EmployerPostListTable({
     onTabChange,
     onViewApplications,
     onTogglePostStatus,
+    onClosePost,
     updatingPostId = null,
     loading = false,
     error = null,
@@ -120,7 +122,7 @@ export default function EmployerPostListTable({
                                     <span>{item.applicationsCount} Applications</span>
                                 </div>
 
-                                <div className="col-span-3 flex items-center justify-between pl-4">
+                                <div className="col-span-3 flex items-center justify-end gap-2 pl-4">
                                     <button
                                         onClick={() => onViewApplications(item.postId)}
                                         type="button"
@@ -130,18 +132,34 @@ export default function EmployerPostListTable({
                                         View Applications
                                     </button>
 
+                                    {item.status === "Active" && onClosePost && (
+                                        <button
+                                            type="button"
+                                            title="Close listing"
+                                            disabled={updatingPostId === item.postId}
+                                            onClick={() => onClosePost(item)}
+                                            className="rounded-sm border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            Close
+                                        </button>
+                                    )}
+
                                     <button
                                         type="button"
-                                        title="Set listing duration"
+                                        title={item.status === "Expire" ? "Reopen listing" : "Extend listing duration"}
                                         disabled={
                                             item.status === "Banned"
                                             || !onTogglePostStatus
                                             || updatingPostId === item.postId
                                         }
                                         onClick={() => onTogglePostStatus?.(item)}
-                                        className={`p-1 hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50 ${item.status === "Active" ? "text-[#E0513E]" : "text-[#7ED321]"}`}
+                                        className={`rounded-sm border px-3 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                                            item.status === "Active"
+                                                ? "border-gray-200 text-gray-700 hover:bg-gray-50"
+                                                : "border-green-200 text-green-700 hover:bg-green-50"
+                                        }`}
                                     >
-                                        <Clock className="h-5 w-5 transform stroke-2" />
+                                        {item.status === "Expire" ? "Reopen" : "Extend"}
                                     </button>
                                 </div>
                             </div>

@@ -8,7 +8,7 @@ import {
     banAdminPost,
     fetchAdminReports,
     groupReportsByPost,
-    resolveAdminReport,
+    resolveAdminPostReports,
     unbanAdminPost,
 } from "../services/adminReportService";
 import {
@@ -17,8 +17,9 @@ import {
     resolveAdminSeekerProfileReports,
 } from "../services/adminSeekerProfileReportService";
 import { banAdminSeeker, unbanAdminSeeker } from "../services/adminUserService";
-import type { GroupedReportedPost, ReportStatus } from "../types/adminReport";
+import type { GroupedReportedPost, ReportStatus, ResolvePostReportsAction } from "../types/adminReport";
 import type { GroupedReportedSeeker, ReportType } from "../types/adminSeekerProfileReport";
+import ResolvePostReportModal from "../Components/ResolvePostReportModal";
 
 function parseReportStatus(value: string | null): ReportStatus {
     return value === "resolved" ? "resolved" : "pending";
@@ -40,6 +41,7 @@ export default function ReportedPage() {
     const [error, setError] = useState<string | null>(null);
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
+    const [resolveTarget, setResolveTarget] = useState<GroupedReportedPost | null>(null);
 
     useEffect(() => {
         const closeMenu = (event: MouseEvent) => {
@@ -133,13 +135,14 @@ export default function ReportedPage() {
         navigate(ROUTES.ADMIN.REPORTED_USER_DETAIL(group.seekerId, reportStatus, "user"));
     };
 
-    const handleResolvePost = async (group: GroupedReportedPost) => {
+    const handleResolvePost = async (
+        group: GroupedReportedPost,
+        action: ResolvePostReportsAction,
+    ) => {
         setActionLoading(true);
 
         try {
-            await Promise.all(
-                group.reports.map((report) => resolveAdminReport(report.report_id)),
-            );
+            await resolveAdminPostReports(group.postId, action);
             setGroupedPostReports((current) =>
                 current.filter((item) => item.postId !== group.postId),
             );
@@ -147,6 +150,7 @@ export default function ReportedPage() {
             setError(formatApiError(resolveError));
         } finally {
             setActionLoading(false);
+            setResolveTarget(null);
         }
     };
 
@@ -374,7 +378,7 @@ export default function ReportedPage() {
                                         {item.status === "pending" && (
                                             <button
                                                 onClick={() => {
-                                                    void handleResolvePost(item);
+                                                    setResolveTarget(item);
                                                     setOpenMenuId(null);
                                                 }}
                                                 type="button"
@@ -524,6 +528,22 @@ export default function ReportedPage() {
                     )}
                 </div>
             )}
+            <ResolvePostReportModal
+                isOpen={resolveTarget !== null}
+                postTitle={resolveTarget?.postTitle ?? ""}
+                loading={actionLoading}
+                onClose={() => setResolveTarget(null)}
+                onIgnore={() => {
+                    if (resolveTarget) {
+                        void handleResolvePost(resolveTarget, "ignore");
+                    }
+                }}
+                onBan={() => {
+                    if (resolveTarget) {
+                        void handleResolvePost(resolveTarget, "ban");
+                    }
+                }}
+            />
         </div>
     );
 }

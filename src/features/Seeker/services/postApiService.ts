@@ -1,3 +1,4 @@
+import { resolveAssetUrl } from "../../Employer/lib/resolveAssetUrl";
 import { getPostLookupName } from "../lib/postLookup";
 import type {
     PostDetailApi,
@@ -119,7 +120,7 @@ export function toPostListCardItem(post: PublicPostApi): PostListCardItem {
         location: getPostLookupName(post.location),
         salary: formatPostSalary(post),
         remainingDays: formatClosedDate(post.closed_date),
-        image: post.employer?.logo_img ?? "",
+        image: resolveAssetUrl(post.employer?.logo_img),
         isUrgent: post.is_urgent === true,
     };
 }

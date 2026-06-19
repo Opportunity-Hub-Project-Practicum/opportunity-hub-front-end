@@ -1,3 +1,4 @@
+import { resolveAssetUrl } from "../../Employer/lib/resolveAssetUrl";
 import type {
     FavoriteCardItem,
     FavoritePostApi,
@@ -65,7 +66,7 @@ function toFavoriteCardItem(
         location: getPostLookupName(post?.location),
         salary: post ? formatPostSalary(post) : "",
         remainingDays: formatSavedDate(favorite.created_at),
-        image: post?.employer?.logo_img ?? "",
+        image: resolveAssetUrl(post?.employer?.logo_img),
         postIsBanned: Boolean(post?.is_ban ?? favorite.post_is_ban),
         isUrgent: post?.is_urgent === true,
     };

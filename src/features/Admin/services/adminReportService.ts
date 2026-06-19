@@ -5,6 +5,8 @@ import type {
     AdminReportsResponse,
     GroupedReportedPost,
     ReportStatus,
+    ResolvePostReportsAction,
+    ResolvePostReportsResponse,
 } from "../types/adminReport";
 
 export type FetchAdminReportsParams = {
@@ -34,6 +36,19 @@ export async function resolveAdminReport(reportId: number): Promise<AdminReportA
         { method: "PATCH" },
     );
     return response.report;
+}
+
+export async function resolveAdminPostReports(
+    postId: number,
+    action: ResolvePostReportsAction,
+): Promise<ResolvePostReportsResponse> {
+    return apiRequest<ResolvePostReportsResponse>(
+        `/admin/reports/posts/${postId}/resolve`,
+        {
+            method: "PATCH",
+            body: JSON.stringify({ action }),
+        },
+    );
 }
 
 export async function banAdminPost(postId: number): Promise<void> {

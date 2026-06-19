@@ -1,3 +1,4 @@
+import { resolveAssetUrl } from "../../Employer/lib/resolveAssetUrl";
 import type {
     ApplicationApi,
     AppliedCardItem,
@@ -66,7 +67,7 @@ function toAppliedCardItem(
         appliedDate: formatAppliedDate(application.submission_date),
         status: application.status,
         postIsBanned: Boolean(post?.is_ban ?? application.post_is_ban),
-        image: post?.employer?.logo_img ?? "",
+        image: resolveAssetUrl(post?.employer?.logo_img),
     };
 }
 

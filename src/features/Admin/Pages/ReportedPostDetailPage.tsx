@@ -5,11 +5,12 @@ import { ROUTES } from "../../../routes/path";
 import { formatApiError } from "../../../services/apiClient";
 import BackButton from "../../Seeker/Components/BackButton";
 import {
-    fetchPostDetailWithEmployer,
     formatWorkPlaceType,
 } from "../../Seeker/services/postApiService";
+import { fetchAdminPost } from "../services/adminPostService";
 import type { PostDetailApi } from "../../Seeker/types/post";
 import ReportDetailsPanel from "../Components/ReportDetailsPanel";
+import ResolvePostReportModal from "../Components/ResolvePostReportModal";
 import {
     buildPostOrganization,
     buildPostOverviewItems,
@@ -18,10 +19,10 @@ import {
     banAdminPost,
     fetchAdminReports,
     groupReportsByPost,
-    resolveAdminReport,
+    resolveAdminPostReports,
     unbanAdminPost,
 } from "../services/adminReportService";
-import type { GroupedReportedPost, ReportStatus } from "../types/adminReport";
+import type { GroupedReportedPost, ReportStatus, ResolvePostReportsAction } from "../types/adminReport";
 
 function parseReportStatus(value: string | null): ReportStatus {
     return value === "resolved" ? "resolved" : "pending";
@@ -40,6 +41,7 @@ export default function ReportedPostDetailPage() {
     const [error, setError] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
+    const [isResolveModalOpen, setIsResolveModalOpen] = useState(false);
 
     useEffect(() => {
         if (!postId || Number.isNaN(postId)) {
@@ -56,7 +58,7 @@ export default function ReportedPostDetailPage() {
 
             try {
                 const [post, reports] = await Promise.all([
-                    fetchPostDetailWithEmployer(postId),
+                    fetchAdminPost(postId),
                     fetchAdminReports({ status: reportStatus }),
                 ]);
 
@@ -104,7 +106,7 @@ export default function ReportedPostDetailPage() {
         [reportStatus],
     );
 
-    const handleResolve = async () => {
+    const handleResolve = async (action: ResolvePostReportsAction) => {
         if (!reportGroup) {
             return;
         }
@@ -113,14 +115,28 @@ export default function ReportedPostDetailPage() {
         setActionError(null);
 
         try {
-            await Promise.all(
-                reportGroup.reports.map((report) => resolveAdminReport(report.report_id)),
+            const response = await resolveAdminPostReports(reportGroup.postId, action);
+            setReportGroup((current) =>
+                current
+                    ? {
+                        ...current,
+                        status: "resolved",
+                        isBanned: response.post_is_ban,
+                        reports: response.reports.filter(
+                            (report) => report.post_id === current.postId,
+                        ),
+                    }
+                    : current,
             );
-            navigate(backPath, { replace: true });
+
+            if (reportStatus === "pending") {
+                navigate(backPath, { replace: true });
+            }
         } catch (resolveError) {
             setActionError(formatApiError(resolveError));
         } finally {
             setActionLoading(false);
+            setIsResolveModalOpen(false);
         }
     };
 
@@ -190,24 +206,26 @@ export default function ReportedPostDetailPage() {
                             {reportGroup.status === "pending" && (
                                 <button
                                     type="button"
-                                    onClick={() => void handleResolve()}
+                                    onClick={() => setIsResolveModalOpen(true)}
                                     disabled={actionLoading}
                                     className="rounded-sm bg-[#28A745] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#218838] disabled:opacity-60"
                                 >
                                     Resolve
                                 </button>
                             )}
-                            <button
-                                type="button"
-                                onClick={() => void handleToggleBan()}
-                                disabled={actionLoading}
-                                className={`rounded-sm px-4 py-2 text-sm font-semibold text-white transition-colors disabled:opacity-60 ${reportGroup.isBanned
-                                    ? "bg-[#0A65CC] hover:bg-[#0851a3]"
-                                    : "bg-[#DC3545] hover:bg-[#c82333]"
-                                    }`}
-                            >
-                                {reportGroup.isBanned ? "Unban Post" : "Ban Post"}
-                            </button>
+                            {reportGroup.status !== "pending" && (
+                                <button
+                                    type="button"
+                                    onClick={() => void handleToggleBan()}
+                                    disabled={actionLoading}
+                                    className={`rounded-sm px-4 py-2 text-sm font-semibold text-white transition-colors disabled:opacity-60 ${reportGroup.isBanned
+                                        ? "bg-[#0A65CC] hover:bg-[#0851a3]"
+                                        : "bg-[#DC3545] hover:bg-[#c82333]"
+                                        }`}
+                                >
+                                    {reportGroup.isBanned ? "Unban Post" : "Ban Post"}
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -230,14 +248,20 @@ export default function ReportedPostDetailPage() {
                                 organization={buildPostOrganization(postDetail)}
                                 overviewItems={buildPostOverviewItems(postDetail)}
                                 isVolunteer={postDetail.type === "volunteer"}
-                                isBookmarked={false}
-                                onBookmark={() => undefined}
-                                onReport={() => undefined}
+                                showActions={false}
                             />
                         </div>
 
                         <ReportDetailsPanel reports={reportGroup.reports} />
                     </div>
+                    <ResolvePostReportModal
+                        isOpen={isResolveModalOpen}
+                        postTitle={reportGroup.postTitle}
+                        loading={actionLoading}
+                        onClose={() => setIsResolveModalOpen(false)}
+                        onIgnore={() => void handleResolve("ignore")}
+                        onBan={() => void handleResolve("ban")}
+                    />
                 </>
             )}
         </div>

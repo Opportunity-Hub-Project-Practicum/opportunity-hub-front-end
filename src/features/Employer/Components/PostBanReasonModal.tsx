@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import RichTextContent from "../../../GlobalComponents/RichTextContent";
 import type { EmployerPostBanReportApi } from "../types/employerPost";
 
 type PostBanReasonModalProps = {
@@ -72,9 +73,10 @@ export default function PostBanReasonModal({
                                         {formatReportDate(report.created_date)}
                                     </span>
                                 </div>
-                                <p className="text-sm leading-relaxed text-[#5E6670]">
-                                    {report.report_reason}
-                                </p>
+                                <RichTextContent
+                                    value={report.report_reason}
+                                    className="text-sm leading-relaxed text-[#5E6670]"
+                                />
                             </div>
                         ))
                     )}

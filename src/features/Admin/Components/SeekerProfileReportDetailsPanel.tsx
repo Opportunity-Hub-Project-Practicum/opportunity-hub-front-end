@@ -1,3 +1,4 @@
+import RichTextContent from "../../../GlobalComponents/RichTextContent";
 import { formatSeekerReportDateTime } from "../services/adminSeekerProfileReportService";
 import type { AdminSeekerProfileReportApi } from "../types/adminSeekerProfileReport";
 
@@ -44,9 +45,10 @@ export default function SeekerProfileReportDetailsPanel({
                                 {formatSeekerReportDateTime(report.created_at)}
                             </span>
                         </div>
-                        <p className="text-sm leading-relaxed text-[#5E6670]">
-                            {report.report_reason}
-                        </p>
+                        <RichTextContent
+                            value={report.report_reason}
+                            className="text-sm leading-relaxed text-[#5E6670]"
+                        />
                     </div>
                 ))}
             </div>

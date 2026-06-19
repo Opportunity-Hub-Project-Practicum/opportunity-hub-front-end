@@ -7,6 +7,7 @@ interface KanbanColumnProps {
     cards: KanbanApplication[]
     draggingCardId: string | null
     onViewCv: (applicationId: string) => void
+    onViewSeekerProfile: (seekerId: number) => void
     onEdit: (column: Column) => void
     onDelete: (colId: string) => void
     onDragStart: (cardId: string, srcColId: string) => void
@@ -81,6 +82,7 @@ export default function KanbanColumn({
     cards,
     draggingCardId,
     onViewCv,
+    onViewSeekerProfile,
     onEdit,
     onDelete,
     onDragStart,
@@ -170,9 +172,13 @@ export default function KanbanColumn({
                                     </div>
                                 )}
                                 <div className="min-w-0">
-                                    <p className="truncate text-sm font-medium text-[#18191C]">
+                                    <button
+                                        type="button"
+                                        onClick={() => onViewSeekerProfile(app.seekerId)}
+                                        className="truncate text-left text-sm font-medium text-[#0A65CC] hover:underline"
+                                    >
                                         {app.userName}
-                                    </p>
+                                    </button>
                                     <p className="truncate text-xs text-[#767F8C]">{app.role}</p>
                                 </div>
                             </div>

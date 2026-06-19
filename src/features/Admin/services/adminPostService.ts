@@ -5,6 +5,7 @@ import {
     formatPostSalary,
     formatWorkPlaceType,
 } from "../../Seeker/services/postApiService";
+import type { PostDetailApi } from "../../Seeker/types/post";
 import type { AdminPostApi, AdminPostListItem, AdminPostsResponse } from "../types/adminPost";
 
 const PLACEHOLDER_IMAGE = "https://placehold.co/60x60";
@@ -41,9 +42,14 @@ export async function fetchAdminPosts(params?: FetchAdminPostsParams): Promise<A
     return response.posts;
 }
 
+export async function fetchAdminPost(postId: number): Promise<PostDetailApi> {
+    const response = await apiRequest<{ post: PostDetailApi }>(`/admin/posts/${postId}`);
+    return response.post;
+}
+
 function resolvePostImage(logoPath: string | null | undefined): string {
     const resolved = resolveAssetUrl(logoPath);
-    return resolved === "#" ? PLACEHOLDER_IMAGE : resolved;
+    return resolved || PLACEHOLDER_IMAGE;
 }
 
 export function mapAdminPostToListItem(post: AdminPostApi): AdminPostListItem {
