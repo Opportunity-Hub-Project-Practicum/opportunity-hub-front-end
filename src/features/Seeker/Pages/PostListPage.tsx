@@ -77,6 +77,7 @@ export default function PostList() {
                             <div key={item.postId}>
                                 <CardGrid
                                     id={item.postId}
+                                    employerId={item.employerId}
                                     organizationName={item.organizationName}
                                     title={item.title}
                                     engagementType={item.engagementType}
@@ -97,6 +98,7 @@ export default function PostList() {
                             <CardList
                                 key={item.postId}
                                 id={item.postId}
+                                employerId={item.employerId}
                                 organizationName={item.organizationName}
                                 title={item.title}
                                 engagementType={item.engagementType}

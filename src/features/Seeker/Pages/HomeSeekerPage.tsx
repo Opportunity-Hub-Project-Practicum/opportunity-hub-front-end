@@ -204,6 +204,7 @@ export default function HomeSeeker() {
                             <div key={item.postId}>
                                 <CardGrid
                                     id={item.postId}
+                                    employerId={item.employerId}
                                     organizationName={item.organizationName}
                                     title={item.title}
                                     engagementType={item.engagementType}
@@ -228,6 +229,7 @@ export default function HomeSeeker() {
                             <div key={item.postId}>
                                 <CardGrid
                                     id={item.postId}
+                                    employerId={item.employerId}
                                     organizationName={item.organizationName}
                                     title={item.title}
                                     engagementType={item.engagementType}
@@ -263,6 +265,7 @@ export default function HomeSeeker() {
                         <div key={item.postId}>
                             <CardGrid
                                 id={item.postId}
+                                employerId={item.employerId}
                                 organizationName={item.organizationName}
                                 title={item.title}
                                 engagementType={item.engagementType}
@@ -297,6 +300,7 @@ export default function HomeSeeker() {
                         <div key={item.postId}>
                             <CardGrid
                                 id={item.postId}
+                                employerId={item.employerId}
                                 organizationName={item.organizationName}
                                 title={item.title}
                                 engagementType={item.engagementType}
@@ -372,6 +376,7 @@ export default function HomeSeeker() {
                         <div key={item.postId}>
                             <CardGrid
                                 id={item.postId}
+                                employerId={item.employerId}
                                 organizationName={item.organizationName}
                                 title={item.title}
                                 engagementType={item.engagementType}
@@ -402,6 +407,7 @@ export default function HomeSeeker() {
                         <div key={item.postId}>
                             <CardGrid
                                 id={item.postId}
+                                employerId={item.employerId}
                                 organizationName={item.organizationName}
                                 title={item.title}
                                 engagementType={item.engagementType}

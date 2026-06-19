@@ -20,6 +20,7 @@ export type FetchPublicPostsParams = {
 
 export type PostListCardItem = {
     postId: number;
+    employerId?: number;
     organizationName: string;
     title: string;
     engagementType: string;
@@ -114,6 +115,7 @@ export async function fetchPostDetailWithEmployer(postId: number): Promise<PostD
 export function toPostListCardItem(post: PublicPostApi): PostListCardItem {
     return {
         postId: post.post_id,
+        employerId: post.employer?.user_id,
         organizationName: post.employer?.company_name ?? "Unknown",
         title: post.post_title,
         engagementType: formatWorkPlaceType(post.work_place_type ?? post.type),

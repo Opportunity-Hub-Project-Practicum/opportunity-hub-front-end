@@ -1,12 +1,14 @@
 import { MapPin, Bookmark, Calendar } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { ROUTES } from "../../../../routes/path";
 import { BANNED_POST_STATUS_LABEL } from "../../lib/seekerPostBan";
 
 import UrgentBadge from "../UrgentBadge";
 
 interface CardGridProps {
     id: number;
+    employerId?: number;
     organizationName: string;
     title: string;
     engagementType: string;
@@ -20,8 +22,11 @@ interface CardGridProps {
 }
 
 export default function CardGrid({
-    id, organizationName, title, engagementType, location, salary, remainingDays, image, isBanned = false, isUrgent = false, onBookmark
+    id, employerId, organizationName, title, engagementType, location, salary, remainingDays, image, isBanned = false, isUrgent = false, onBookmark
 }: CardGridProps) {
+    const organizationDetailPath = employerId
+        ? ROUTES.HOME.ORGANIZATION_DETAIL(employerId)
+        : null;
     const [isBookmarked, setIsBookmarked] = useState(false);
 
     const handleBookmark = () => {
@@ -50,7 +55,16 @@ export default function CardGrid({
 
                 {/* Company Info */}
                 <div className="flex flex-col gap-0.5">
-                    <p className=" font-medium text-slate-900">{organizationName}</p>
+                    {organizationDetailPath ? (
+                        <Link
+                            to={organizationDetailPath}
+                            className="font-medium text-slate-900 hover:text-primary hover:underline"
+                        >
+                            {organizationName}
+                        </Link>
+                    ) : (
+                        <p className="font-medium text-slate-900">{organizationName}</p>
+                    )}
                     <div className="flex items-center gap-0.5">
                         <MapPin size={14} className="text-slate-500" />
                         <p className="text-xs text-slate-500">{location}</p>

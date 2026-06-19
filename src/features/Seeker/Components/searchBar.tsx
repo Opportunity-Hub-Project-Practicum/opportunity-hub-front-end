@@ -1,4 +1,12 @@
-import { useState, useEffect, useContext, type Dispatch, type SetStateAction } from "react";
+import {
+    useState,
+    useEffect,
+    useContext,
+    useCallback,
+    type Dispatch,
+    type FormEvent,
+    type SetStateAction,
+} from "react";
 import { Search, MapPin, Layers, ChevronDown } from "lucide-react";
 import { useSearch } from "../hooks/useSearch";
 import { opportunityTypeContext, setOpportunityTypeContext } from "../../../contexts/Context";
@@ -129,21 +137,22 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
         onLoadingChange?.(loading);
     }, [loading, onLoadingChange]);
 
-    const navigateToResults = (
+    const navigateToResults = useCallback((
         nextResults: PostListCardItem[],
         nextFilters: SearchFilters,
+        snapshot: { searchTerm: string; location: string; category: string },
     ) => {
         navigate("/postList", {
             state: {
                 results: nextResults,
                 filters: nextFilters,
-                searchTerm,
-                location,
-                category,
+                searchTerm: snapshot.searchTerm,
+                location: snapshot.location,
+                category: snapshot.category,
                 opportunityType,
             },
         });
-    };
+    }, [navigate, opportunityType]);
 
     const buildNextFilters = (): SearchFilters => {
         const sharedFilters = { urgentOnly };
@@ -169,44 +178,55 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
         };
     };
 
-    const handleApplyFilters = () => {
-        const nextFilters = buildNextFilters();
+    const executeSearch = async (
+        overrides?: Partial<{ query: string; location: string; category: string; filters: SearchFilters }>,
+    ) => {
+        const nextFilters = overrides?.filters ?? buildNextFilters();
+        const snapshot = {
+            searchTerm: overrides?.query ?? searchTerm,
+            location: overrides?.location ?? location,
+            category: overrides?.category ?? category,
+        };
+        const payload = {
+            query: snapshot.searchTerm,
+            location: snapshot.location,
+            category: snapshot.category,
+            opportunityType,
+            filters: nextFilters,
+        };
+
+        if (!hasActiveSearch(payload)) {
+            return;
+        }
+
         setAppliedFilters(nextFilters);
         invalidatePendingSearch();
 
-        void (async () => {
-            const nextResults = await runPostSearch({
-                query: searchTerm,
-                location,
-                category,
-                opportunityType,
-                filters: nextFilters,
-            });
+        const nextResults = await runPostSearch(payload);
+        onResultsChange?.(nextResults);
 
-            onResultsChange?.(nextResults);
-            navigateToResults(nextResults, nextFilters);
-        })();
+        if (!onResultsChange) {
+            navigateToResults(nextResults, nextFilters, snapshot);
+        }
     };
 
-    const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
-            const nextFilters = buildNextFilters();
-            setAppliedFilters(nextFilters);
-            invalidatePendingSearch();
+    const handleApplyFilters = () => {
+        void executeSearch();
+    };
 
-            void (async () => {
-                const nextResults = await runPostSearch({
-                    query: searchTerm,
-                    location,
-                    category,
-                    opportunityType,
-                    filters: nextFilters,
-                });
+    const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        void executeSearch();
+    };
 
-                onResultsChange?.(nextResults);
-                navigateToResults(nextResults, nextFilters);
-            })();
-        }
+    const handleLocationChange = (value: string) => {
+        setLocation(value);
+        void executeSearch({ location: value });
+    };
+
+    const handleCategoryChange = (value: string) => {
+        setCategory(value);
+        void executeSearch({ category: value });
     };
 
     return (
@@ -214,7 +234,10 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
             <div className="mx-auto max-w-7xl">
 
                 {/* MAIN SEARCH */}
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-2 rounded-lg bg-white p-3 shadow-lg border border-slate-200">
+                <form
+                    onSubmit={handleSearchSubmit}
+                    className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-2 rounded-lg bg-white p-3 shadow-lg border border-slate-200"
+                >
 
                     {/* SEARCH INPUT */}
                     <div className="flex flex-1 items-center gap-2 px-3 py-2">
@@ -223,10 +246,15 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
                             placeholder="Job title, keyword..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyDown={handleSearchKeyPress}
                             className="flex-1 bg-transparent text-sm outline-none"
                         />
-                        <Search size={18} className="text-slate-500" />
+                        <button
+                            type="submit"
+                            aria-label="Search"
+                            className="text-slate-500 hover:text-slate-700"
+                        >
+                            <Search size={18} />
+                        </button>
                     </div>
 
                     <div className="hidden lg:block h-6 w-px bg-slate-200"></div>
@@ -235,7 +263,7 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
                     <div className="flex flex-1 items-center gap-2 px-3 py-2">
                         <select
                             value={location}
-                            onChange={(e) => setLocation(e.target.value)}
+                            onChange={(e) => handleLocationChange(e.target.value)}
                             disabled={lookupLoading}
                             className="flex-1 bg-transparent text-sm outline-none cursor-pointer disabled:cursor-wait"
                         >
@@ -256,7 +284,7 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
                     <div className="flex flex-1 items-center gap-2 px-3 py-2">
                         <select
                             value={category}
-                            onChange={(e) => setCategory(e.target.value)}
+                            onChange={(e) => handleCategoryChange(e.target.value)}
                             disabled={lookupLoading}
                             className="flex-1 bg-transparent text-sm outline-none cursor-pointer disabled:cursor-wait"
                         >
@@ -275,6 +303,7 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
 
                     {/* FILTER TOGGLE */}
                     <button
+                        type="button"
                         onClick={() => setAdvancedFilter(!advancedFilter)}
                         className="flex items-center gap-2 text-sm"
                     >
@@ -286,6 +315,7 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
 
                     {/* TYPE SWITCH */}
                     <button
+                        type="button"
                         onClick={() => setOpportunityType("job")}
                         className={`px-4 py-2 rounded ${opportunityType === "job"
                             ? "bg-blue-600 text-white"
@@ -296,6 +326,7 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
                     </button>
 
                     <button
+                        type="button"
                         onClick={() => setOpportunityType("volunteer")}
                         className={`px-4 py-2 rounded ${opportunityType === "volunteer"
                             ? "bg-green-500 text-white"
@@ -304,7 +335,7 @@ export default function SearchBar({ onResultsChange, onLoadingChange, initialSta
                     >
                         Volunteer
                     </button>
-                </div>
+                </form>
 
                 {/* ADVANCED FILTER */}
                 {advancedFilter && (

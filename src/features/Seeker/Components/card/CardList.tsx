@@ -1,12 +1,14 @@
 import { Bookmark, MapPin, Calendar, DollarSign, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { ROUTES } from "../../../../routes/path";
 import { BANNED_POST_STATUS_LABEL } from "../../lib/seekerPostBan";
 
 import UrgentBadge from "../UrgentBadge";
 
 interface CardListProps {
     id: number;
+    employerId?: number;
     organizationName: string;
     title: string;
     engagementType: string;
@@ -23,6 +25,7 @@ interface CardListProps {
 
 export default function CardList({
     id,
+    employerId,
     organizationName,
     title,
     engagementType,
@@ -35,6 +38,9 @@ export default function CardList({
     isBookmarked = false,
     onBookmark,
 }: CardListProps) {
+    const organizationDetailPath = employerId
+        ? ROUTES.HOME.ORGANIZATION_DETAIL(employerId)
+        : null;
     const [bookmark, setBookmark] = useState(isBookmarked);
     const handleBookmark = () => {
         if (isBanned) {
@@ -52,7 +58,17 @@ export default function CardList({
                 <img src={image || ""} alt={title} className="rounded-lg border w-15 h-15" />
                 <div className="flex flex-col justify-around w-full">
                     <div className="flex gap-1 flex-wrap items-center">
-                        <p className="font-semibold">{organizationName} - {title}</p>
+                        {organizationDetailPath ? (
+                            <Link
+                                to={organizationDetailPath}
+                                className="font-semibold hover:text-primary hover:underline"
+                            >
+                                {organizationName}
+                            </Link>
+                        ) : (
+                            <span className="font-semibold">{organizationName}</span>
+                        )}
+                        <span className="font-semibold">- {title}</span>
                         {isUrgent && <UrgentBadge />}
                         <span className="rounded-2xl bg-subPrimary px-2 text-primaryDark w-fit text-sm">{engagementType}</span>
                     </div>
