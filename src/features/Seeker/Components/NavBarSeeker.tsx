@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import NavProfileButton from "../../../GlobalComponents/NavProfileButton";
 import { ROUTES } from "../../../routes/path";
 export default function NavBarSeeker() {
@@ -10,7 +10,16 @@ export default function NavBarSeeker() {
                 <h1 className="whitespace-nowrap text-big text-primary"><Link to={ROUTES.HOME.ROOT}>Opportunity Hub</Link></h1>
 
                 <ul className="flex gap-5">
-                    <li className="whitespace-nowrap"><Link to={ROUTES.HOME.ROOT}>Opportunities</Link></li>
+                    <li className="whitespace-nowrap">
+                        <NavLink
+                            to={ROUTES.HOME.ROOT}
+                            end
+                            state={null}
+                            className={({ isActive }) => (isActive ? "font-semibold text-primary" : "")}
+                        >
+                            Opportunities
+                        </NavLink>
+                    </li>
                     <li className="whitespace-nowrap"><Link to={ROUTES.HOME.ORGANIZATION_LIST}>Find Employer</Link></li>
                     <li className="whitespace-nowrap"><Link to={`${ROUTES.SEEKER.ROOT}/${ROUTES.SEEKER.OVERVIEW}`}>My Activity</Link></li>
                 </ul>

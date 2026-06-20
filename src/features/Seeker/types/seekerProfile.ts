@@ -9,6 +9,7 @@ export interface SeekerEducationApi {
     education_id: number;
     institution_name: string;
     degree: string;
+    area_of_study: string | null;
     location: string;
     country: string;
     start_date: string;
@@ -22,6 +23,7 @@ export interface SeekerWorkExperienceApi {
     job_role: string;
     year_of_experience: number;
     industry: string;
+    location: string | null;
     start_date: string;
     end_date: string | null;
     description: string | null;

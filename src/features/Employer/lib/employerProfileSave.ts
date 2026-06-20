@@ -17,7 +17,7 @@ import {
     updateEmployerProfile,
 } from "../services/employerProfileService";
 
-async function uploadLogoIfNeeded(formData: EmployerData): Promise<string | null> {
+export async function uploadLogoIfNeeded(formData: EmployerData): Promise<string | null> {
     if (!formData.logo?.raw) {
         return null;
     }

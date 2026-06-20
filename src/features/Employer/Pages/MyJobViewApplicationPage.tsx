@@ -170,6 +170,10 @@ export default function MyJobViewApplicationPage() {
 
     const isView = selectedApplication !== null
 
+    function handleViewSeekerProfile(seekerId: number) {
+        navigate(`${ROUTES.EMPLOYER.ROOT}/${ROUTES.EMPLOYER.SEEKER_PROFILE(seekerId)}`)
+    }
+
     return (
         <div className="p-4">
             <div className="mb-4 flex items-center justify-between gap-4">
@@ -227,6 +231,7 @@ export default function MyJobViewApplicationPage() {
                                         .find((item) => item.id === applicationId)
                                     setSelectedApplication(card ?? null)
                                 }}
+                                onViewSeekerProfile={handleViewSeekerProfile}
                                 onEdit={(column) => setEditingColumn(column)}
                                 onDelete={(columnId) => {
                                     const column = columns.find((item) => item.id === columnId)

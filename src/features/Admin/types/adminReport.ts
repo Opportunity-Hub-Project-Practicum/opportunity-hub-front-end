@@ -25,6 +25,14 @@ export type AdminReportResponse = {
     message?: string;
 };
 
+export type ResolvePostReportsAction = "ignore" | "ban";
+
+export type ResolvePostReportsResponse = {
+    message: string;
+    post_is_ban: boolean;
+    reports: AdminReportApi[];
+};
+
 export type GroupedReportedPost = {
     postId: number;
     postTitle: string;

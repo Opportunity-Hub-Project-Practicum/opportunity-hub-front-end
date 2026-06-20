@@ -9,7 +9,7 @@ interface WorkExperienceData {
   yearsOfExperience: string;
   company: string;
   industry: string;
-  country: string;
+  location: string;
   from: string;
   to: string;
   jobDescription: string;
@@ -23,13 +23,13 @@ const EMPTY_FORM: WorkExperienceData = {
   yearsOfExperience: '',
   company: '',
   industry: '',
-  country: '',
+  location: '',
   from: '',
   to: '',
   jobDescription: '',
 };
 
-const REQUIRED_FIELDS: (keyof WorkExperienceData)[] = ['jobTitle', 'jobRole', 'company'];
+const REQUIRED_FIELDS: (keyof WorkExperienceData)[] = ['jobTitle', 'jobRole', 'company', 'industry', 'location'];
 
 //const JOB_ROLES = ['Developer', 'Designer', 'Manager', 'Analyst', 'Marketing', 'Sales', 'Operations', 'Other'];
 const YEARS_OF_EXPERIENCE = ['Less than 1 year', '1–2 years', '3–5 years', '6–10 years', '10+ years'];
@@ -317,6 +317,8 @@ const InputField: React.FC<{
 const WorkExperienceForm: React.FC<{ onClose?: () => void; onSave?: (data: WorkExperienceData) => void }> = ({ onClose, onSave }) => {
   const { lookupValues, loading: lookupLoading } = useLookupValues();
   const jobRoleOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobRole);
+  const industryOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.industry);
+  const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
 
   const [formData, setFormData] = useState<WorkExperienceData>(EMPTY_FORM);
   const [fromMonth, setFromMonth] = useState('');
@@ -453,19 +455,23 @@ const WorkExperienceForm: React.FC<{ onClose?: () => void; onSave?: (data: WorkE
             onChange={handleChange}
           />
 
-          <InputField
+          <LookupSelectField
             label="Industry"
             name="industry"
             value={formData.industry}
-            placeholder='e.g. Tech'
+            options={industryOptions}
+            error={errors.industry}
+            disabled={lookupLoading}
             onChange={handleChange}
           />
 
-          <InputField
-            label="Country"
-            name="country"
-            value={formData.country}
-            placeholder='..Cambodia'
+          <LookupSelectField
+            label="Location"
+            name="location"
+            value={formData.location}
+            options={locationOptions}
+            error={errors.location}
+            disabled={lookupLoading}
             onChange={handleChange}
           />
 

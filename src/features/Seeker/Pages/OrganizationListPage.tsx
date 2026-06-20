@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../../routes/path";
 import { formatApiError } from "../../../services/apiClient";
+import { resolveAssetUrl } from "../../Employer/lib/resolveAssetUrl";
 import { fetchPublicEmployers } from "../services/employerService";
 import type { PublicEmployerApi } from "../types/employer";
 import {
@@ -81,6 +82,7 @@ export default function OrganizationList() {
                     <div className="flex flex-col gap-4">
                         {filteredEmployers.map((employer) => {
                             const openPositions = employer.open_posts_count ?? 0;
+                            const logoUrl = resolveAssetUrl(employer.logo_img);
 
                             return (
                                 <div
@@ -89,9 +91,9 @@ export default function OrganizationList() {
                                 >
                                     <div className="flex items-start justify-between">
                                         <div className="flex gap-4">
-                                            {employer.logo_img ? (
+                                            {logoUrl ? (
                                                 <img
-                                                    src={employer.logo_img}
+                                                    src={logoUrl}
                                                     alt={employer.company_name}
                                                     className="h-16 w-16 rounded-lg border border-gray-100 object-cover"
                                                 />

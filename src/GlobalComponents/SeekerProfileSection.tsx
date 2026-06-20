@@ -17,6 +17,10 @@ import EducationModal from "../features/Seeker/Components/modal/Education";
 import Upload from "../features/Seeker/libs/uploadFile";
 import TextAreaBox from "./textAreaBox";
 import SocialLinksSection from "./socialLink";
+import { getLookupOptions, useLookupValues } from "../hooks/useLookupValues";
+import { resolveLookupStoredValue } from "../lib/lookupValueUtils";
+import { LOOKUP_TYPES } from "../types/lookupValue";
+import type { LookupValueItem } from "../types/lookupValue";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -42,6 +46,7 @@ export interface ExperienceEntry {
     jobRole?: string;
     yearsOfExperience?: string;
     industry?: string;
+    location?: string;
     from?: string;
     to?: string;
     jobDescription?: string;
@@ -185,6 +190,13 @@ export interface ProfileSectionProps {
 
 // ── ProfileSection ───────────────────────────────────────────────
 
+function formatLookupLabel(stored: string | undefined, options: LookupValueItem[]): string {
+    if (!stored?.trim()) {
+        return "";
+    }
+    return resolveLookupStoredValue(stored, options);
+}
+
 export default function SeekerProfileSection({
     seekerData,
     viewOnly = false,
@@ -194,6 +206,11 @@ export default function SeekerProfileSection({
 }: ProfileSectionProps) {
     const [modal, setModal] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { lookupValues } = useLookupValues();
+    const jobRoleOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobRole);
+    const industryOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.industry);
+    const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
+    const educationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.education);
 
     // In viewOnly mode nothing is ever editable
     const editing = viewOnly ? false : isEditing;
@@ -434,8 +451,13 @@ export default function SeekerProfileSection({
                                                 <div>
                                                     <p className="text-sm font-semibold text-gray-800 truncate">{exp.jobTitle || `Experience ${index + 1}`}</p>
                                                     <p className="text-xs text-gray-600 mt-0.5">
-                                                        {[exp.company, exp.jobRole].filter(Boolean).join(' • ') || 'No company/role provided'}
+                                                        {[exp.company, formatLookupLabel(exp.jobRole, jobRoleOptions)].filter(Boolean).join(' • ') || 'No company/role provided'}
                                                     </p>
+                                                    {(exp.location || exp.industry) && (
+                                                        <p className="text-xs text-gray-500 mt-0.5">
+                                                            {[formatLookupLabel(exp.location, locationOptions), formatLookupLabel(exp.industry, industryOptions)].filter(Boolean).join(' · ')}
+                                                        </p>
+                                                    )}
                                                     {exp.jobDescription && viewOnly && (
                                                         <p className="text-xs text-gray-500 mt-1">{exp.jobDescription}</p>
                                                     )}
@@ -476,10 +498,12 @@ export default function SeekerProfileSection({
                                                 <div>
                                                     <p className="text-sm font-semibold text-gray-800 truncate">{edu.school || `Education ${index + 1}`}</p>
                                                     <p className="text-xs text-gray-600 mt-0.5">
-                                                        {[edu.degree, edu.areaOfStudy].filter(Boolean).join(' • ') || 'No degree/field provided'}
+                                                        {[formatLookupLabel(edu.degree, educationOptions), edu.areaOfStudy].filter(Boolean).join(' • ') || 'No degree/field provided'}
                                                     </p>
-                                                    {edu.country && viewOnly && (
-                                                        <p className="text-xs text-gray-500 mt-0.5">{edu.country}</p>
+                                                    {(edu.location || edu.country) && (
+                                                        <p className="text-xs text-gray-500 mt-0.5">
+                                                            {[formatLookupLabel(edu.location, locationOptions), edu.country].filter(Boolean).join(' · ')}
+                                                        </p>
                                                     )}
                                                 </div>
                                             </div>

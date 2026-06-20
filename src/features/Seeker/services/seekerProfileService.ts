@@ -59,6 +59,7 @@ export async function updateContact(
 export async function createEducation(payload: {
     institution_name: string;
     degree: string;
+    area_of_study?: string | null;
     location: string;
     country: string;
     start_date: string;
@@ -76,6 +77,7 @@ export async function createWorkExperience(payload: {
     job_role: string;
     year_of_experience: number;
     industry: string;
+    location: string | null;
     start_date: string;
     end_date?: string | null;
     description?: string | null;
@@ -97,6 +99,7 @@ export async function updateEducation(
     payload: {
         institution_name?: string;
         degree?: string;
+        area_of_study?: string | null;
         location?: string;
         country?: string;
         start_date?: string;
@@ -123,6 +126,7 @@ export async function updateWorkExperience(
         job_role?: string;
         year_of_experience?: number;
         industry?: string;
+        location?: string;
         start_date?: string;
         end_date?: string | null;
         description?: string | null;

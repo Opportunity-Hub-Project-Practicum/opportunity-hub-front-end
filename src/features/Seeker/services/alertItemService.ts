@@ -1,3 +1,4 @@
+import { resolveAssetUrl } from "../../Employer/lib/resolveAssetUrl";
 import { apiRequest } from "../../../services/apiClient";
 import { fetchLookupValues } from "../../../services/lookupValueService";
 import type {
@@ -76,7 +77,7 @@ function toAlertPostCardItem(post: PublicPostApi): AlertPostCardItem {
         location: getPostLookupName(post.location),
         salary: formatPostSalary(post),
         remainingDays: formatClosedDate(post.closed_date),
-        image: post.employer?.logo_img ?? "",
+        image: resolveAssetUrl(post.employer?.logo_img),
         isUrgent: post.is_urgent === true,
     };
 }

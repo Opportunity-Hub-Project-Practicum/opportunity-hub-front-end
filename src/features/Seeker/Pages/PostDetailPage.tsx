@@ -5,11 +5,11 @@ import {
     ArrowLeft,
     ArrowRight,
     Bookmark,
-    Briefcase,
     Calendar,
     Clock,
     DollarSign,
     GraduationCap,
+    Layers,
     Link2Icon,
     MapPin,
     Star,
@@ -19,10 +19,12 @@ import BackButton from "../Components/BackButton";
 import { useEffect, useMemo, useState } from "react";
 import CardCompany from "../Components/card/CardCompany";
 import CardGrid from "../Components/card/CardGrid";
+import ApplyModal from "../Components/modal/ApplyModal";
 import ReportModal from "../Components/modal/ReportModal";
 import RichTextContent from "../../../GlobalComponents/RichTextContent";
 import { useAuth } from "../../../contexts/AuthContext";
 import { formatApiError } from "../../../services/apiClient";
+import { resolveAssetUrl } from "../../Employer/lib/resolveAssetUrl";
 import {
     fetchPublicEmployer,
     fetchPublicEmployerContacts,
@@ -35,13 +37,15 @@ import {
     findFavoriteForPost,
     removeFavoritePost,
 } from "../services/favoritePostService";
-import { fetchSeekerProfile } from "../services/seekerProfileService";
 import {
     fetchPostDetailWithEmployer,
     formatClosedDate,
     formatPostSalary,
     formatWorkPlaceType,
 } from "../services/postApiService";
+import { fetchAdminPost } from "../../Admin/services/adminPostService";
+import { fetchAdminEmployer } from "../../Admin/services/adminUserService";
+import type { EmployerProfileApi } from "../../Employer/types/employerProfile";
 import { submitPostReport } from "../services/reportService";
 import type { Organization } from "../Components/card/CardCompany";
 import type { PostDetailApi, PublicPostApi } from "../types/post";
@@ -110,22 +114,7 @@ function PostCardsSection({
         <section className="flex flex-col page-container">
             <div className="flex justify-between py-5">
                 <span className="text-big">{title}</span>
-                <div className="flex gap-2">
-                    <button
-                        type="button"
-                        disabled={isPostBanned}
-                        className="bg-subPrimary rounded-lg text-primaryDark p-1 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        <ArrowLeft />
-                    </button>
-                    <button
-                        type="button"
-                        disabled={isPostBanned}
-                        className="bg-subPrimary rounded-lg text-primaryDark p-1 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        <ArrowRight />
-                    </button>
-                </div>
+
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-5">
                 {posts.length === 0 && (
@@ -141,7 +130,7 @@ function PostCardsSection({
                         location={getPostLookupName(relatedPost.location)}
                         salary={formatPostSalary(relatedPost)}
                         remainingDays={formatClosedDate(relatedPost.closed_date)}
-                        image={relatedPost.employer?.logo_img ?? ""}
+                        image={resolveAssetUrl(relatedPost.employer?.logo_img)}
                         isUrgent={relatedPost.is_urgent === true}
                     />
                 ))}
@@ -167,11 +156,16 @@ export default function PostDetail() {
     const [favoritePostId, setFavoritePostId] = useState<number | null>(null);
     const [hasApplied, setHasApplied] = useState(false);
     const [isReport, setIsReport] = useState(false);
+    const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
     const [isSubmittingFavorite, setIsSubmittingFavorite] = useState(false);
     const [isSubmittingApplication, setIsSubmittingApplication] = useState(false);
     const [isSubmittingReport, setIsSubmittingReport] = useState(false);
 
     useEffect(() => {
+        if (isAuthLoading) {
+            return;
+        }
+
         if (!postId || Number.isNaN(postId)) {
             setLoading(false);
             setPost(null);
@@ -179,13 +173,16 @@ export default function PostDetail() {
         }
 
         let isMounted = true;
+        const isAdmin = user?.role === "admin";
 
         const loadPost = async () => {
             setLoading(true);
             setError(null);
 
             try {
-                const postData = await fetchPostDetailWithEmployer(postId);
+                const postData = isAdmin
+                    ? await fetchAdminPost(postId).catch(() => null)
+                    : await fetchPostDetailWithEmployer(postId);
                 if (!isMounted) {
                     return;
                 }
@@ -200,12 +197,18 @@ export default function PostDetail() {
                 const employerId = postData.employer?.user_id;
                 const jobRoleSlug = getPostLookupValue(postData.job_role);
                 const [employerProfile, contacts, relatedSearch, companyPosts] = await Promise.all([
-                    employerId ? fetchPublicEmployer(employerId) : Promise.resolve(null),
-                    employerId ? fetchPublicEmployerContacts(employerId) : Promise.resolve([]),
-                    jobRoleSlug
+                    employerId
+                        ? (isAdmin
+                            ? fetchAdminEmployer(employerId).catch(() => null)
+                            : fetchPublicEmployer(employerId))
+                        : Promise.resolve(null),
+                    employerId && !isAdmin
+                        ? fetchPublicEmployerContacts(employerId)
+                        : Promise.resolve([]),
+                    jobRoleSlug && !isAdmin
                         ? fetchSearchPosts({ type: postData.type, job_role: jobRoleSlug })
                         : Promise.resolve([]),
-                    employerId
+                    employerId && !isAdmin
                         ? fetchSearchPosts({ type: postData.type, employer_id: employerId })
                         : Promise.resolve([]),
                 ]);
@@ -215,10 +218,13 @@ export default function PostDetail() {
                 }
 
                 if (employerProfile) {
-                    setOrganization(mapEmployerToCardCompany(employerProfile, contacts));
+                    const employerContacts = isAdmin
+                        ? (employerProfile as EmployerProfileApi).contacts ?? []
+                        : contacts;
+                    setOrganization(mapEmployerToCardCompany(employerProfile, employerContacts));
                 } else if (postData.employer) {
                     setOrganization({
-                        image: postData.employer.logo_img ?? "",
+                        image: resolveAssetUrl(postData.employer.logo_img),
                         name: postData.employer.company_name,
                         industry_type: "",
                     });
@@ -245,7 +251,7 @@ export default function PostDetail() {
         return () => {
             isMounted = false;
         };
-    }, [postId]);
+    }, [postId, isAuthLoading, user?.role]);
 
     useEffect(() => {
         if (isAuthLoading || !post || !isAuthenticated || user?.role !== "seeker") {
@@ -289,6 +295,7 @@ export default function PostDetail() {
         };
     }, [post, isAuthenticated, isAuthLoading, user?.role]);
 
+    const isAdminViewer = user?.role === "admin";
     const isVolunteer = post?.type === "volunteer";
 
     const overviewItems = useMemo<OverviewItem[]>(() => {
@@ -328,10 +335,10 @@ export default function PostDetail() {
                 show: !!getPostLookupName(post.location),
             },
             {
-                label: "Job Role",
+                label: "Category",
                 value: getPostLookupName(post.job_role),
-                icon: Briefcase,
-                show: !isVolunteer && !!getPostLookupName(post.job_role),
+                icon: Layers,
+                show: !!getPostLookupName(post.job_role),
             },
             {
                 label: "Experience",
@@ -378,7 +385,7 @@ export default function PostDetail() {
         }
     };
 
-    const handleApply = async () => {
+    const handleApplyClick = () => {
         if (!post || hasApplied || isSubmittingApplication) {
             return;
         }
@@ -388,22 +395,39 @@ export default function PostDetail() {
             return;
         }
 
+        setActionError(null);
+        setActionMessage(null);
+
+        if (isVolunteer) {
+            void handleApplySubmit(null);
+            return;
+        }
+
+        setIsApplyModalOpen(true);
+    };
+
+    const handleApplySubmit = async (cvResumePath: string | null) => {
+        if (!post) {
+            return;
+        }
+
         setIsSubmittingApplication(true);
         setActionError(null);
         setActionMessage(null);
 
         try {
-            const profileResponse = await fetchSeekerProfile();
             await submitApplication({
                 post_uuid: post.uuid,
-                cv_resume_file: profileResponse.profile.cv_resume,
+                cv_resume_file: cvResumePath,
             });
             setHasApplied(true);
+            setIsApplyModalOpen(false);
             setActionMessage(
                 isVolunteer ? "Volunteer application submitted successfully." : "Application submitted successfully.",
             );
         } catch (err) {
             setActionError(formatApiError(err));
+            throw err;
         } finally {
             setIsSubmittingApplication(false);
         }
@@ -444,6 +468,7 @@ export default function PostDetail() {
     }
 
     const engagementLabel = formatWorkPlaceType(post.work_place_type) || post.type;
+    const categoryName = getPostLookupName(post.job_role);
     const isPostBanned = isPostBannedForSeeker(post.is_ban);
 
     return (
@@ -473,7 +498,7 @@ export default function PostDetail() {
                             <div className="w-16 h-16 bg-slate-300 rounded-lg" />
                         )}
 
-                        <div className="flex flex-col">
+                        <div className="flex flex-col gap-1">
                             <div className="flex gap-2 flex-wrap items-center">
                                 <h1 className="text-2xl font-bold">{post.post_title}</h1>
                                 {post.is_urgent && <UrgentBadge />}
@@ -498,39 +523,41 @@ export default function PostDetail() {
                                     </div>
                                 )}
                             </div>
+
                         </div>
                     </div>
 
-                    <div className="flex gap-3">
-                        <button
-                            onClick={handleBookmark}
-                            disabled={isPostBanned || isSubmittingFavorite}
-                            className="flex items-center justify-center w-10 h-10 bg-blue-50 hover:bg-blue-100 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            <Bookmark
-                                size={18}
-                                className={`transition-colors ${
-                                    isBookmarked
+                    {!isAdminViewer && (
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleBookmark}
+                                disabled={isPostBanned || isSubmittingFavorite}
+                                className="flex items-center justify-center w-10 h-10 bg-blue-50 hover:bg-blue-100 rounded transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                <Bookmark
+                                    size={18}
+                                    className={`transition-colors ${isBookmarked
                                         ? "fill-yellow-400 stroke-yellow-500 text-yellow-500"
                                         : "stroke-slate-400 text-slate-400"
-                                }`}
-                            />
-                        </button>
-                        <button
-                            onClick={handleApply}
-                            disabled={isPostBanned || hasApplied || isSubmittingApplication}
-                            className="btn-primary-blue flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            {hasApplied
-                                ? isVolunteer
-                                    ? "Joined"
-                                    : "Applied"
-                                : isVolunteer
-                                  ? "Join Now"
-                                  : "Apply Now"}
-                            {!hasApplied && <ArrowRight size={16} />}
-                        </button>
-                    </div>
+                                        }`}
+                                />
+                            </button>
+                            <button
+                                onClick={handleApplyClick}
+                                disabled={isPostBanned || hasApplied || isSubmittingApplication}
+                                className="btn-primary-blue flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {hasApplied
+                                    ? isVolunteer
+                                        ? "Joined"
+                                        : "Applied"
+                                    : isVolunteer
+                                        ? "Join Now"
+                                        : "Apply Now"}
+                                {!hasApplied && <ArrowRight size={16} />}
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-3 gap-5">
@@ -582,13 +609,15 @@ export default function PostDetail() {
 
                         <CardCompany organization={organization} />
 
-                        <button
-                            onClick={() => setIsReport(true)}
-                            disabled={isPostBanned}
-                            className="bg-red-600 text-white rounded-lg p-2 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            Report Post
-                        </button>
+                        {!isAdminViewer && (
+                            <button
+                                onClick={() => setIsReport(true)}
+                                disabled={isPostBanned}
+                                className="bg-red-600 text-white rounded-lg p-2 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                Report Post
+                            </button>
+                        )}
                     </div>
                 </div>
             </section>
@@ -607,7 +636,15 @@ export default function PostDetail() {
                 isPostBanned={isPostBanned}
             />
 
-            {isReport && (
+            {!isAdminViewer && isApplyModalOpen && !isVolunteer && (
+                <ApplyModal
+                    isSubmitting={isSubmittingApplication}
+                    onClose={() => !isSubmittingApplication && setIsApplyModalOpen(false)}
+                    onSubmit={handleApplySubmit}
+                />
+            )}
+
+            {!isAdminViewer && isReport && (
                 <ReportModal
                     onClose={() => setIsReport(false)}
                     onSubmit={handleReportSubmit}

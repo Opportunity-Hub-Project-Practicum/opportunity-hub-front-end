@@ -29,6 +29,12 @@ const getString = (value: FormDataEntryValue | null) => (value ? value.toString(
 const selectClassName =
     "w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10";
 
+const minExpirationDate = (() => {
+    const minDate = new Date();
+    minDate.setDate(minDate.getDate() + 1);
+    return minDate.toISOString().slice(0, 10);
+})();
+
 export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobFormProps) {
     const { lookupValues, loading, error: lookupError } = useLookupValues();
     const [description, setDescription] = useState("");
@@ -259,9 +265,9 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                         <div>
                             <label className="block text-sm font-medium mb-2 text-[#18191C]">Expiration Date</label>
                             <input
-                                type="text"
+                                type="date"
                                 name="expirationDate"
-                                placeholder="DD/MM/YYYY"
+                                min={minExpirationDate}
                                 className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-blue-500 text-sm"
                             />
                         </div>

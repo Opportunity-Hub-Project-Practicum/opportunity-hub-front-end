@@ -213,7 +213,7 @@ export function mapProfileApiToSettings(profile: SeekerProfileApi): SeekerSettin
         educationId: item.education_id,
         school: item.institution_name,
         degree: item.degree,
-        areaOfStudy: "",
+        areaOfStudy: item.area_of_study ?? "",
         location: item.location,
         country: item.country,
         from: dateToMonthYear(item.start_date),
@@ -227,6 +227,7 @@ export function mapProfileApiToSettings(profile: SeekerProfileApi): SeekerSettin
         jobRole: item.job_role,
         yearsOfExperience: String(item.year_of_experience),
         industry: item.industry,
+        location: item.location ?? "",
         from: dateToMonthYear(item.start_date),
         to: item.end_date ? dateToMonthYear(item.end_date) : "Present",
         jobDescription: item.description ?? "",
@@ -360,14 +361,13 @@ export function mapNotifyFormToUpdatePayload(
 }
 
 export function mapEducationEntryToApi(entry: EducationEntry) {
-    const degree = entry.areaOfStudy
-        ? `${entry.degree} in ${entry.areaOfStudy}`
-        : entry.degree;
+    const areaOfStudy = entry.areaOfStudy?.trim();
 
     return {
         institution_name: entry.school?.trim() || "Institution",
-        degree: degree?.trim() || "Degree",
-        location: entry.location?.trim() || entry.country?.trim() || "N/A",
+        degree: entry.degree?.trim() || "Degree",
+        area_of_study: areaOfStudy || null,
+        location: entry.location?.trim() || "N/A",
         country: entry.country?.trim() || "N/A",
         start_date: monthYearToStartDate(entry.from ?? ""),
         end_date: monthYearToEndDate(entry.to ?? ""),
@@ -380,7 +380,8 @@ export function mapExperienceEntryToApi(entry: ExperienceEntry) {
         job_title: entry.jobTitle?.trim() || entry.jobRole?.trim() || "Role",
         job_role: entry.jobRole?.trim() || entry.jobTitle?.trim() || "Role",
         year_of_experience: parseYearsOfExperience(entry.yearsOfExperience ?? entry.from),
-        industry: entry.industry?.trim() || "General",
+        industry: entry.industry?.trim() || "",
+        location: entry.location?.trim() || null,
         start_date: monthYearToStartDate(entry.from ?? ""),
         end_date: monthYearToEndDate(entry.to ?? ""),
         description: entry.jobDescription?.trim() || null,

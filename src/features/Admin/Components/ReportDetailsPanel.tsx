@@ -1,3 +1,4 @@
+import RichTextContent from "../../../GlobalComponents/RichTextContent";
 import { formatReportDateTime } from "../services/adminReportService";
 import type { AdminReportApi } from "../types/adminReport";
 
@@ -42,9 +43,10 @@ export default function ReportDetailsPanel({ reports }: ReportDetailsPanelProps)
                                 {formatReportDateTime(report.created_at)}
                             </span>
                         </div>
-                        <p className="text-sm leading-relaxed text-[#5E6670]">
-                            {report.report_reason}
-                        </p>
+                        <RichTextContent
+                            value={report.report_reason}
+                            className="text-sm leading-relaxed text-[#5E6670]"
+                        />
                     </div>
                 ))}
             </div>

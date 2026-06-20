@@ -1,3 +1,4 @@
+import { resolveAssetUrl } from "../../Employer/lib/resolveAssetUrl";
 import { getPostLookupName } from "../lib/postLookup";
 import type {
     PostDetailApi,
@@ -19,6 +20,7 @@ export type FetchPublicPostsParams = {
 
 export type PostListCardItem = {
     postId: number;
+    employerId?: number;
     organizationName: string;
     title: string;
     engagementType: string;
@@ -113,13 +115,14 @@ export async function fetchPostDetailWithEmployer(postId: number): Promise<PostD
 export function toPostListCardItem(post: PublicPostApi): PostListCardItem {
     return {
         postId: post.post_id,
+        employerId: post.employer?.user_id,
         organizationName: post.employer?.company_name ?? "Unknown",
         title: post.post_title,
         engagementType: formatWorkPlaceType(post.work_place_type ?? post.type),
         location: getPostLookupName(post.location),
         salary: formatPostSalary(post),
         remainingDays: formatClosedDate(post.closed_date),
-        image: post.employer?.logo_img ?? "",
+        image: resolveAssetUrl(post.employer?.logo_img),
         isUrgent: post.is_urgent === true,
     };
 }

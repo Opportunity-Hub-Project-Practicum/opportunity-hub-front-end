@@ -1,3 +1,4 @@
+import { resolveAssetUrl } from "../../Employer/lib/resolveAssetUrl";
 import type {
     HomeCompanyCard,
     HomeHeroBanner,
@@ -25,7 +26,7 @@ function buildTopCompanies(employers: PublicEmployerApi[]): HomeCompanyCard[] {
         .map((employer) => ({
             employerId: employer.user_id,
             name: employer.company_name,
-            image: employer.logo_img ?? "",
+            image: resolveAssetUrl(employer.logo_img),
             openPositions: employer.open_posts_count ?? 0,
         }))
         .sort((a, b) => {

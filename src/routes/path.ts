@@ -36,6 +36,8 @@ export const ROUTES = {
         SETTING: "setting",
         MY_JOB_VIEW_APPLICATION_ROUTE: "myJobViewApplication/:postId",
         MY_JOB_VIEW_APPLICATION: (postId: string | number) => `myJobViewApplication/${postId}`,
+        SEEKER_PROFILE_ROUTE: "seekerProfile/:seekerId",
+        SEEKER_PROFILE: (seekerId: string | number) => `seekerProfile/${seekerId}`,
     },
 
     ADMIN: {

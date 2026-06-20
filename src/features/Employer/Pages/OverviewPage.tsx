@@ -5,6 +5,8 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { ROUTES } from "../../../routes/path";
 import { formatApiError } from "../../../services/apiClient";
 import EmployerPostListTable, { type EmployerPostTab } from "../Components/EmployerPostListTable";
+import PostListingDurationModal from "../Components/PostListingDurationModal";
+import { useEmployerPostListingActions } from "../hooks/useEmployerPostListingActions";
 import { mapEmployerPostToListingItem, type ListingItem } from "../lib/myJobMappers";
 import { fetchFavoriteCandidates } from "../services/favoriteCandidateService";
 import { fetchEmployerPosts } from "../services/employerPostService";
@@ -31,6 +33,16 @@ export default function OverviewPage() {
     const [counts, setCounts] = useState<OverviewCounts>(emptyCounts);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const {
+        updatingPostId,
+        modalError,
+        selectedListing,
+        handleSaveDuration,
+        handleCloseListingNow,
+        openDurationModal,
+        closeDurationModal,
+    } = useEmployerPostListingActions(setListings, setError);
 
     const loadOverview = useCallback(async () => {
         setLoading(true);
@@ -118,6 +130,9 @@ export default function OverviewPage() {
                     onViewApplications={(postId) => {
                         navigate(`${ROUTES.EMPLOYER.ROOT}/${ROUTES.EMPLOYER.MY_JOB_VIEW_APPLICATION(postId)}`);
                     }}
+                    onTogglePostStatus={openDurationModal}
+                    onClosePost={(item) => void handleCloseListingNow(item)}
+                    updatingPostId={updatingPostId}
                     loading={loading}
                     error={error}
                     limit={RECENT_POST_LIMIT}
@@ -125,6 +140,20 @@ export default function OverviewPage() {
                     emptyMessage={recentEmptyMessage}
                 />
             </section>
+
+            <PostListingDurationModal
+                isOpen={selectedListing != null}
+                listing={selectedListing}
+                isSaving={selectedListing != null && updatingPostId === selectedListing.postId}
+                error={modalError}
+                onClose={closeDurationModal}
+                onSave={(closedDate) => void handleSaveDuration(closedDate)}
+                onCloseListing={() => {
+                    if (selectedListing) {
+                        void handleCloseListingNow(selectedListing);
+                    }
+                }}
+            />
         </div>
     );
 }

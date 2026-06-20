@@ -1,3 +1,4 @@
+import { resolveAssetUrl } from "../../Employer/lib/resolveAssetUrl";
 import { apiRequest } from "../../../services/apiClient";
 import type { Organization } from "../Components/card/CardCompany";
 import type {
@@ -69,7 +70,7 @@ export function mapEmployerToCardCompany(
     }
 
     return {
-        image: profile.logo_img ?? "",
+        image: resolveAssetUrl(profile.logo_img),
         name: profile.company_name,
         industry_type: profile.industry_type ?? "",
         year_establishment: profile.year_establishment ?? undefined,

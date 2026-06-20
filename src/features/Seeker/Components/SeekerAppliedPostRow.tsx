@@ -24,11 +24,18 @@ export default function SeekerAppliedPostRow({ item }: SeekerAppliedPostRowProps
         >
             <div className="col-span-3 flex justify-between">
                 <div className="flex gap-2 lg:gap-5">
-                    <img
-                        src={item.image}
-                        alt={item.organizationName}
-                        className="rounded-lg border w-15 h-15 object-cover bg-white"
-                    />
+                    {item.image ? (
+                        <img
+                            src={item.image}
+                            alt={item.organizationName}
+                            className="rounded-lg border w-15 h-15 shrink-0 object-cover bg-white"
+                        />
+                    ) : (
+                        <div
+                            className="rounded-lg border w-15 h-15 shrink-0 bg-gray-200"
+                            aria-hidden
+                        />
+                    )}
                     <div className="flex flex-col justify-around w-full">
                         <div className="flex gap-1 flex-wrap">
                             <p className="font-semibold">

@@ -1,5 +1,7 @@
 import React, { useState, type ChangeEvent } from 'react';
 import { ChevronDown, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { getLookupOptions, useLookupValues } from '../../../../hooks/useLookupValues';
+import { LOOKUP_TYPES } from '../../../../types/lookupValue';
 
 interface EducationData {
     location: string;
@@ -23,10 +25,8 @@ const EMPTY_FORM: EducationData = {
     to: '',
 };
 
-const REQUIRED_FIELDS: (keyof EducationData)[] = ['school', 'degree'];
+const REQUIRED_FIELDS: (keyof EducationData)[] = ['school', 'degree', 'location'];
 
-const LOCATIONS = ['On-site', 'Remote', 'Hybrid'];
-const DEGREES = ["Associate's", "Bachelor's", "Master's", 'MBA', 'PhD', 'Diploma', 'Certificate', 'Other'];
 const AREAS_OF_STUDY = ['Computer Science', 'Business Administration', 'Engineering', 'Mathematics', 'Design', 'Medicine', 'Law', 'Education', 'Arts & Humanities', 'Social Sciences', 'Other'];
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: currentYear - 1969 }, (_, i) => String(currentYear - i));
@@ -92,6 +92,50 @@ const SelectField: React.FC<{
     </div>
 );
 
+const LookupSelectField: React.FC<{
+    label: string;
+    name: keyof EducationData;
+    value: string;
+    options: { value: string; name: string }[];
+    error?: string;
+    disabled?: boolean;
+    onChange: (e: ChangeEvent<HTMLSelectElement>) => void;
+}> = ({ label, name, value, options, error, disabled = false, onChange }) => (
+    <div className="flex flex-col gap-1.5">
+        <label htmlFor={name} className="text-sm font-medium text-gray-700">
+            {label}
+        </label>
+        <div className="relative">
+            <select
+                id={name}
+                name={name}
+                value={value}
+                onChange={onChange}
+                disabled={disabled}
+                className={`w-full px-3 py-2 border rounded-md appearance-none bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-gray-700 disabled:bg-gray-50 disabled:text-gray-400 ${error ? 'border-red-400 focus:ring-red-400' : 'border-gray-300'
+                    }`}
+            >
+                <option value="">Select…</option>
+                {options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                        {opt.name}
+                    </option>
+                ))}
+            </select>
+            <ChevronDown
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                size={16}
+                aria-hidden
+            />
+        </div>
+        {error && (
+            <p className="flex items-center gap-1 text-xs text-red-500">
+                <AlertCircle size={12} aria-hidden /> {error}
+            </p>
+        )}
+    </div>
+);
+
 const InputField: React.FC<{
     label: string;
     name: keyof EducationData;
@@ -125,6 +169,10 @@ const InputField: React.FC<{
 // ── Main Component ───────────────────────────────────────────────
 
 const EducationModal: React.FC<{ onClose?: () => void; onSave?: (data: EducationData) => void }> = ({ onClose, onSave }) => {
+    const { lookupValues, loading: lookupLoading } = useLookupValues();
+    const degreeOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.education);
+    const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
+
     const [formData, setFormData] = useState<EducationData>(EMPTY_FORM);
     const [errors, setErrors] = useState<FormErrors>({});
     const [submitted, setSubmitted] = useState(false);
@@ -197,11 +245,13 @@ const EducationModal: React.FC<{ onClose?: () => void; onSave?: (data: Education
 
                         <form onSubmit={handleSubmit} noValidate className="space-y-5">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <SelectField
+                                <LookupSelectField
                                     label="location"
                                     name="location"
                                     value={formData.location}
-                                    options={LOCATIONS}
+                                    options={locationOptions}
+                                    error={errors.location}
+                                    disabled={lookupLoading}
                                     onChange={handleChange}
                                 />
 
@@ -214,12 +264,13 @@ const EducationModal: React.FC<{ onClose?: () => void; onSave?: (data: Education
                                     onChange={handleChange}
                                 />
 
-                                <SelectField
+                                <LookupSelectField
                                     label="Degree"
                                     name="degree"
                                     value={formData.degree}
-                                    options={DEGREES}
+                                    options={degreeOptions}
                                     error={errors.degree}
+                                    disabled={lookupLoading}
                                     onChange={handleChange}
                                 />
 

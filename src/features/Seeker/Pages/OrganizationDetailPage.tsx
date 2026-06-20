@@ -5,6 +5,7 @@ import CardCompany from "../Components/card/CardCompany";
 import CardGrid from "../Components/card/CardGrid";
 import { useEffect, useMemo, useState } from "react";
 import { formatApiError } from "../../../services/apiClient";
+import { resolveAssetUrl } from "../../Employer/lib/resolveAssetUrl";
 import {
     fetchPublicEmployer,
     fetchPublicEmployerContacts,
@@ -136,6 +137,8 @@ export default function OrganizationDetail() {
         return <div className="page-container">Organization not found</div>;
     }
 
+    const logoUrl = resolveAssetUrl(employer.logo_img);
+
     return (
         <div className="page-container flex flex-col mb-5">
             <BackButton />
@@ -143,10 +146,10 @@ export default function OrganizationDetail() {
             {error && <p className="text-red-600 mb-4">{error}</p>}
 
             <div className="p-5 rounded-lg flex gap-5 border shadow-gray-200 border-slate-100 bg-white shadow-sm hover:shadow-md transition-shadow">
-                {employer.logo_img ? (
+                {logoUrl ? (
                     <img
                         className="rounded-lg w-15 h-15 object-cover"
-                        src={employer.logo_img}
+                        src={logoUrl}
                         alt={employer.company_name}
                     />
                 ) : (
@@ -216,7 +219,7 @@ export default function OrganizationDetail() {
                             location={getPostLookupName(post.location)}
                             salary={formatPostSalary(post)}
                             remainingDays={formatClosedDate(post.closed_date)}
-                            image={employer.logo_img ?? ""}
+                            image={logoUrl}
                             isUrgent={post.is_urgent === true}
                         />
                     ))}

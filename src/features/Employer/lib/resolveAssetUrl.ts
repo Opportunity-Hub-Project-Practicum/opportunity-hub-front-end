@@ -2,7 +2,7 @@ import { API_BASE_URL } from "../../../services/apiClient";
 
 export function resolveAssetUrl(path: string | null | undefined): string {
     if (!path) {
-        return "#";
+        return "";
     }
 
     if (/^https?:\/\//i.test(path)) {

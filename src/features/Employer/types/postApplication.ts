@@ -59,6 +59,7 @@ export interface JobPostSubmitPayload {
 export interface VolunteerPostSubmitPayload {
     title: string;
     jobRoleId: number | null;
+    locationId: number | null;
     duration: PostDuration | "";
     volunteerPlaceType: string;
     schedule: PostSchedule | "";
@@ -68,5 +69,6 @@ export interface VolunteerPostSubmitPayload {
     description: string;
     responsibilities: string;
     volunteerRequirements: string;
+    expirationDate: string;
     isUrgent: boolean;
 }

@@ -29,6 +29,7 @@ import SaveCandidatePage from "../features/Employer/Pages/SaveCandidatePage";
 import SaveCandidateDetailPage from "../features/Employer/Pages/SaveCandidateDetailPage";
 import SettingPage from "../features/Employer/Pages/SettingPage";
 import MyJobViewApplicationPage from "../features/Employer/Pages/MyJobViewApplicationPage";
+import EmployerSeekerProfilePage from "../features/Employer/Pages/EmployerSeekerProfilePage";
 //import for admin
 
 import OverviewPageAdmin from "../features/Admin/Pages/OverviewPage";
@@ -192,6 +193,11 @@ export const routeConfig: RouteConfig[] = [
                 path: ROUTES.EMPLOYER.MY_JOB_VIEW_APPLICATION_ROUTE,
                 label: 'MyJobViewApplication',
                 component: MyJobViewApplicationPage
+            },
+            {
+                path: ROUTES.EMPLOYER.SEEKER_PROFILE_ROUTE,
+                label: 'EmployerSeekerProfile',
+                component: EmployerSeekerProfilePage
             }
         ]
     },
