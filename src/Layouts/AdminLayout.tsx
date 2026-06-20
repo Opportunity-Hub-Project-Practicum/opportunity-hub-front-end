@@ -1,16 +1,17 @@
 import { Outlet } from "react-router-dom";
 import NavBar from "../features/Admin/Components/NavBar";
 import Sidebar from "../features/Admin/Components/SideBar";
+import Footer from "../GlobalComponents/footer";
 import { useState } from "react";
 export default function AdminLayout() {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
     return (
-        <>
-            <header>
+        <div className="flex flex-col min-h-screen">
+            <header className="flex-shrink-0">
                 <NavBar onMenuClick={() => setMobileSidebarOpen(true)} />
             </header>
-            <main className="flex min-h-[calc(100vh-4rem)]">
+            <main className="flex-1 flex min-h-0">
                 <nav className="shrink-0">
                     <Sidebar mobileOpen={mobileSidebarOpen} onClose={() => setMobileSidebarOpen(false)} />
                 </nav>
@@ -18,7 +19,9 @@ export default function AdminLayout() {
                     <Outlet />
                 </div>
             </main>
-
-        </>
+            <footer className="flex-shrink-0">
+                <Footer />
+            </footer>
+        </div>
     )
 }

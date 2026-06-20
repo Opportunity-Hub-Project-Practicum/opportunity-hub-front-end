@@ -50,12 +50,12 @@ const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
                     title={isCollapsed ? item.name : undefined}
                     onClick={() => handleClick(item.name, item.path)}
                     className={`flex items-center transition-all duration-200 border-l-[3px] ${isCollapsed ? "justify-center px-0 py-4" : "px-6 py-4"} ${isActive
-                        ? "bg-blue-50 border-blue-600 text-blue-600"
+                        ? "bg-subPrimary/50 border-primary text-primary"
                         : "bg-transparent border-transparent text-slate-500 hover:bg-gray-50"
                         }`}
                 >
                     <item.icon
-                        className={`h-5 w-5 shrink-0 ${isCollapsed ? "" : "mr-4"} ${isActive ? "text-blue-600" : "text-slate-400"
+                        className={`h-5 w-5 shrink-0 ${isCollapsed ? "" : "mr-4"} ${isActive ? "text-primary" : "text-slate-400"
                             }`}
                     />
                     {!isCollapsed && (

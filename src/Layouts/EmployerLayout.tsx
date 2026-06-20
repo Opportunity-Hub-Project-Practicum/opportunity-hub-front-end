@@ -8,19 +8,19 @@ export default function EmployerLayout() {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
     return (
-        <>
+        <div className="flex min-h-screen flex-col">
             <header>
                 <NavBar onMenuClick={() => setMobileSidebarOpen(true)} />
             </header>
-            <main className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-5">
-                <nav className="col-span-1 ">
+            <div className="flex flex-1">
+                <aside className="hidden md:block w-64 flex-shrink-0">
                     <Sidebar mobileOpen={mobileSidebarOpen} onClose={() => setMobileSidebarOpen(false)} />
-                </nav>
-                <div className="col-span-3 lg:col-span-4">
+                </aside>
+                <main className="flex-1 min-w-0">
                     <Outlet />
-                </div>
-            </main>
+                </main>
+            </div>
             <footer><Footer /></footer>
-        </>
+        </div>
     );
 }

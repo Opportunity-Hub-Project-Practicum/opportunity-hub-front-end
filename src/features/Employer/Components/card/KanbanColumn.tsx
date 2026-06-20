@@ -175,7 +175,7 @@ export default function KanbanColumn({
                                     <button
                                         type="button"
                                         onClick={() => onViewSeekerProfile(app.seekerId)}
-                                        className="truncate text-left text-sm font-medium text-[#0A65CC] hover:underline"
+                                        className="truncate text-left text-sm font-medium text-primary hover:underline"
                                     >
                                         {app.userName}
                                     </button>

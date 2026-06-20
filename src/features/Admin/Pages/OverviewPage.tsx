@@ -133,9 +133,7 @@ export default function OverviewPage() {
             </div>
 
             {error && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                    {error}
-                </div>
+                <div className="alert-error">{error}</div>
             )}
 
             <section className="flex flex-col gap-3">

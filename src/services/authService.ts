@@ -111,6 +111,19 @@ export async function login(payload: LoginPayload): Promise<AuthResponse> {
     return data;
 }
 
+export async function loginWithGoogle(idToken: string): Promise<AuthResponse> {
+    const data = await apiRequest<AuthResponse>("/auth/google/register", {
+        method: "POST",
+        body: JSON.stringify({ id_token: idToken }),
+    }, { auth: false });
+
+    if (data.access_token) {
+        persistAuthSession(data.access_token, data.user);
+    }
+
+    return data;
+}
+
 export async function fetchCurrentUser(): Promise<AuthUser> {
     const data = await apiRequest<MeResponse>("/auth/me");
     localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Send } from "lucide-react";
+import EmptyState from "../../../GlobalComponents/EmptyState";
+import { Skeleton } from "../../../GlobalComponents/Skeleton";
 import { formatApiError } from "../../../services/apiClient";
 import SeekerAppliedPostRow from "../Components/SeekerAppliedPostRow";
 import { fetchAppliedCardItems } from "../services/applicationService";
@@ -91,7 +93,7 @@ export default function Applied() {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                            className="appearance-none rounded-md border border-gray-200 bg-white py-2 pl-3 pr-8 text-sm text-gray-700 outline-none hover:border-gray-300 focus:ring-2 focus:ring-blue-500"
+                            className="appearance-none rounded-md border border-gray-200 bg-white py-2 pl-3 pr-8 text-sm text-gray-700 outline-none hover:border-gray-300 focus:ring-2 focus:ring-primary"
                         >
                             {STATUS_FILTER_OPTIONS.map((option) => (
                                 <option key={option.value} value={option.value}>
@@ -107,8 +109,8 @@ export default function Applied() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-6 p-3  text-gray-600 mb-5 bg-gray-100 rounded-lg ">
-                <div className="col-span-3 flex gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-2 p-3 text-gray-600 mb-5 bg-gray-100 rounded-lg">
+                <div className="col-span-2 md:col-span-3 flex gap-3">
                     <button
                         className={isJob === "job" ? " text-primary underline" : ""}
                         onClick={() => setIsJob("job")}
@@ -122,18 +124,32 @@ export default function Applied() {
                         Volunteers
                     </button>
                 </div>
-                <span>Date appllied</span>
-                <span>Status</span>
-                <span>Action</span>
+                <span className="hidden md:inline">Date applied</span>
+                <span className="hidden md:inline">Status</span>
+                <span className="hidden md:inline">Action</span>
             </div>
 
-            {loading && <p className="text-gray-500">Loading applications...</p>}
-            {error && <p className="text-red-600">{error}</p>}
+            {loading && (
+                <div className="flex flex-col gap-2">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-4 rounded-lg border p-4">
+                            <Skeleton className="h-12 w-12 rounded-lg shrink-0" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-4 w-1/2" />
+                                <Skeleton className="h-3 w-1/3" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+            {error && <div className="alert-error">{error}</div>}
 
             {!loading && !error && currentItems.length === 0 && (
-                <div className="rounded-lg border border-dashed border-gray-300 p-6 text-sm text-gray-500">
-                    No {emptyStateLabel}{isJob === "job" ? "job" : "volunteer"} applications found.
-                </div>
+                <EmptyState
+                    icon={Send}
+                    title={`No ${emptyStateLabel}${isJob === "job" ? "job" : "volunteer"} applications`}
+                    description="Once you apply to posts, they'll show up here."
+                />
             )}
 
             {currentItems.map((item) => (

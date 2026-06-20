@@ -2,6 +2,8 @@ import { CheckCircle2, Users, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import SeekerProfileSection from "../../../GlobalComponents/SeekerProfileSection";
 import SearchBox from "../../../GlobalComponents/SearchBox";
+import EmptyState from "../../../GlobalComponents/EmptyState";
+import { Skeleton } from "../../../GlobalComponents/Skeleton";
 import EmployerProfileSection from "../../Employer/Components/EmployerProfileSection";
 import { formatApiError } from "../../../services/apiClient";
 import { mapProfileApiToSettings as mapEmployerProfileToForm } from "../../Employer/lib/employerProfileMappers";
@@ -216,7 +218,7 @@ export default function ManageUserPage() {
                 </select>
             </div>
 
-            <div className="grid grid-cols-6 bg-[#F1F2F4] px-6 py-3 text-[12px] font-medium tracking-wider text-[#474C54] uppercase items-center">
+            <div className="hidden md:grid grid-cols-6 bg-[#F1F2F4] px-6 py-3 text-[12px] font-medium tracking-wider text-[#474C54] uppercase items-center">
                 <div className="col-span-3 flex items-center space-x-8">
                     <span>{listColumnLabel}</span>
                 </div>
@@ -226,28 +228,38 @@ export default function ManageUserPage() {
             </div>
 
             {loading && (
-                <div className="px-6 py-8 text-sm text-[#767F8C]">Loading users...</div>
+                <div className="space-y-3 px-2 py-4 md:px-0">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-3 px-4 py-3">
+                            <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-4 w-1/3" />
+                                <Skeleton className="h-3 w-1/4" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
             )}
 
             {!loading && error && (
-                <div className="px-6 py-8 text-sm text-red-600">{error}</div>
+                <div className="m-4 alert-error">{error}</div>
             )}
 
             {!loading && !error && entityFilter === "user" && filteredSeekers.length === 0 && (
-                <div className="px-6 py-8 text-sm text-[#767F8C]">No users found.</div>
+                <EmptyState icon={Users} title="No users found" description="Try a different search term." />
             )}
 
             {!loading && !error && entityFilter === "organisation" && filteredEmployers.length === 0 && (
-                <div className="px-6 py-8 text-sm text-[#767F8C]">No organisations found.</div>
+                <EmptyState icon={Users} title="No organisations found" description="Try a different search term." />
             )}
 
             <div className="w-full divide-y divide-[#E4E5E8]">
                 {entityFilter === "user" && filteredSeekers.map((item) => (
                     <div
                         key={item.user_id}
-                        className="grid grid-cols-6 px-6 py-5 items-center hover:bg-gray-50/40 transition-colors"
+                        className="grid grid-cols-1 gap-3 md:grid-cols-6 px-6 py-5 md:items-center hover:bg-gray-50/40 transition-colors"
                     >
-                        <div className="col-span-3 space-y-1">
+                        <div className="col-span-1 md:col-span-3 space-y-1">
                             <h2 className="text-base font-medium text-[#18191C]">
                                 {item.full_name ?? `User #${item.user_id}`}
                             </h2>
@@ -256,7 +268,8 @@ export default function ManageUserPage() {
                             </div>
                         </div>
 
-                        <div className="flex items-center pl-2">
+                        <div className="flex items-center justify-between md:justify-start md:pl-2">
+                            <span className="text-xs font-medium uppercase text-gray-400 md:hidden">Status</span>
                             {!item.is_ban ? (
                                 <span className="inline-flex items-center space-x-1.5 text-sm text-[#28A745] font-medium">
                                     <CheckCircle2 className="h-4 w-4" />
@@ -270,16 +283,19 @@ export default function ManageUserPage() {
                             )}
                         </div>
 
-                        <div className="flex items-center space-x-2 text-sm text-[#5E6670]">
-                            <Users className="h-4 w-4 text-[#9199A3]" />
-                            <span className="truncate">{item.email ?? "—"}</span>
+                        <div className="flex items-center justify-between md:justify-start space-x-2 text-sm text-[#5E6670]">
+                            <span className="text-xs font-medium uppercase text-gray-400 md:hidden">Email</span>
+                            <span className="flex items-center gap-2 truncate">
+                                <Users className="h-4 w-4 text-[#9199A3] hidden md:inline" />
+                                {item.email ?? "—"}
+                            </span>
                         </div>
 
-                        <div className="flex items-center justify-between pl-4">
+                        <div className="flex items-center justify-between md:pl-4">
                             <button
                                 type="button"
                                 onClick={() => handleViewSeekerProfile(item.user_id)}
-                                className="bg-slate-200 text-blue-600 text-sm font-semibold px-5 py-2.5 rounded-sm hover:bg-slate-200 transition-colors"
+                                className="bg-subPrimary text-primary text-sm font-semibold px-5 py-2.5 rounded-sm hover:bg-subPrimary/70 transition-colors"
                             >
                                 View profile
                             </button>
@@ -290,9 +306,9 @@ export default function ManageUserPage() {
                 {entityFilter === "organisation" && filteredEmployers.map((item) => (
                     <div
                         key={item.user_id}
-                        className="grid grid-cols-6 px-6 py-5 items-center hover:bg-gray-50/40 transition-colors"
+                        className="grid grid-cols-1 gap-3 md:grid-cols-6 px-6 py-5 md:items-center hover:bg-gray-50/40 transition-colors"
                     >
-                        <div className="col-span-3 space-y-1">
+                        <div className="col-span-1 md:col-span-3 space-y-1">
                             <h2 className="text-base font-medium text-[#18191C]">
                                 {item.company_name}
                             </h2>
@@ -301,7 +317,8 @@ export default function ManageUserPage() {
                             </div>
                         </div>
 
-                        <div className="flex items-center pl-2">
+                        <div className="flex items-center justify-between md:justify-start md:pl-2">
+                            <span className="text-xs font-medium uppercase text-gray-400 md:hidden">Status</span>
                             {!item.is_ban ? (
                                 <span className="inline-flex items-center space-x-1.5 text-sm text-[#28A745] font-medium">
                                     <CheckCircle2 className="h-4 w-4" />
@@ -315,15 +332,16 @@ export default function ManageUserPage() {
                             )}
                         </div>
 
-                        <div className="flex items-center space-x-2 text-sm text-[#5E6670]">
+                        <div className="flex items-center justify-between md:justify-start space-x-2 text-sm text-[#5E6670]">
+                            <span className="text-xs font-medium uppercase text-gray-400 md:hidden">{detailColumnLabel}</span>
                             <span className="truncate">{item.industry_type ?? "—"}</span>
                         </div>
 
-                        <div className="flex items-center justify-between pl-4">
+                        <div className="flex items-center justify-between md:pl-4">
                             <button
                                 type="button"
                                 onClick={() => handleViewEmployerProfile(item.user_id)}
-                                className="bg-slate-200 text-blue-600 text-sm font-semibold px-5 py-2.5 rounded-sm hover:bg-slate-200 transition-colors"
+                                className="bg-subPrimary text-primary text-sm font-semibold px-5 py-2.5 rounded-sm hover:bg-subPrimary/70 transition-colors"
                             >
                                 View profile
                             </button>

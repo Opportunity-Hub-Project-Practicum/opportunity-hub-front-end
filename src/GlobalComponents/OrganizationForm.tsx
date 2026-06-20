@@ -138,19 +138,16 @@ export default function OrganizationForm({
     // ── Render ──────────────────────────────────────────────────────────────
 
     return (
-        <div className="flex flex-col items-center page-container px-4">
-
-
-            <div className="flex flex-col gap-5 items-center px-5 w-full max-w-4xl">
-
-                {/* Tab nav */}
-                <nav className="flex gap-5 w-full mb-5">
+        <div className="flex flex-col w-full items-center">
+            <div className="flex flex-col gap-3 w-full pb-2">
+                {/* Tab nav - Made sticky to stay visible while scrolling */}
+                <nav className="flex gap-5 w-full sticky top-0 bg-white z-10 py-1 justify-center">
                     <button
                         onClick={() => handleTabClick(true)}
-                        className="flex flex-col gap-2 items-start"
+                        className="flex flex-col gap-2 items-center"
                     >
-                        <span className="flex gap-2 items-center">
-                            <UserRound className="text-primary" />
+                        <span className="flex gap-2 items-center text-sm font-semibold">
+                            <UserRound className="text-primary" size={18} />
                             Company Info
                         </span>
                         <div className={`h-0.5 mt-1 w-full ${isCompanyInfo ? "bg-primary" : "bg-transparent"}`} />
@@ -158,10 +155,10 @@ export default function OrganizationForm({
 
                     <button
                         onClick={() => handleTabClick(false)}
-                        className="flex flex-col gap-2 items-start"
+                        className="flex flex-col gap-2 items-center"
                     >
-                        <span className="flex gap-2 items-center">
-                            <UserRound className="text-primary" />
+                        <span className="flex gap-2 items-center text-sm font-semibold">
+                            <UserRound className="text-primary" size={18} />
                             Company Detail
                         </span>
                         <div className={`h-0.5 mt-1 w-full ${!isCompanyInfo ? "bg-primary" : "bg-transparent"}`} />
@@ -179,21 +176,24 @@ export default function OrganizationForm({
 
                         {/* Logo + Social links */}
                         <div className="flex w-full gap-4">
-                            <div>
-                                <div className="relative border flex items-center justify-center p-4 w-32 h-32 rounded-2xl bg-gray-200 overflow-hidden">
-                                    {logoPreviewUrl && (
+                            <div className="shrink-0">
+                                <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-100">
+                                    {logoPreviewUrl ? (
                                         <img
                                             src={logoPreviewUrl}
                                             alt="Company logo"
                                             className="absolute inset-0 h-full w-full object-cover"
                                         />
+                                    ) : (
+                                        <UserRound size={28} className="text-gray-300" />
                                     )}
                                     <Upload
                                         kind="image"
                                         onUpload={(file) => updateField("logo", file)}
+                                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                                     />
                                 </div>
-                                <span className="flex items-center justify-center shrink-0 text-gray-600">
+                                <span className="mt-2 flex items-center justify-center text-sm text-gray-600">
                                     {logoPreviewUrl ? "Change logo" : "Upload logo"}
                                 </span>
                             </div>
@@ -203,8 +203,8 @@ export default function OrganizationForm({
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-6 w-full mt-4">
-                            <div className="flex flex-col gap-2 md:col-span-2">
+                        <div className="grid grid-cols-1 gap-6 w-full mt-3">
+                            <div className="flex flex-col gap-2">
                                 <span>Your full name</span>
                                 <input
                                     value={employerData.fullName}
@@ -216,8 +216,8 @@ export default function OrganizationForm({
                             </div>
                         </div>
 
-                        {/* Company Name + Location */}
-                        <div className="grid grid-cols-2 gap-6 w-full mt-4">
+                        {/* Company Name + Location + Phone Number */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-3">
                             <div className="flex flex-col gap-2">
                                 <span>Company Name</span>
                                 <input
@@ -236,10 +236,6 @@ export default function OrganizationForm({
                                 disabled={lookupLoading}
                                 onChange={(value) => updateField("location", value)}
                             />
-                        </div>
-
-                        {/* Phone + Email */}
-                        <div className="grid grid-cols-2 gap-6 w-full mt-4">
                             <div className="flex flex-col gap-2">
                                 <span>Phone Number</span>
                                 <input
@@ -250,13 +246,17 @@ export default function OrganizationForm({
                                     className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
                                 />
                             </div>
+                        </div>
+
+                        {/* Email + Password + Confirm Password */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mt-3">
                             <div className="flex flex-col gap-2">
                                 <span>Email</span>
                                 <input
                                     value={employerData.email}
                                     onChange={(e) => updateField("email", e.target.value)}
                                     type="email"
-                                    placeholder="This will be your main email"
+                                    placeholder="your@company.com"
                                     className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
                                 />
                             </div>
@@ -266,7 +266,7 @@ export default function OrganizationForm({
                                     type="password"
                                     value={employerData.password}
                                     onChange={(e) => updateField("password", e.target.value)}
-                                    placeholder={isSettings ? "Leave blank to keep current password" : "Password"}
+                                    placeholder={isSettings ? "Leave blank to keep" : "Password"}
                                     autoComplete="new-password"
                                     required={!isSettings}
                                     className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
@@ -278,14 +278,14 @@ export default function OrganizationForm({
                                     type="password"
                                     value={employerData.confirmPassword}
                                     onChange={(e) => updateField("confirmPassword", e.target.value)}
-                                    placeholder={isSettings ? "Confirm new password" : "Confirm password"}
+                                    placeholder={isSettings ? "Confirm new" : "Confirm password"}
                                     autoComplete="new-password"
                                     required={!isSettings}
                                     className="w-full border border-gray-200 rounded-lg p-2 text-sm outline-none focus:ring-blue-100 focus:ring-2"
                                 />
                             </div>
                             {isSettings && (
-                                <div className="flex flex-col gap-2 md:col-span-2">
+                                <div className="flex flex-col gap-2 md:col-span-3">
                                     <span>Current password</span>
                                     <input
                                         type="password"
@@ -300,9 +300,9 @@ export default function OrganizationForm({
                         </div>
 
                         {/* About Company */}
-                        <div className="mt-4 w-full">
+                        <div className="mt-3 w-full">
                             <span>About Company</span>
-                            <div className="mt-2">
+                            <div className="mt-1">
                                 <TextAreaBox
                                     value={employerData.aboutCompany}
                                     onChange={(v: any) =>

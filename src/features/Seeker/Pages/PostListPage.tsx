@@ -1,7 +1,9 @@
+import { Search } from "lucide-react";
 import SearchBar, { type SearchBarInitialState } from "../Components/searchBar";
 import CardGrid from "../Components/card/CardGrid";
 import CardList from "../Components/card/CardList";
 import FilterBox from "../Components/FilterBox";
+import EmptyState from "../../../GlobalComponents/EmptyState";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import type { PostListCardItem } from "../services/postApiService";
@@ -68,7 +70,11 @@ export default function PostList() {
 
             <section className="page-container">
                 {displayedResults.length === 0 && (
-                    <p className="text-sm text-gray-500">Search for jobs or volunteers to see results.</p>
+                    <EmptyState
+                        icon={Search}
+                        title="No results yet"
+                        description="Search for jobs or volunteer opportunities to see results here."
+                    />
                 )}
 
                 {viewType === "grid" && (

@@ -97,7 +97,7 @@ export default function MyJobPage() {
                         <select
                             value={jobStatusFilter}
                             onChange={(e) => setJobStatusFilter(e.target.value as JobStatusFilter)}
-                            className="bg-white border border-[#E4E5E8] rounded-md pl-4 pr-10 py-2 text-sm text-[#18191C] font-normal appearance-none focus:outline-none focus:border-blue-500 min-w-35"
+                            className="bg-white border border-[#E4E5E8] rounded-md pl-4 pr-10 py-2 text-sm text-[#18191C] font-normal appearance-none focus:outline-none focus:border-primary min-w-35"
                         >
                             <option>All Jobs</option>
                             <option>Active</option>

@@ -11,7 +11,7 @@ interface PostVolunteerFormProps {
 }
 
 const selectClassName =
-    "w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10";
+    "w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-primary text-sm pr-10";
 
 const minExpirationDate = (() => {
     const minDate = new Date();
@@ -100,7 +100,7 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
                         name="title"
                         required
                         placeholder="title of the post"
-                        className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-blue-500 text-sm"
+                        className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-primary text-sm"
                     />
                 </div>
 
@@ -255,7 +255,7 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
                             type="date"
                             name="expirationDate"
                             min={minExpirationDate}
-                            className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-blue-500 text-sm"
+                            className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-primary text-sm"
                         />
                     </div>
                     <div className="flex items-end">
@@ -263,7 +263,7 @@ export default function PostVolunteerForm({ onSubmit, isSubmitting = false }: Po
                             <input
                                 type="checkbox"
                                 name="isUrgent"
-                                className="h-4 w-4 rounded border-[#E4E5E8] text-[#0A65CC] focus:ring-blue-500"
+                                className="h-4 w-4 rounded border-[#E4E5E8] text-primary focus:ring-primary"
                             />
                             Urgent hiring needed
                         </label>

@@ -62,7 +62,7 @@ export default function AddColumnModal({
                     }}
                     placeholder="Column name"
                     maxLength={30}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-400 mb-4 bg-gray-50"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-primary mb-4 bg-gray-50"
                 />
 
                 {/* Footer */}
@@ -76,7 +76,7 @@ export default function AddColumnModal({
                     <button
                         onClick={handleConfirm}
                         disabled={!value.trim()}
-                        className="text-sm px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="text-sm px-4 py-2 rounded-lg bg-primary text-white hover:bg-primaryDark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         Confirm
                     </button>

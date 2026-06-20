@@ -1,5 +1,8 @@
+import { Heart } from "lucide-react";
 import { useEffect, useState } from "react";
 import CardList from "../Components/card/CardList";
+import EmptyState from "../../../GlobalComponents/EmptyState";
+import { Skeleton } from "../../../GlobalComponents/Skeleton";
 import { formatApiError } from "../../../services/apiClient";
 import {
     fetchFavoriteCardItems,
@@ -69,13 +72,27 @@ export default function Favorite() {
                 </button>
             </div>
 
-            {loading && <p className="text-gray-500">Loading favorites...</p>}
-            {error && <p className="text-red-600">{error}</p>}
+            {loading && (
+                <div className="flex flex-col gap-2">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-4 rounded-lg border p-4">
+                            <Skeleton className="h-16 w-16 rounded-lg shrink-0" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-4 w-1/2" />
+                                <Skeleton className="h-3 w-1/3" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+            {error && <div className="alert-error">{error}</div>}
 
             {!loading && !error && selectedItems.length === 0 && (
-                <div className="rounded-lg border border-dashed border-gray-300 p-6 text-sm text-gray-500">
-                    No {isJob === "job" ? "job" : "volunteer"} favorites found.
-                </div>
+                <EmptyState
+                    icon={Heart}
+                    title={`No ${isJob === "job" ? "job" : "volunteer"} favorites yet`}
+                    description="Save posts you're interested in and they'll show up here."
+                />
             )}
 
             <div className="flex flex-col gap-2">

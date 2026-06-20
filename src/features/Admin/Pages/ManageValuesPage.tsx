@@ -1,6 +1,8 @@
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Tags, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import SearchBox from "../../../GlobalComponents/SearchBox";
+import EmptyState from "../../../GlobalComponents/EmptyState";
+import { Skeleton } from "../../../GlobalComponents/Skeleton";
 import { formatApiError } from "../../../services/apiClient";
 import {
     createAdminJobRole,
@@ -210,7 +212,7 @@ export default function ManageValuesPage() {
                         setValueFilter(event.target.value as ManageValueFilter);
                         setSearch("");
                     }}
-                    className="w-full max-w-xs rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-[#0A65CC]"
+                    className="w-full max-w-xs rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-primary"
                 >
                     <option value="location">Location</option>
                     <option value="category">Category (Job Role)</option>
@@ -218,38 +220,44 @@ export default function ManageValuesPage() {
                 <button
                     type="button"
                     onClick={openCreateModal}
-                    className="inline-flex items-center gap-2 rounded-lg bg-[#0A65CC] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#0854a8]"
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primaryDark"
                 >
                     <Plus className="h-4 w-4" />
                     Add {listLabel}
                 </button>
             </div>
 
-            <div className="grid grid-cols-4 bg-[#F1F2F4] px-6 py-3 text-[12px] font-medium tracking-wider text-[#474C54] uppercase items-center">
+            <div className="hidden md:grid grid-cols-4 bg-[#F1F2F4] px-6 py-3 text-[12px] font-medium tracking-wider text-[#474C54] uppercase items-center">
                 <div className="col-span-2">Name</div>
                 <div>Created</div>
                 <div className="text-left pl-4">Actions</div>
             </div>
 
             {loading && (
-                <div className="px-6 py-8 text-sm text-[#767F8C]">Loading {emptyLabel}...</div>
+                <div className="space-y-3 py-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-3 px-4 py-3">
+                            <Skeleton className="h-4 w-1/3" />
+                        </div>
+                    ))}
+                </div>
             )}
 
             {!loading && error && (
-                <div className="px-6 py-8 text-sm text-red-600">{error}</div>
+                <div className="m-4 alert-error">{error}</div>
             )}
 
             {!loading && !error && currentItems.length === 0 && (
-                <div className="px-6 py-8 text-sm text-[#767F8C]">No {emptyLabel} found.</div>
+                <EmptyState icon={Tags} title={`No ${emptyLabel} found`} description="Try a different search term." />
             )}
 
             <div className="w-full divide-y divide-[#E4E5E8]">
                 {!loading && !error && currentItems.map((item) => (
                     <div
                         key={getItemId(item, valueFilter)}
-                        className="grid grid-cols-4 px-6 py-5 items-center hover:bg-gray-50/40 transition-colors"
+                        className="grid grid-cols-1 gap-2 md:grid-cols-4 px-6 py-5 md:items-center hover:bg-gray-50/40 transition-colors"
                     >
-                        <div className="col-span-2">
+                        <div className="col-span-1 md:col-span-2">
                             <h2 className="text-base font-medium text-[#18191C]">{item.name}</h2>
                         </div>
 
@@ -257,11 +265,11 @@ export default function ManageValuesPage() {
                             {formatCreatedDate(item.created_at)}
                         </div>
 
-                        <div className="flex items-center gap-2 pl-4">
+                        <div className="flex items-center gap-2 md:pl-4">
                             <button
                                 type="button"
                                 onClick={() => openEditModal(item)}
-                                className="inline-flex items-center gap-1.5 rounded-sm bg-slate-200 px-4 py-2 text-sm font-semibold text-blue-600 transition-colors hover:bg-slate-300"
+                                className="inline-flex items-center gap-1.5 rounded-sm bg-subPrimary px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-subPrimary/70"
                             >
                                 <Pencil className="h-3.5 w-3.5" />
                                 Edit
@@ -309,7 +317,7 @@ export default function ManageValuesPage() {
                                     onChange={(event) => setFormName(event.target.value)}
                                     maxLength={150}
                                     placeholder={`Enter ${listLabel.toLowerCase()} name`}
-                                    className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-[#0A65CC]"
+                                    className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-gray-700 outline-none focus:border-primary"
                                 />
                             </div>
 
@@ -328,7 +336,7 @@ export default function ManageValuesPage() {
                                 <button
                                     type="submit"
                                     disabled={formSubmitting}
-                                    className="rounded-lg bg-[#0A65CC] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0854a8] disabled:opacity-60"
+                                    className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primaryDark disabled:opacity-60"
                                 >
                                     {formSubmitting ? "Saving..." : formMode === "create" ? "Create" : "Save"}
                                 </button>

@@ -1,7 +1,9 @@
-import { CheckCircle2, ChevronDown, MoreVertical, Users, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronDown, Flag, MoreVertical, Users, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import SearchBox from "../../../GlobalComponents/SearchBox";
+import EmptyState from "../../../GlobalComponents/EmptyState";
+import { Skeleton } from "../../../GlobalComponents/Skeleton";
 import { ROUTES } from "../../../routes/path";
 import { formatApiError } from "../../../services/apiClient";
 import {
@@ -267,13 +269,13 @@ export default function ReportedPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-6 bg-slate-100 px-6 py-3 text-[12px] font-medium uppercase text-gray-600">
+            <div className="hidden md:grid grid-cols-6 bg-slate-100 px-6 py-3 text-[12px] font-medium uppercase text-gray-600">
                 <div className="col-span-3 flex items-center space-x-8">
                     <button
                         type="button"
                         onClick={() => setReportStatus("pending")}
                         className={`pb-1 font-semibold transition-colors ${reportStatus === "pending"
-                            ? "border-b-2 border-blue-600 text-blue-600"
+                            ? "border-b-2 border-primary text-primary"
                             : "text-[#767F8C] hover:text-gray-900"
                             }`}
                     >
@@ -284,7 +286,7 @@ export default function ReportedPage() {
                         type="button"
                         onClick={() => setReportStatus("resolved")}
                         className={`pb-1 font-semibold transition-colors ${reportStatus === "resolved"
-                            ? "border-b-2 border-blue-600 text-blue-600"
+                            ? "border-b-2 border-primary text-primary"
                             : "text-[#767F8C] hover:text-gray-900"
                             }`}
                     >
@@ -297,12 +299,39 @@ export default function ReportedPage() {
                 <div className="pl-4 text-left">Actions</div>
             </div>
 
+            <div className="flex md:hidden items-center gap-6 px-2">
+                <button
+                    type="button"
+                    onClick={() => setReportStatus("pending")}
+                    className={`pb-1 font-semibold text-sm transition-colors ${reportStatus === "pending" ? "border-b-2 border-primary text-primary" : "text-[#767F8C]"}`}
+                >
+                    Pending
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setReportStatus("resolved")}
+                    className={`pb-1 font-semibold text-sm transition-colors ${reportStatus === "resolved" ? "border-b-2 border-primary text-primary" : "text-[#767F8C]"}`}
+                >
+                    Resolved
+                </button>
+            </div>
+
             {loading && (
-                <div className="py-10 text-center text-gray-500">Loading reports...</div>
+                <div className="space-y-3 py-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-3 px-4 py-3">
+                            <Skeleton className="h-10 w-10 rounded-full shrink-0" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-4 w-1/3" />
+                                <Skeleton className="h-3 w-1/4" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
             )}
 
             {error && (
-                <div className="py-10 text-center text-red-600">{error}</div>
+                <div className="my-4 alert-error">{error}</div>
             )}
 
             {!loading && !error && !isUserView && (
@@ -310,9 +339,9 @@ export default function ReportedPage() {
                     {filteredPostReports.map((item) => (
                         <div
                             key={item.postId}
-                            className="grid grid-cols-6 items-center px-6 py-5 transition-colors hover:bg-gray-50/40"
+                            className="grid grid-cols-1 gap-3 md:grid-cols-6 md:items-center px-6 py-5 transition-colors hover:bg-gray-50/40"
                         >
-                            <div className="col-span-3 space-y-1">
+                            <div className="col-span-1 md:col-span-3 space-y-1">
                                 <button
                                     type="button"
                                     onClick={() => handleViewPost(item)}
@@ -329,7 +358,7 @@ export default function ReportedPage() {
                                 </div>
                             </div>
 
-                            <div className="flex items-center pl-2">
+                            <div className="flex items-center md:pl-2">
                                 {!item.isBanned ? (
                                     <span className="inline-flex items-center space-x-1.5 text-sm font-medium text-[#28A745]">
                                         <CheckCircle2 className="h-4 w-4" />
@@ -348,7 +377,7 @@ export default function ReportedPage() {
                                 <span>{item.reportCount}</span>
                             </div>
 
-                            <div className="relative pl-4" data-action-menu>
+                            <div className="relative md:pl-4" data-action-menu>
                                 <button
                                     onClick={() =>
                                         setOpenMenuId((prev) =>
@@ -397,7 +426,7 @@ export default function ReportedPage() {
                                             type="button"
                                             disabled={actionLoading}
                                             className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 disabled:opacity-60 ${item.isBanned
-                                                ? "text-blue-700"
+                                                ? "text-primary"
                                                 : "text-red-700"
                                                 }`}
                                         >
@@ -410,9 +439,7 @@ export default function ReportedPage() {
                     ))}
 
                     {isEmpty && (
-                        <div className="py-10 text-center text-gray-500">
-                            No reports found.
-                        </div>
+                        <EmptyState icon={Flag} title="No reports found" description="Nothing to review right now." />
                     )}
                 </div>
             )}
@@ -422,9 +449,9 @@ export default function ReportedPage() {
                     {filteredUserReports.map((item) => (
                         <div
                             key={item.seekerId}
-                            className="grid grid-cols-6 items-center px-6 py-5 transition-colors hover:bg-gray-50/40"
+                            className="grid grid-cols-1 gap-3 md:grid-cols-6 md:items-center px-6 py-5 transition-colors hover:bg-gray-50/40"
                         >
-                            <div className="col-span-3 space-y-1">
+                            <div className="col-span-1 md:col-span-3 space-y-1">
                                 <button
                                     type="button"
                                     onClick={() => handleViewSeeker(item)}
@@ -441,7 +468,7 @@ export default function ReportedPage() {
                                 </div>
                             </div>
 
-                            <div className="flex items-center pl-2">
+                            <div className="flex items-center md:pl-2">
                                 {!item.isBanned ? (
                                     <span className="inline-flex items-center space-x-1.5 text-sm font-medium text-[#28A745]">
                                         <CheckCircle2 className="h-4 w-4" />
@@ -460,7 +487,7 @@ export default function ReportedPage() {
                                 <span>{item.reportCount}</span>
                             </div>
 
-                            <div className="relative pl-4" data-action-menu>
+                            <div className="relative md:pl-4" data-action-menu>
                                 <button
                                     onClick={() =>
                                         setOpenMenuId((prev) =>
@@ -509,7 +536,7 @@ export default function ReportedPage() {
                                             type="button"
                                             disabled={actionLoading}
                                             className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 disabled:opacity-60 ${item.isBanned
-                                                ? "text-blue-700"
+                                                ? "text-primary"
                                                 : "text-red-700"
                                                 }`}
                                         >
@@ -522,9 +549,7 @@ export default function ReportedPage() {
                     ))}
 
                     {isEmpty && (
-                        <div className="py-10 text-center text-gray-500">
-                            No reports found.
-                        </div>
+                        <EmptyState icon={Flag} title="No reports found" description="Nothing to review right now." />
                     )}
                 </div>
             )}

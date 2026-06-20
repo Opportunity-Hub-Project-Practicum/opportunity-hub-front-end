@@ -14,6 +14,7 @@ type uploadProp = {
   onUpload: (resume: File) => void;
   inputRef?: React.RefObject<HTMLInputElement | null>;
   kind?: UploadKind;
+  className?: string;
 };
 
 const UPLOAD_CONFIG: Record<UploadKind, {
@@ -36,7 +37,7 @@ const UPLOAD_CONFIG: Record<UploadKind, {
   },
 };
 
-const Upload = ({ onUpload, inputRef, kind = "pdf" }: uploadProp) => {
+const Upload = ({ onUpload, inputRef, kind = "pdf", className }: uploadProp) => {
   const config = UPLOAD_CONFIG[kind];
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,7 +80,7 @@ const Upload = ({ onUpload, inputRef, kind = "pdf" }: uploadProp) => {
       type="file"
       accept={config.accept}
       onChange={handleUpload}
-      className="h-full w-full text-sm text-transparent"
+      className={className ?? "h-full w-full text-sm text-transparent"}
     />
   );
 };

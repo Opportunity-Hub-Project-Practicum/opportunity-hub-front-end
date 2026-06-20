@@ -1,7 +1,9 @@
-import { Bookmark, BellRing, BriefcaseBusiness, ArrowRight } from "lucide-react";
+import { Bookmark, BellRing, BriefcaseBusiness, ArrowRight, Inbox } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import SeekerAppliedPostRow from "../Components/SeekerAppliedPostRow";
+import EmptyState from "../../../GlobalComponents/EmptyState";
+import { Skeleton } from "../../../GlobalComponents/Skeleton";
 import { ROUTES } from "../../../routes/path";
 import { formatApiError } from "../../../services/apiClient";
 import { fetchOverviewActivityData } from "../services/overviewActivityService";
@@ -76,22 +78,29 @@ export default function OverviewActivity() {
             </div>
 
 
-            {loading && <p className="text-gray-500">Loading activity...</p>}
-            {error && <p className="text-red-600">{error}</p>}
+            {error && <div className="alert-error">{error}</div>}
 
-            <div className="grid grid-cols-3 w-full gap-4">
-                {metricCards.map((metric) => (
-                    <div key={metric.key} className={`${metric.bg} p-5 border rounded-lg grid grid-cols-3 gap-3`}>
-                        <div className="flex flex-col col-span-2 justify-center">
-                            <span className="font-semibold text-lg">{counts[metric.key]}</span>
-                            <span className="flex whitespace-nowrap text-sm text-gray-700">{metric.label}</span>
+            {loading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full gap-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                        <Skeleton key={i} className="h-20 w-full rounded-lg" />
+                    ))}
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full gap-4">
+                    {metricCards.map((metric) => (
+                        <div key={metric.key} className={`${metric.bg} p-5 border rounded-lg grid grid-cols-3 gap-3`}>
+                            <div className="flex flex-col col-span-2 justify-center">
+                                <span className="font-semibold text-lg">{counts[metric.key]}</span>
+                                <span className="flex whitespace-nowrap text-sm text-gray-700">{metric.label}</span>
+                            </div>
+                            <div className="border border-primaryDark bg-white flex justify-center items-center py-4 rounded-lg">
+                                <metric.icon className="text-primary" size={25} />
+                            </div>
                         </div>
-                        <div className="border border-primaryDark bg-white flex justify-center items-center py-4 rounded-lg">
-                            <metric.icon className="text-primary" size={25} />
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
 
             <section className="flex flex-col">
                 <div className="flex justify-between  p-2 rounded-lg  text-gray-600">
@@ -104,8 +113,8 @@ export default function OverviewActivity() {
                     </Link>
                 </div>
 
-                <div className="grid grid-cols-6 p-3  text-gray-600 mb-5 bg-gray-100 rounded-lg ">
-                    <div className="col-span-3 flex gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-2 p-3 text-gray-600 mb-5 bg-gray-100 rounded-lg">
+                    <div className="col-span-2 md:col-span-3 flex gap-3">
                         <button
                             className={isJob === "job" ? "bg-gray-100 text-primary underline" : ""}
                             onClick={() => setIsJob("job")}
@@ -119,15 +128,25 @@ export default function OverviewActivity() {
                             Volunteers
                         </button>
                     </div>
-                    <span>Date appllied</span>
-                    <span>Status</span>
-                    <span>Action</span>
+                    <span className="hidden md:inline">Date applied</span>
+                    <span className="hidden md:inline">Status</span>
+                    <span className="hidden md:inline">Action</span>
                 </div>
 
-                {!loading && !error && currentItems.length === 0 && (
-                    <div className="rounded-lg border border-dashed border-gray-300 p-6 text-sm text-gray-500">
-                        No {isJob === "job" ? "job" : "volunteer"} activity found.
+                {loading && (
+                    <div className="flex flex-col gap-2">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                            <Skeleton key={i} className="h-16 w-full rounded-lg" />
+                        ))}
                     </div>
+                )}
+
+                {!loading && !error && currentItems.length === 0 && (
+                    <EmptyState
+                        icon={Inbox}
+                        title={`No ${isJob === "job" ? "job" : "volunteer"} activity yet`}
+                        description="Apply, favorite, or set alerts on posts to see activity here."
+                    />
                 )}
 
                 {currentItems.map((item) => (

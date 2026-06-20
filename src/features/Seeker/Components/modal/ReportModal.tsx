@@ -43,7 +43,7 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 <div className="mt-6 flex justify-end gap-3">
                     <button type="button" onClick={handleCancel} className="btn-primary-white">Cancle
                     </button>
-                    <button type="button" onClick={handleSubmit} className="bg-red-600 text-white px-4 py-2 rounded shadow-sm hover:bg-red-900 hover:text-white active:scale-95 transition-all;">
+                    <button type="button" onClick={handleSubmit} className="btn-danger">
                         Submit Report
                     </button>
                 </div>

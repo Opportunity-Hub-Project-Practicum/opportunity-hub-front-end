@@ -137,22 +137,27 @@ export default function HomeSeeker() {
             <section className="flex flex-col page-container gap-5 bg-gray-100">
                 <SearchBar />
 
-                {loading && <p className="text-gray-500">Loading home page...</p>}
-                {error && <p className="text-red-600">{error}</p>}
+                {loading && (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
+                        Loading home page...
+                    </div>
+                )}
+                {error && <div className="alert-error">{error}</div>}
 
-                <div className="grid grid-cols-3">
-                    <div className="col-span-2 lg:px-20 flex flex-col gap-5">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="order-2 lg:order-1 col-span-1 lg:col-span-2 lg:px-20 flex flex-col gap-5">
                         <strong className="text-4xl">
                             Find a job or volunteer that suits your interest & skills.
                         </strong>
 
-                        <span>
-                            idk some description here, encorage word or something
+                        <span className="text-gray-600">
+                            Browse thousands of jobs and volunteer opportunities from trusted organizations, and apply in just a few clicks.
                         </span>
 
-                        <div className="flex gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                             <span className="flex">Popular categories:</span>
-                            <ul className="flex gap-2">
+                            <ul className="flex flex-wrap gap-2">
                                 {homeData.popularCategories.length === 0 && (
                                     <li className="text-gray-500 text-sm">No categories yet</li>
                                 )}
@@ -171,8 +176,8 @@ export default function HomeSeeker() {
                             </ul>
                         </div>
                     </div>
-                    <div className="col-span-1">
-                        <img className="w-auto h-auto" src={heroimg} alt="" />
+                    <div className="order-1 lg:order-2 col-span-1">
+                        <img className="w-full h-auto" src={heroimg} alt="" />
                     </div>
                 </div>
 
@@ -394,9 +399,9 @@ export default function HomeSeeker() {
             <section className="page-container">
                 <div className="flex justify-between">
                     <span className="text-big">Feature Volunteer</span>
-                    <span className="text-primary underline">
-                        <Link to={ROUTES.HOME.POST_LIST}>Views more</Link>
-                    </span>
+                    <Link to={ROUTES.HOME.POST_LIST} className="text-primary underline">
+                        View more
+                    </Link>
                 </div>
 
                 <div className="grid grid-cols-2 lg:grid-cols-3 justify-between gap-5 lg:gap-10 my-5">

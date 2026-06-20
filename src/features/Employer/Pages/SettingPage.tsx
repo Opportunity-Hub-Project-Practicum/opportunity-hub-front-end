@@ -99,14 +99,14 @@ export default function SettingPage() {
                     <button
                         type="button"
                         onClick={() => setIsProfile(true)}
-                        className={`flex items-center gap-2 rounded-lg px-4 py-1 text-sm transition-all ${isProfile ? "bg-white text-blue-600 shadow-sm" : "hover:text-gray-700"}`}
+                        className={`flex items-center gap-2 rounded-lg px-4 py-1 text-sm transition-all ${isProfile ? "bg-white text-primary shadow-sm" : "hover:text-gray-700"}`}
                     >
                         Profile <CircleUserRound size={16} />
                     </button>
                     <button
                         type="button"
                         onClick={() => setIsProfile(false)}
-                        className={`flex items-center gap-2 rounded-lg px-4 py-1 text-sm transition-all ${!isProfile ? "bg-white text-blue-600 shadow-sm" : "hover:text-gray-700"}`}
+                        className={`flex items-center gap-2 rounded-lg px-4 py-1 text-sm transition-all ${!isProfile ? "bg-white text-primary shadow-sm" : "hover:text-gray-700"}`}
                     >
                         Account <Settings size={16} />
                     </button>

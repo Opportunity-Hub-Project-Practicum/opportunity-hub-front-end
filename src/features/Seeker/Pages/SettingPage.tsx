@@ -225,13 +225,13 @@ export default function Setting() {
             <div className="flex gap-4 bg-gray-100 rounded-xl p-1 text-gray-500 mb-4 w-fit">
                 <button
                     onClick={() => setIsProfile(true)}
-                    className={`flex items-center gap-2 px-4 py-1 rounded-lg transition-all text-sm ${isProfile ? "bg-white text-blue-600 shadow-sm" : "hover:text-gray-700"}`}
+                    className={`flex items-center gap-2 px-4 py-1 rounded-lg transition-all text-sm ${isProfile ? "bg-white text-primary shadow-sm" : "hover:text-gray-700"}`}
                 >
                     Profiles <CircleUserRound size={16} />
                 </button>
                 <button
                     onClick={() => setIsProfile(false)}
-                    className={`flex items-center gap-2 px-4 py-1 rounded-lg transition-all text-sm ${!isProfile ? "bg-white text-blue-600 shadow-sm" : "hover:text-gray-700"}`}
+                    className={`flex items-center gap-2 px-4 py-1 rounded-lg transition-all text-sm ${!isProfile ? "bg-white text-primary shadow-sm" : "hover:text-gray-700"}`}
                 >
                     Account <Settings size={16} />
                 </button>
@@ -311,7 +311,7 @@ export default function Setting() {
                         type="button"
                         onClick={() => void handleSaveAccountSettings()}
                         disabled={isSaving || lookupLoading}
-                        className="bg-blue-600 text-white px-6 py-2 rounded font-medium hover:bg-blue-700 transition-colors mb-12 disabled:opacity-60"
+                        className="bg-primary text-white px-6 py-2 rounded font-medium hover:bg-primaryDark transition-colors mb-12 disabled:opacity-60"
                     >
                         {isSaving ? "Saving..." : "Save Changes"}
                     </button>

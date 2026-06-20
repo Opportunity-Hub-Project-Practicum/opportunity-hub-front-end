@@ -1,8 +1,10 @@
-import { CheckCircle2, DollarSign, XCircle } from "lucide-react";
+import { Briefcase, CheckCircle2, DollarSign, XCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ROUTES } from "../../../routes/path";
 import SearchBox from "../../../GlobalComponents/SearchBox";
+import EmptyState from "../../../GlobalComponents/EmptyState";
+import { Skeleton } from "../../../GlobalComponents/Skeleton";
 import { formatApiError } from "../../../services/apiClient";
 import {
     fetchAdminPosts,
@@ -53,19 +55,19 @@ export default function AllPostPage() {
     return (
         <div className="space-y-4">
             <SearchBox search={search} setSearch={setSearch} />
-            <div className="grid grid-cols-6 bg-[#F1F2F4] px-6 py-3 text-[12px] font-medium tracking-wider text-[#474C54] uppercase items-center">
+            <div className="hidden md:grid grid-cols-6 bg-[#F1F2F4] px-6 py-3 text-[12px] font-medium tracking-wider text-[#474C54] uppercase items-center">
                 <div className="col-span-3 flex items-center space-x-8">
                     <button
                         type="button"
                         onClick={() => setActiveTab("job")}
-                        className={`pb-1 font-semibold transition-colors ${activeTab === "job" ? "text-blue-600 border-b-2 border-blue-600" : "text-[#767F8C] hover:text-gray-900"}`}
+                        className={`pb-1 font-semibold transition-colors ${activeTab === "job" ? "text-primary border-b-2 border-primary" : "text-[#767F8C] hover:text-gray-900"}`}
                     >
                         JOBS
                     </button>
                     <button
                         type="button"
                         onClick={() => setActiveTab("volunteer")}
-                        className={`pb-1 font-semibold transition-colors ${activeTab === "volunteer" ? "text-blue-600 border-b-2 border-blue-600" : "text-[#767F8C] hover:text-gray-900"}`}
+                        className={`pb-1 font-semibold transition-colors ${activeTab === "volunteer" ? "text-primary border-b-2 border-primary" : "text-[#767F8C] hover:text-gray-900"}`}
                     >
                         Volunteer
                     </button>
@@ -75,24 +77,55 @@ export default function AllPostPage() {
                 <div className=" text-left pl-4">Actions</div>
             </div>
 
+            <div className="flex md:hidden items-center gap-6 px-2">
+                <button
+                    type="button"
+                    onClick={() => setActiveTab("job")}
+                    className={`pb-1 font-semibold text-sm transition-colors ${activeTab === "job" ? "text-primary border-b-2 border-primary" : "text-[#767F8C]"}`}
+                >
+                    JOBS
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab("volunteer")}
+                    className={`pb-1 font-semibold text-sm transition-colors ${activeTab === "volunteer" ? "text-primary border-b-2 border-primary" : "text-[#767F8C]"}`}
+                >
+                    Volunteer
+                </button>
+            </div>
+
             {loading && (
-                <div className="px-6 py-8 text-sm text-[#767F8C]">Loading posts...</div>
+                <div className="space-y-3">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="rounded-lg border p-4 flex gap-4">
+                            <Skeleton className="h-15 w-15 shrink-0 rounded-lg" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-4 w-1/2" />
+                                <Skeleton className="h-3 w-1/3" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
             )}
 
             {!loading && error && (
-                <div className="px-6 py-8 text-sm text-red-600">{error}</div>
+                <div className="alert-error">{error}</div>
             )}
 
             {!loading && !error && currentItems.length === 0 && (
-                <div className="px-6 py-8 text-sm text-[#767F8C]">No posts found.</div>
+                <EmptyState
+                    icon={Briefcase}
+                    title="No posts found"
+                    description="Try a different search term or switch tabs to see job and volunteer listings."
+                />
             )}
 
             {!loading && !error && currentItems.map((item) => (
                 <div
                     key={item.id}
-                    className="grid grid-cols-6 items-center rounded-lg border p-4 transition-all duration-300 hover:scale-[1.01] hover:border-primary hover:shadow-lg"
+                    className="grid grid-cols-1 gap-3 md:grid-cols-6 md:items-center rounded-lg border p-4 transition-all duration-300 md:hover:scale-[1.01] hover:border-primary hover:shadow-lg"
                 >
-                    <div className="col-span-3">
+                    <div className="col-span-1 md:col-span-3">
                         <div className="flex gap-4">
                             <img
                                 src={item.image}
@@ -133,7 +166,8 @@ export default function AllPostPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center pl-2">
+                    <div className="flex items-center justify-between md:justify-start md:pl-2">
+                        <span className="text-xs font-medium uppercase text-gray-400 md:hidden">Status</span>
                         {item.status === "Active" ? (
                             <span className="inline-flex items-center space-x-1.5 text-sm text-[#28A745] font-medium">
                                 <CheckCircle2 className="h-4 w-4" />
@@ -147,17 +181,17 @@ export default function AllPostPage() {
                         )}
                     </div>
 
-                    <div className="flex justify-start  text-gray-600">
+                    <div className="flex justify-between md:justify-start text-gray-600">
+                        <span className="text-xs font-medium uppercase text-gray-400 md:hidden">Applications</span>
                         {item.applications}
                     </div>
 
                     <Link
                         to={ROUTES.HOME.POST_DETAIL(item.id)}
-                        className="flex items-center justify-between pl-4"
+                        className="flex items-center justify-between md:pl-4"
                     >
-                        <span
-                            className="bg-slate-200 text-blue-600 text-sm font-semibold px-5 py-2.5 rounded-sm hover:bg-slate-200 transition-colors"
-                        >
+                        <span className="text-xs font-medium uppercase text-gray-400 md:hidden">Actions</span>
+                        <span className="bg-subPrimary text-primary text-sm font-semibold px-5 py-2.5 rounded-sm hover:bg-subPrimary/70 transition-colors">
                             View Post
                         </span>
                     </Link>

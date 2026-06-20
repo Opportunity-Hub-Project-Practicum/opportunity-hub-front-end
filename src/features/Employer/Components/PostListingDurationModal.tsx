@@ -104,14 +104,14 @@ export default function PostListingDurationModal({
                     <button
                         type="button"
                         onClick={() => setMode("days")}
-                        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${mode === "days" ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-600"}`}
+                        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${mode === "days" ? "bg-subPrimary text-primary" : "bg-gray-100 text-gray-600"}`}
                     >
                         Days open
                     </button>
                     <button
                         type="button"
                         onClick={() => setMode("date")}
-                        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${mode === "date" ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-600"}`}
+                        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${mode === "date" ? "bg-subPrimary text-primary" : "bg-gray-100 text-gray-600"}`}
                     >
                         Closing date
                     </button>
@@ -127,7 +127,7 @@ export default function PostListingDurationModal({
                             min={1}
                             value={daysOpen}
                             onChange={(e) => setDaysOpen(e.target.value)}
-                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-subPrimary"
                         />
                     </div>
                 ) : (
@@ -140,7 +140,7 @@ export default function PostListingDurationModal({
                             min={minDateValue}
                             value={closingDate}
                             onChange={(e) => setClosingDate(e.target.value)}
-                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-subPrimary"
                         />
                     </div>
                 )}
@@ -178,7 +178,7 @@ export default function PostListingDurationModal({
                             type="button"
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-60"
+                            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primaryDark disabled:opacity-60"
                         >
                             {isSaving ? "Saving..." : listing.status === "Expire" ? "Reopen listing" : "Save duration"}
                         </button>

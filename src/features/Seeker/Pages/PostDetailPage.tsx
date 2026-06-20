@@ -7,6 +7,7 @@ import {
     Calendar,
     Clock,
     DollarSign,
+    FileSearch,
     GraduationCap,
     Layers,
     Link2Icon,
@@ -21,6 +22,8 @@ import CardGrid from "../Components/card/CardGrid";
 import ApplyModal from "../Components/modal/ApplyModal";
 import ReportModal from "../Components/modal/ReportModal";
 import RichTextContent from "../../../GlobalComponents/RichTextContent";
+import EmptyState from "../../../GlobalComponents/EmptyState";
+import { Skeleton } from "../../../GlobalComponents/Skeleton";
 import { useAuth } from "../../../contexts/AuthContext";
 import { formatApiError } from "../../../services/apiClient";
 import { resolveAssetUrl } from "../../Employer/lib/resolveAssetUrl";
@@ -457,11 +460,26 @@ export default function PostDetail() {
     };
 
     if (loading) {
-        return <div className="page-container">Loading post...</div>;
+        return (
+            <div className="page-container space-y-4">
+                <Skeleton className="h-40 w-full rounded-lg" />
+                <Skeleton className="h-6 w-2/3" />
+                <Skeleton className="h-4 w-1/3" />
+                <div className="space-y-2 pt-4">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                </div>
+            </div>
+        );
     }
 
     if (!post) {
-        return <div className="page-container">Post not found</div>;
+        return (
+            <div className="page-container">
+                <EmptyState icon={FileSearch} title="Post not found" description="This post may have been removed or is no longer available." />
+            </div>
+        );
     }
 
     const engagementLabel = formatWorkPlaceType(post.work_place_type) || post.type;

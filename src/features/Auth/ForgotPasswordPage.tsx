@@ -1,15 +1,30 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../routes/path";
 import { forgotPassword } from "../../services/authService";
 import { formatApiError } from "../../services/apiClient";
 
+const REDIRECT_DELAY_MS = 3000;
+
 export default function ForgotPasswordPage() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!successMessage) {
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            navigate(ROUTES.AUTH.LOGIN, { replace: true });
+        }, REDIRECT_DELAY_MS);
+
+        return () => clearTimeout(timeout);
+    }, [successMessage, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,11 +68,11 @@ export default function ForgotPasswordPage() {
                             <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
                                 <p>{successMessage}</p>
                                 <p className="mt-2">
-                                    Check your inbox for the temporary password, then{" "}
+                                    Check your inbox for the temporary password. Redirecting you to{" "}
                                     <Link to={ROUTES.AUTH.LOGIN} className="font-semibold text-blue-600 hover:underline">
                                         log in
                                     </Link>{" "}
-                                    and change your password in account settings.
+                                    now...
                                 </p>
                             </div>
                         )}

@@ -2,10 +2,20 @@ import { API_BASE_URL, ApiError, getAccessToken } from "./apiClient";
 
 export type UploadDirectory = "logos" | "profiles" | "resumes" | "cv";
 
+export type UploadedPicture = {
+    uuid: string;
+    filename: string;
+    gcs_url: string;
+    created_at: string | null;
+};
+
 export type UploadResponse = {
     message: string;
     path: string;
     url: string;
+    // Present only when the uploaded file is an image (jpg/jpeg/png/gif/webp);
+    // null for non-image uploads such as resumes/cv documents.
+    picture: UploadedPicture | null;
 };
 
 async function parseUploadResponse(response: Response): Promise<UploadResponse> {

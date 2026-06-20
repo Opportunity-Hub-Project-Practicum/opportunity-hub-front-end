@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { CheckCircle2, ShieldAlert, Users, XCircle } from "lucide-react";
+import { Briefcase, CheckCircle2, ShieldAlert, Users, XCircle } from "lucide-react";
 import type { ListingItem } from "../lib/myJobMappers";
 import PostBanReasonModal from "./PostBanReasonModal";
+import EmptyState from "../../../GlobalComponents/EmptyState";
+import { Skeleton } from "../../../GlobalComponents/Skeleton";
 
 export type EmployerPostTab = "JOBS" | "Volunteer";
 
@@ -43,19 +45,19 @@ export default function EmployerPostListTable({
     return (
         <>
         <div className="w-full overflow-hidden rounded-md border border-[#E4E5E8] bg-white">
-            <div className="grid grid-cols-12 items-center bg-[#F1F2F4] px-6 py-3 text-[12px] font-medium uppercase tracking-wider text-[#474C54]">
+            <div className="hidden md:grid grid-cols-12 items-center bg-[#F1F2F4] px-6 py-3 text-[12px] font-medium uppercase tracking-wider text-[#474C54]">
                 <div className="col-span-5 flex items-center space-x-8">
                     <button
                         type="button"
                         onClick={() => onTabChange("JOBS")}
-                        className={`pb-1 font-semibold transition-colors ${activeTab === "JOBS" ? "border-b-2 border-[#0A65CC] text-[#0A65CC]" : "text-[#767F8C] hover:text-gray-900"}`}
+                        className={`pb-1 font-semibold transition-colors ${activeTab === "JOBS" ? "border-b-2 border-primary text-primary" : "text-[#767F8C] hover:text-gray-900"}`}
                     >
                         JOBS
                     </button>
                     <button
                         type="button"
                         onClick={() => onTabChange("Volunteer")}
-                        className={`pb-1 font-semibold transition-colors ${activeTab === "Volunteer" ? "border-b-2 border-[#0A65CC] text-[#0A65CC]" : "text-[#767F8C] hover:text-gray-900"}`}
+                        className={`pb-1 font-semibold transition-colors ${activeTab === "Volunteer" ? "border-b-2 border-primary text-primary" : "text-[#767F8C] hover:text-gray-900"}`}
                     >
                         Volunteer
                     </button>
@@ -65,26 +67,51 @@ export default function EmployerPostListTable({
                 <div className="col-span-3 pl-4 text-left">Actions</div>
             </div>
 
+            <div className="flex md:hidden items-center gap-6 px-4 pt-4">
+                <button
+                    type="button"
+                    onClick={() => onTabChange("JOBS")}
+                    className={`pb-1 font-semibold text-sm transition-colors ${activeTab === "JOBS" ? "border-b-2 border-primary text-primary" : "text-[#767F8C]"}`}
+                >
+                    JOBS
+                </button>
+                <button
+                    type="button"
+                    onClick={() => onTabChange("Volunteer")}
+                    className={`pb-1 font-semibold text-sm transition-colors ${activeTab === "Volunteer" ? "border-b-2 border-primary text-primary" : "text-[#767F8C]"}`}
+                >
+                    Volunteer
+                </button>
+            </div>
+
             {loading && (
-                <div className="px-6 py-10 text-sm text-[#767F8C]">{loadingMessage}</div>
+                <div className="space-y-3 p-6">
+                    <span className="sr-only">{loadingMessage}</span>
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="space-y-2">
+                            <Skeleton className="h-4 w-1/3" />
+                            <Skeleton className="h-3 w-1/4" />
+                        </div>
+                    ))}
+                </div>
             )}
 
             {!loading && error && (
-                <div className="px-6 py-10 text-sm text-red-600">{error}</div>
+                <div className="m-6 alert-error">{error}</div>
             )}
 
             {!loading && !error && (
                 <div className="w-full divide-y divide-[#E4E5E8]">
                     {filteredListings.length === 0 ? (
-                        <div className="px-6 py-10 text-sm text-[#767F8C]">{emptyMessage}</div>
+                        <EmptyState icon={Briefcase} title={emptyMessage} />
                     ) : (
                         filteredListings.map((item) => (
                             <div
                                 key={item.id}
-                                className="grid grid-cols-12 items-center px-6 py-5 transition-colors hover:bg-gray-50/40"
+                                className="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-center px-6 py-5 transition-colors hover:bg-gray-50/40"
                             >
-                                <div className="col-span-5 space-y-1">
-                                    <h2 className="cursor-pointer text-base font-medium text-[#18191C] transition-colors hover:text-[#0A65CC]">
+                                <div className="col-span-1 md:col-span-5 space-y-1">
+                                    <h2 className="cursor-pointer text-base font-medium text-[#18191C] transition-colors hover:text-primary">
                                         {item.title}
                                     </h2>
                                     <div className="flex items-center space-x-1.5 text-sm text-[#767F8C]">
@@ -94,7 +121,7 @@ export default function EmployerPostListTable({
                                     </div>
                                 </div>
 
-                                <div className="col-span-2 flex items-center pl-2">
+                                <div className="col-span-1 md:col-span-2 flex items-center md:pl-2">
                                     {item.status === "Banned" ? (
                                         <button
                                             type="button"
@@ -117,17 +144,17 @@ export default function EmployerPostListTable({
                                     )}
                                 </div>
 
-                                <div className="col-span-2 flex items-center space-x-2 text-sm text-[#5E6670]">
+                                <div className="col-span-1 md:col-span-2 flex items-center space-x-2 text-sm text-[#5E6670]">
                                     <Users className="h-4 w-4 text-[#9199A3]" />
                                     <span>{item.applicationsCount} Applications</span>
                                 </div>
 
-                                <div className="col-span-3 flex items-center justify-end gap-2 pl-4">
+                                <div className="col-span-1 md:col-span-3 flex flex-wrap items-center md:justify-end gap-2 md:pl-4">
                                     <button
                                         onClick={() => onViewApplications(item.postId)}
                                         type="button"
                                         disabled={item.status === "Banned"}
-                                        className="rounded-sm bg-[#F1F2F4] px-5 py-2.5 text-sm font-semibold text-[#0A65CC] transition-colors hover:bg-[#E4E5E8] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#F1F2F4]"
+                                        className="rounded-sm bg-subPrimary px-5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-subPrimary/70 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         View Applications
                                     </button>

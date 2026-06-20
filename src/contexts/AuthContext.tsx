@@ -15,6 +15,7 @@ import {
     fetchCurrentUser,
     getStoredUser,
     login as loginRequest,
+    loginWithGoogle as loginWithGoogleRequest,
     logout as logoutRequest,
     register as registerRequest,
     registerEmployer as registerEmployerRequest,
@@ -27,6 +28,7 @@ interface AuthContextValue {
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (payload: LoginPayload) => Promise<AuthUser>;
+    loginWithGoogle: (idToken: string) => Promise<AuthUser>;
     register: (payload: RegisterPayload) => Promise<AuthUser>;
     registerEmployer: (payload: EmployerRegisterPayload) => Promise<AuthUser>;
     logout: () => Promise<void>;
@@ -85,6 +87,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return response.user;
     }, []);
 
+    const loginWithGoogle = useCallback(async (idToken: string) => {
+        const response = await loginWithGoogleRequest(idToken);
+        setUser(response.user);
+        return response.user;
+    }, []);
+
     const register = useCallback(async (payload: RegisterPayload) => {
         const response = await registerRequest(payload);
         setUser(response.user);
@@ -111,12 +119,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             isAuthenticated: Boolean(user && getAccessToken()),
             isLoading,
             login,
+            loginWithGoogle,
             register,
             registerEmployer,
             logout,
             refreshUser,
         }),
-        [user, isLoading, login, register, registerEmployer, logout, refreshUser],
+        [user, isLoading, login, loginWithGoogle, register, registerEmployer, logout, refreshUser],
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

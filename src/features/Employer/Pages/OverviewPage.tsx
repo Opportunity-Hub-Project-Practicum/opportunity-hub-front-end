@@ -92,11 +92,7 @@ export default function OverviewPage() {
             <span>Hello, {userName}</span>
             <small className="text-gray-600">Here is your Daily Activity</small>
 
-            {error && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-700">
-                    {error}
-                </div>
-            )}
+            {error && <div className="alert-error">{error}</div>}
 
             <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
                 {metricCards.map((metric) => (

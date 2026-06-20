@@ -29,15 +29,17 @@ export default function HomeLayout() {
             <setUserMode.Provider value={setMode}>
                 <opportunityTypeContext.Provider value={oppType}>
                     <setOpportunityTypeContext.Provider value={setOppType}>
-                        <header>
-                            {shouldUseSeekerNav ? <NavBarSeeker /> : <PublicNavBar />}
-                        </header>
-                        <main >
-                            <Outlet />
-                        </main>
-                        <footer>
-                            <Footer />
-                        </footer>
+                        <div className="flex flex-col min-h-screen">
+                            <header className="flex-shrink-0">
+                                {shouldUseSeekerNav ? <NavBarSeeker /> : <PublicNavBar />}
+                            </header>
+                            <main className="flex-1">
+                                <Outlet />
+                            </main>
+                            <footer className="flex-shrink-0">
+                                <Footer />
+                            </footer>
+                        </div>
                     </setOpportunityTypeContext.Provider>
                 </opportunityTypeContext.Provider>
             </setUserMode.Provider>

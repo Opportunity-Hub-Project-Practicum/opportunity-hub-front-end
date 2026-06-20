@@ -1,18 +1,18 @@
 @import "tailwindcss";
 @theme{
     --color-primary: #0a65cc;
-       --color-primaryDark:#1d4ed8;
-       --color-subPrimary:#d2e2fb;
-       --text-medium :1rem;
-       --text-small :0.8rem;
-       --text-big : 1.5rem;
+    --color-primaryDark:#1d4ed8;
+    --color-subPrimary:#d2e2fb;
+    --text-medium :1rem;
+    --text-small :0.8rem;
+    --text-big : 1.5rem;
+    --font-kantumruy: "Kantumruy Pro", sans-serif;
 }
 @layer base {
    
-  
+   
     body{     
-        @apply text-gray-900 ;
-        /*put the font later*/
+        @apply text-gray-900 font-kantumruy;
     }
    
 }
@@ -29,7 +29,22 @@
     .btn-primary-white {
     @apply bg-subPrimary text-primary px-4 py-2 rounded shadow-sm hover:bg-primaryDark hover:text-white active:scale-95 transition-all;
   }
+  .btn-danger {
+    @apply bg-red-600 text-white px-4 py-2 rounded shadow-sm hover:bg-red-700 active:scale-95 transition-all;
+  }
+  .btn-outline {
+    @apply bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded shadow-sm hover:bg-gray-50 active:scale-95 transition-all;
+  }
   .custom-card {
     @apply rounded   border justify-center items-center p-1.5
+  }
+  .alert-success {
+    @apply rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800;
+  }
+  .alert-error {
+    @apply rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700;
+  }
+  .alert-info {
+    @apply rounded-lg border border-subPrimary bg-subPrimary/40 px-4 py-3 text-sm text-primaryDark;
   }
 }

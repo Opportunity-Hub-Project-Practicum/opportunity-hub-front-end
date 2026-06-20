@@ -192,7 +192,7 @@ export default function MyJobViewApplicationPage() {
                 <button
                     type="button"
                     onClick={() => setIsAddModalOpen(true)}
-                    className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-600"
+                    className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm text-white transition-colors hover:bg-primaryDark"
                 >
                     <span className="text-base leading-none">+</span>
                     Add column

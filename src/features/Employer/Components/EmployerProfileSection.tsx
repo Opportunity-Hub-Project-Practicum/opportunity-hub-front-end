@@ -1,13 +1,14 @@
 import { useRef, useState, type ReactNode } from "react";
 import {
+    Briefcase,
     Building2,
     Calendar,
+    Camera,
     Globe,
     Mail,
     MapPin,
     Pencil,
     Phone,
-    Upload as UploadIcon,
     UserRound,
 } from "lucide-react";
 import type { EmployerData } from "../../../GlobalComponents/OrganizationForm";
@@ -107,23 +108,24 @@ function EditField({
 function TabButton({
     active,
     label,
+    icon,
     onClick,
 }: {
     active: boolean;
     label: string;
+    icon: ReactNode;
     onClick: () => void;
 }) {
     return (
         <button
             type="button"
             onClick={onClick}
-            className="flex flex-col items-start gap-2"
+            className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
+                active ? "bg-primary/10 text-primary" : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+            }`}
         >
-            <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                <UserRound className="text-primary" size={18} />
-                {label}
-            </span>
-            <div className={`mt-1 h-0.5 w-full ${active ? "bg-primary" : "bg-transparent"}`} />
+            {icon}
+            {label}
         </button>
     );
 }
@@ -168,132 +170,137 @@ export default function EmployerProfileSection({
     })();
 
     return (
-        <div className="page-container flex flex-col items-center  py-6">
-            <div className="mb-6 flex w-full max-w-4xl flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                    <h1 className="text-xl font-semibold text-slate-900">Company profile</h1>
-                    <p className="mt-1 text-sm text-slate-500">
-                        {editing ? "Edit your company information." : "View company profile."}
-                    </p>
-                </div>
+        <div className="page-container flex flex-col items-center py-6">
+            <div className="mb-5 w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                <div className="h-20 w-full bg-gradient-to-r from-primary to-blue-400 sm:h-24" />
 
-                {!viewOnly && (
-                <div className="flex flex-wrap gap-2">
-                    {editing ? (
-                        <>
-                            <button
-                                type="button"
-                                onClick={onCancel}
-                                disabled={isSaving}
-                                className="btn-primary-white disabled:opacity-60"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={onSave}
-                                disabled={isSaving}
-                                className="btn-primary-blue disabled:opacity-60"
-                            >
-                                {isSaving ? "Saving..." : "Save"}
-                            </button>
-                        </>
-                    ) : (
-                        <button
-                            type="button"
-                            onClick={onStartEdit}
-                            className="btn-primary-blue inline-flex items-center gap-2"
-                        >
-                            <Pencil size={16} />
-                            Edit profile
-                        </button>
+                <div className="flex flex-col gap-4 px-6 pb-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-end">
+                        <div className="relative -mt-12 shrink-0 sm:-mt-10">
+                            <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-md">
+                                {logoUrl ? (
+                                    <img src={logoUrl} alt="Company logo" className="h-full w-full object-cover" />
+                                ) : (
+                                    <Building2 size={36} className="text-slate-300" />
+                                )}
+                            </div>
+
+                            {editing && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        title={logoUrl ? "Change logo" : "Upload logo"}
+                                        className="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-primary text-white shadow-md transition hover:bg-primary/90"
+                                    >
+                                        <Camera size={16} />
+                                    </button>
+                                    <Upload
+                                        kind="image"
+                                        inputRef={fileInputRef}
+                                        onUpload={(file) => onFieldChange?.("logo", file)}
+                                    />
+                                </>
+                            )}
+                        </div>
+
+                        <div className="text-center sm:text-left">
+                            <h1 className="text-lg font-semibold text-slate-900">
+                                {displayValue(data.companyName) !== "—" ? data.companyName : "Company profile"}
+                            </h1>
+                            <p className="mt-0.5 text-sm text-slate-500">
+                                {editing ? "Edit your company information." : "View company profile."}
+                            </p>
+                        </div>
+                    </div>
+
+                    {!viewOnly && (
+                        <div className="flex flex-wrap justify-center gap-2">
+                            {editing ? (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={onCancel}
+                                        disabled={isSaving}
+                                        className="btn-primary-white disabled:opacity-60"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={onSave}
+                                        disabled={isSaving}
+                                        className="btn-primary-blue disabled:opacity-60"
+                                    >
+                                        {isSaving ? "Saving..." : "Save"}
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={onStartEdit}
+                                    className="btn-primary-blue inline-flex items-center gap-2"
+                                >
+                                    <Pencil size={16} />
+                                    Edit profile
+                                </button>
+                            )}
+                        </div>
                     )}
                 </div>
-                )}
             </div>
 
             <div className="flex w-full max-w-4xl flex-col gap-5 px-2">
-                <nav className="mb-2 flex w-full gap-8 border-b border-slate-100 pb-1">
+                <nav className="mb-1 flex w-fit gap-1 rounded-xl bg-slate-100 p-1">
                     <TabButton
                         active={isCompanyInfo}
                         label="Company Info"
+                        icon={<UserRound size={16} />}
                         onClick={() => setIsCompanyInfo(true)}
                     />
                     <TabButton
                         active={!isCompanyInfo}
                         label="Company Detail"
+                        icon={<Briefcase size={16} />}
                         onClick={() => setIsCompanyInfo(false)}
                     />
                 </nav>
 
                 {isCompanyInfo ? (
-                    <section className="w-full space-y-6">
-                        <div className="flex w-full flex-col gap-4 md:flex-row">
-                            <div className="shrink-0">
-                                <div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 p-4">
-                                    {logoUrl ? (
-                                        <img src={logoUrl} alt="Company logo" className="absolute inset-0 h-full w-full object-cover" />
-                                    ) : (
-                                        <Building2 size={36} className="text-slate-300" />
-                                    )}
-
-                                    {editing && (
-                                        <>
-                                            <button
-                                                type="button"
-                                                onClick={() => fileInputRef.current?.click()}
-                                                className="absolute inset-0 flex items-center justify-center bg-slate-900/45 text-xs font-medium text-white opacity-0 transition hover:opacity-100"
+                    <section className="w-full space-y-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+                        <div className="w-full">
+                            {editing ? (
+                                <SocialLinksSection
+                                    links={data.socialLinks}
+                                    setLinks={(links) => {
+                                        const nextLinks = typeof links === "function" ? links(data.socialLinks) : links;
+                                        onFieldChange?.("socialLinks", nextLinks);
+                                    }}
+                                    readOnly={false}
+                                />
+                            ) : activeSocialLinks.length > 0 ? (
+                                <div className="space-y-2">
+                                    <p className="text-xs font-medium text-slate-600">Social links</p>
+                                    <div className="flex flex-col gap-2">
+                                        {activeSocialLinks.map((link) => (
+                                            <a
+                                                key={link.id}
+                                                href={link.url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-primary hover:bg-slate-50"
                                             >
-                                                <UploadIcon size={16} className="mr-1" />
-                                                Change
-                                            </button>
-                                            <Upload
-                                                kind="image"
-                                                inputRef={fileInputRef}
-                                                onUpload={(file) => onFieldChange?.("logo", file)}
-                                            />
-                                        </>
-                                    )}
-                                </div>
-                                <span className="mt-2 flex justify-center text-sm text-slate-500">
-                                    {editing ? (logoUrl ? "Change logo" : "Upload logo") : "Company logo"}
-                                </span>
-                            </div>
-
-                            <div className="w-full">
-                                {editing ? (
-                                    <SocialLinksSection
-                                        links={data.socialLinks}
-                                        setLinks={(links) => {
-                                            const nextLinks = typeof links === "function" ? links(data.socialLinks) : links;
-                                            onFieldChange?.("socialLinks", nextLinks);
-                                        }}
-                                        readOnly={false}
-                                    />
-                                ) : activeSocialLinks.length > 0 ? (
-                                    <div className="space-y-2">
-                                        <p className="text-xs font-medium text-slate-600">Social links</p>
-                                        <div className="flex flex-col gap-2">
-                                            {activeSocialLinks.map((link) => (
-                                                <a
-                                                    key={link.id}
-                                                    href={link.url}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-blue-600 hover:bg-slate-50"
-                                                >
-                                                    <span className="font-medium text-slate-700">
-                                                        {SOCIAL_LABELS[link.platform] ?? link.platform}:
-                                                    </span>{" "}
-                                                    {link.url}
-                                                </a>
-                                            ))}
-                                        </div>
+                                                <span className="font-medium text-slate-700">
+                                                    {SOCIAL_LABELS[link.platform] ?? link.platform}:
+                                                </span>{" "}
+                                                {link.url}
+                                            </a>
+                                        ))}
                                     </div>
-                                ) : (
-                                    <ViewField label="Social links" value="No social links added yet." />
-                                )}
-                            </div>
+                                </div>
+                            ) : (
+                                <ViewField label="Social links" value="No social links added yet." />
+                            )}
                         </div>
 
                         {editing ? (
@@ -378,7 +385,7 @@ export default function EmployerProfileSection({
                         )}
                     </section>
                 ) : (
-                    <section className="w-full">
+                    <section className="w-full rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
                         {editing ? (
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <LookupSelect

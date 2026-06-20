@@ -16,7 +16,7 @@ function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
     return (
         <div className="min-w-[280px] rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg">
             <div className="mb-3">
-                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-600">
+                <span className="rounded-full bg-subPrimary px-3 py-1 text-xs font-medium text-primary">
                     {opportunity.category}
                 </span>
             </div>
@@ -69,9 +69,9 @@ export default function HomeEmployerPage() {
         <>
             {/* Hero Section */}
             <section className="page-container">
-                <div className="rounded-3xl bg-linear-to-r from-blue-50 to-indigo-50 p-8 md:p-12">
+                <div className="rounded-3xl bg-linear-to-r from-subPrimary/50 to-subPrimary p-8 md:p-12">
                     <div className="max-w-3xl">
-                        <span className="rounded-full bg-white px-4 py-2 text-sm font-medium text-blue-600 shadow-sm">
+                        <span className="rounded-full bg-white px-4 py-2 text-sm font-medium text-primary shadow-sm">
                             For Employers & Organizations
                         </span>
 
@@ -202,7 +202,7 @@ export default function HomeEmployerPage() {
                                 key={step}
                                 className="text-center"
                             >
-                                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-lg font-bold text-white">
+                                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-lg font-bold text-white">
                                     {index + 1}
                                 </div>
 
@@ -267,12 +267,12 @@ export default function HomeEmployerPage() {
 
             {/* CTA */}
             <section className="page-container">
-                <div className="rounded-3xl bg-blue-600 p-10 text-center text-white">
+                <div className="rounded-3xl bg-primary p-10 text-center text-white">
                     <h2 className="text-3xl font-bold">
                         Ready to Start Recruiting?
                     </h2>
 
-                    <p className="mx-auto mt-4 max-w-2xl text-blue-100">
+                    <p className="mx-auto mt-4 max-w-2xl text-white/80">
                         Join employers and organizations using Opportunity Hub
                         to find talent, recruit volunteers, and streamline their
                         hiring process.
@@ -280,7 +280,7 @@ export default function HomeEmployerPage() {
 
                     <div className="mt-8">
                         <button
-                            onClick={() => { navigate(ROUTES.AUTH.SIGNUP_EMPLOYER) }} className="rounded-xl bg-white px-6 py-3 font-medium text-blue-600 transition hover:shadow-lg">
+                            onClick={() => { navigate(ROUTES.AUTH.SIGNUP_EMPLOYER) }} className="rounded-xl bg-white px-6 py-3 font-medium text-primary transition hover:shadow-lg">
                             Create Employer Account
                         </button>
                     </div>

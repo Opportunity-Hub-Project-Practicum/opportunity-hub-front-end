@@ -27,7 +27,7 @@ const parseNumberOrNull = (value: FormDataEntryValue | null) => {
 const getString = (value: FormDataEntryValue | null) => (value ? value.toString().trim() : "");
 
 const selectClassName =
-    "w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-blue-500 text-sm pr-10";
+    "w-full px-4 py-3 border border-[#E4E5E8] rounded-md appearance-none bg-white text-[#767F8C] focus:outline-none focus:border-primary text-sm pr-10";
 
 const minExpirationDate = (() => {
     const minDate = new Date();
@@ -101,7 +101,7 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                         name="title"
                         required
                         placeholder="Add job title and role"
-                        className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-blue-500 text-sm"
+                        className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-primary text-sm"
                     />
                 </div>
 
@@ -268,7 +268,7 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                                 type="date"
                                 name="expirationDate"
                                 min={minExpirationDate}
-                                className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-blue-500 text-sm"
+                                className="w-full px-4 py-3 border border-[#E4E5E8] rounded-md placeholder-[#767F8C] focus:outline-none focus:border-primary text-sm"
                             />
                         </div>
                         <div className="flex items-end">
@@ -276,7 +276,7 @@ export default function PostJobForm({ onSubmit, isSubmitting = false }: PostJobF
                                 <input
                                     type="checkbox"
                                     name="isUrgent"
-                                    className="h-4 w-4 rounded border-[#E4E5E8] text-[#0A65CC] focus:ring-blue-500"
+                                    className="h-4 w-4 rounded border-[#E4E5E8] text-primary focus:ring-primary"
                                 />
                                 Urgent hiring needed
                             </label>

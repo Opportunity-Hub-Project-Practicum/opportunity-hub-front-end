@@ -23,7 +23,6 @@ export type CreateEmployerPostPayload = {
     job_requirement?: string | null;
     job_level?: string | null;
     job_role_id?: number | null;
-    is_urgent?: boolean;
 };
 
 export type CreatedEmployerPost = {
