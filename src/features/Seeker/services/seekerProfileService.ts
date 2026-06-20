@@ -126,7 +126,7 @@ export async function updateWorkExperience(
         job_role?: string;
         year_of_experience?: number;
         industry?: string;
-        location?: string;
+        location?: string | null;
         start_date?: string;
         end_date?: string | null;
         description?: string | null;

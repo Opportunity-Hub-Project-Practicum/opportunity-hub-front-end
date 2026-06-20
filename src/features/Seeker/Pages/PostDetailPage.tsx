@@ -2,7 +2,6 @@ import { useParams } from "react-router-dom";
 import { getPostLookupName, getPostLookupValue } from "../lib/postLookup";
 import { fetchSearchPosts } from "../lib/searchPosts";
 import {
-    ArrowLeft,
     ArrowRight,
     Bookmark,
     Calendar,
@@ -103,12 +102,10 @@ function PostCardsSection({
     title,
     posts,
     emptyMessage,
-    isPostBanned,
 }: {
     title: string;
     posts: PublicPostApi[];
     emptyMessage: string;
-    isPostBanned: boolean;
 }) {
     return (
         <section className="flex flex-col page-container">
@@ -468,7 +465,6 @@ export default function PostDetail() {
     }
 
     const engagementLabel = formatWorkPlaceType(post.work_place_type) || post.type;
-    const categoryName = getPostLookupName(post.job_role);
     const isPostBanned = isPostBannedForSeeker(post.is_ban);
 
     return (
@@ -626,14 +622,12 @@ export default function PostDetail() {
                 title={`Related ${isVolunteer ? "Volunteer" : "Jobs"}`}
                 posts={relatedPosts}
                 emptyMessage="No related posts found."
-                isPostBanned={isPostBanned}
             />
 
             <PostCardsSection
                 title={`${isVolunteer ? "Volunteer" : "Jobs"} from the same company`}
                 posts={sameCompanyPosts}
                 emptyMessage="No other posts from this company."
-                isPostBanned={isPostBanned}
             />
 
             {!isAdminViewer && isApplyModalOpen && !isVolunteer && (
