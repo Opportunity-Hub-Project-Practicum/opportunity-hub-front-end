@@ -59,6 +59,7 @@ export async function updateContact(
 export async function createEducation(payload: {
     institution_name: string;
     degree: string;
+    area_of_study?: string | null;
     location: string;
     country: string;
     start_date: string;
@@ -98,6 +99,7 @@ export async function updateEducation(
     payload: {
         institution_name?: string;
         degree?: string;
+        area_of_study?: string | null;
         location?: string;
         country?: string;
         start_date?: string;

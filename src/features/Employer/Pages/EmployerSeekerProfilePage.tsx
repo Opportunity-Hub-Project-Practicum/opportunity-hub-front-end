@@ -14,6 +14,7 @@ import {
     Star,
 } from "lucide-react";
 import BackButton from "../../Seeker/Components/BackButton";
+import RichTextContent from "../../../GlobalComponents/RichTextContent";
 import { ROUTES } from "../../../routes/path";
 import { formatApiError } from "../../../services/apiClient";
 import { resolveAssetUrl } from "../lib/resolveAssetUrl";
@@ -46,6 +47,7 @@ export default function EmployerSeekerProfilePage() {
     const { lookupValues } = useLookupValues();
     const industryOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.industry);
     const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
+    const educationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.education);
     const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
     const [isReportOpen, setIsReportOpen] = useState(false);
     const [isSubmittingReport, setIsSubmittingReport] = useState(false);
@@ -263,9 +265,11 @@ export default function EmployerSeekerProfilePage() {
                     <div className="space-y-8 lg:col-span-2">
                         <div className="space-y-3">
                             <h2 className="text-sm font-bold uppercase tracking-wider">Biography</h2>
-                            <p className="text-sm leading-relaxed text-gray-600">
-                                {profile.biography ?? "Biography is not available for this candidate."}
-                            </p>
+                            <RichTextContent
+                                value={profile.biography}
+                                className="text-sm leading-relaxed text-gray-600"
+                                emptyText="Biography is not available for this candidate."
+                            />
                         </div>
 
                         <div className="space-y-4">
@@ -308,10 +312,15 @@ export default function EmployerSeekerProfilePage() {
                                             key={education.education_id}
                                             className="rounded-lg border border-[#E4E5E8] bg-white p-4"
                                         >
-                                            <p className="font-medium text-[#18191C]">{education.degree}</p>
+                                            <p className="font-medium text-[#18191C]">
+                                                {[resolveLookupStoredValue(education.degree, educationOptions), education.area_of_study]
+                                                    .filter(Boolean)
+                                                    .join(" · ")}
+                                            </p>
                                             <p className="text-sm text-[#5E6670]">{education.institution_name}</p>
                                             <p className="mt-1 text-sm text-[#767F8C]">
-                                                {education.location}, {education.country}
+                                                {resolveLookupStoredValue(education.location, locationOptions)}
+                                                {education.country ? `, ${education.country}` : ""}
                                             </p>
                                         </div>
                                     ))}

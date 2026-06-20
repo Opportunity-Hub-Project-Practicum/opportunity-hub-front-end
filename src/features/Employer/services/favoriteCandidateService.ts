@@ -2,12 +2,22 @@ import { apiRequest } from "../../../services/apiClient";
 import type {
     CreateFavoriteCandidateResponse,
     FavoriteCandidateApi,
+    FavoriteCandidateResponse,
     FavoriteCandidatesResponse,
 } from "../types/favoriteCandidate";
 
 export async function fetchFavoriteCandidates(): Promise<FavoriteCandidateApi[]> {
     const response = await apiRequest<FavoriteCandidatesResponse>("/employer/favorite-candidates");
     return response.favorites;
+}
+
+export async function fetchFavoriteCandidate(
+    favoriteCandidateId: number,
+): Promise<FavoriteCandidateApi> {
+    const response = await apiRequest<FavoriteCandidateResponse>(
+        `/employer/favorite-candidates/${favoriteCandidateId}`,
+    );
+    return response.favorite;
 }
 
 export async function addFavoriteCandidate(seekerId: number): Promise<FavoriteCandidateApi> {

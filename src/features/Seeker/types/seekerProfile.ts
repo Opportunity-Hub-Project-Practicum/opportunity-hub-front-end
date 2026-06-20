@@ -9,6 +9,7 @@ export interface SeekerEducationApi {
     education_id: number;
     institution_name: string;
     degree: string;
+    area_of_study: string | null;
     location: string;
     country: string;
     start_date: string;

@@ -13,6 +13,10 @@ export type FavoriteCandidatesResponse = {
     favorites: FavoriteCandidateApi[];
 };
 
+export type FavoriteCandidateResponse = {
+    favorite: FavoriteCandidateApi;
+};
+
 export type CreateFavoriteCandidateResponse = {
     message: string;
     favorite: FavoriteCandidateApi;

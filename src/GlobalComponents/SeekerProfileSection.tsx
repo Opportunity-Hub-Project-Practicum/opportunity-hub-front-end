@@ -210,6 +210,7 @@ export default function SeekerProfileSection({
     const jobRoleOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.jobRole);
     const industryOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.industry);
     const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
+    const educationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.education);
 
     // In viewOnly mode nothing is ever editable
     const editing = viewOnly ? false : isEditing;
@@ -497,10 +498,12 @@ export default function SeekerProfileSection({
                                                 <div>
                                                     <p className="text-sm font-semibold text-gray-800 truncate">{edu.school || `Education ${index + 1}`}</p>
                                                     <p className="text-xs text-gray-600 mt-0.5">
-                                                        {[edu.degree, edu.areaOfStudy].filter(Boolean).join(' • ') || 'No degree/field provided'}
+                                                        {[formatLookupLabel(edu.degree, educationOptions), edu.areaOfStudy].filter(Boolean).join(' • ') || 'No degree/field provided'}
                                                     </p>
-                                                    {edu.country && viewOnly && (
-                                                        <p className="text-xs text-gray-500 mt-0.5">{edu.country}</p>
+                                                    {(edu.location || edu.country) && (
+                                                        <p className="text-xs text-gray-500 mt-0.5">
+                                                            {[formatLookupLabel(edu.location, locationOptions), edu.country].filter(Boolean).join(' · ')}
+                                                        </p>
                                                     )}
                                                 </div>
                                             </div>

@@ -4,7 +4,6 @@ import {
     Bookmark,
     Briefcase,
     Cake,
-    Download,
     FileText,
     Flag,
     Globe,
@@ -13,11 +12,12 @@ import {
     Phone,
 } from "lucide-react";
 import BackButton from "../../Seeker/Components/BackButton";
+import RichTextContent from "../../../GlobalComponents/RichTextContent";
 import { ROUTES } from "../../../routes/path";
 import { formatApiError } from "../../../services/apiClient";
 import { resolveAssetUrl } from "../lib/resolveAssetUrl";
 import {
-    fetchFavoriteCandidates,
+    fetchFavoriteCandidate,
     removeFavoriteCandidate,
 } from "../services/favoriteCandidateService";
 import { formatDisplayDate, formatLabel } from "../../Seeker/lib/seekerProfileFormatters";
@@ -26,6 +26,9 @@ import ReportModal from "../../Seeker/Components/modal/ReportModal";
 import { submitSeekerProfileReport } from "../services/seekerProfileReportService";
 import type { FavoriteCandidateApi } from "../types/favoriteCandidate";
 import type { SeekerProfileApi } from "../../Seeker/types/seekerProfile";
+import { getLookupOptions, useLookupValues } from "../../../hooks/useLookupValues";
+import { resolveLookupStoredValue } from "../../../lib/lookupValueUtils";
+import { LOOKUP_TYPES } from "../../../types/lookupValue";
 
 export default function SaveCandidateDetailPage() {
     const navigate = useNavigate();
@@ -40,6 +43,10 @@ export default function SaveCandidateDetailPage() {
     const [isReportOpen, setIsReportOpen] = useState(false);
     const [isSubmittingReport, setIsSubmittingReport] = useState(false);
     const [reportMessage, setReportMessage] = useState<string | null>(null);
+    const { lookupValues } = useLookupValues();
+    const industryOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.industry);
+    const locationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.location);
+    const educationOptions = getLookupOptions(lookupValues, LOOKUP_TYPES.education);
 
     const loadCandidate = useCallback(async () => {
         const parsedFavoriteId = Number(favouriteId);
@@ -55,17 +62,7 @@ export default function SaveCandidateDetailPage() {
         setIsProfilePrivate(false);
 
         try {
-            const favorites = await fetchFavoriteCandidates();
-            const matchedFavorite = favorites.find(
-                (item) => item.favorite_candidate_id === parsedFavoriteId,
-            );
-
-            if (!matchedFavorite) {
-                setFavorite(null);
-                setProfile(null);
-                return;
-            }
-
+            const matchedFavorite = await fetchFavoriteCandidate(parsedFavoriteId);
             setFavorite(matchedFavorite);
 
             const profileResponse = await fetchPublicSeekerProfile(matchedFavorite.seeker_id);
@@ -153,13 +150,13 @@ export default function SaveCandidateDetailPage() {
         : favorite.profile_img
             ? resolveAssetUrl(favorite.profile_img)
             : "";
-    const cvUrl = resolveAssetUrl(profile?.cv_resume);
     const phoneNumber = profile?.seeker_phone_number
         ?? profile?.contacts?.find((contact) => contact.category === "phone")?.value
         ?? "Not provided";
     const website = profile?.personal_web_url
         ?? profile?.contacts?.find((contact) => contact.category === "web_url")?.value
         ?? null;
+    const latestExperience = profile?.work_experiences?.[0];
 
     return (
         <section className="page-container">
@@ -226,64 +223,80 @@ export default function SaveCandidateDetailPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-                <div className="space-y-8 lg:col-span-2">
-                    <div className="space-y-3">
-                        <h2 className="text-sm font-bold uppercase tracking-wider">Biography</h2>
-                        <p className="text-sm leading-relaxed text-gray-600">
-                            {profile?.biography ?? "Biography is not available for this candidate."}
-                        </p>
+                {!profile ? (
+                    <div className="lg:col-span-2">
+                        <p className="text-sm text-gray-600">Profile details are not available.</p>
                     </div>
+                ) : (
+                    <div className="space-y-8 lg:col-span-2">
+                        <div className="space-y-3">
+                            <h2 className="text-sm font-bold uppercase tracking-wider">Biography</h2>
+                            <RichTextContent
+                                value={profile.biography}
+                                className="text-sm leading-relaxed text-gray-600"
+                                emptyText="Biography is not available for this candidate."
+                            />
+                        </div>
 
-                    <div className="space-y-4">
-                        <h2 className="text-sm font-bold uppercase tracking-wider">Work Experience</h2>
-                        {profile?.work_experiences && profile.work_experiences.length > 0 ? (
-                            <div className="space-y-4">
-                                {profile.work_experiences.map((experience) => (
-                                    <div
-                                        key={experience.experience_id}
-                                        className="rounded-lg border border-[#E4E5E8] bg-white p-4"
-                                    >
-                                        <p className="font-medium text-[#18191C]">{experience.job_title}</p>
-                                        <p className="text-sm text-[#5E6670]">{experience.company_name}</p>
-                                        <p className="mt-1 text-sm text-[#767F8C]">
-                                            {experience.year_of_experience} years · {experience.industry}
-                                        </p>
-                                        {experience.description && (
-                                            <p className="mt-2 text-sm text-gray-600">{experience.description}</p>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-sm text-gray-600">Work experience is not available.</p>
-                        )}
-                    </div>
+                        <div className="space-y-4">
+                            <h2 className="text-sm font-bold uppercase tracking-wider">Work Experience</h2>
+                            {profile.work_experiences && profile.work_experiences.length > 0 ? (
+                                <div className="space-y-4">
+                                    {profile.work_experiences.map((experience) => (
+                                        <div
+                                            key={experience.experience_id}
+                                            className="rounded-lg border border-[#E4E5E8] bg-white p-4"
+                                        >
+                                            <p className="font-medium text-[#18191C]">{experience.job_title}</p>
+                                            <p className="text-sm text-[#5E6670]">{experience.company_name}</p>
+                                            <p className="mt-1 text-sm text-[#767F8C]">
+                                                {experience.year_of_experience} years
+                                                {experience.industry && (
+                                                    <> · {resolveLookupStoredValue(experience.industry, industryOptions)}</>
+                                                )}
+                                                {experience.location && (
+                                                    <> · {resolveLookupStoredValue(experience.location, locationOptions)}</>
+                                                )}
+                                            </p>
+                                            {experience.description && (
+                                                <p className="mt-2 text-sm text-gray-600">{experience.description}</p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-600">Work experience is not available.</p>
+                            )}
+                        </div>
 
-                    <div className="space-y-4">
-                        <h2 className="text-sm font-bold uppercase tracking-wider">Education</h2>
-                        {profile?.educations && profile.educations.length > 0 ? (
-                            <div className="space-y-4">
-                                {profile.educations.map((education) => (
-                                    <div
-                                        key={education.education_id}
-                                        className="rounded-lg border border-[#E4E5E8] bg-white p-4"
-                                    >
-                                        <p className="font-medium text-[#18191C]">{education.degree}</p>
-                                        <p className="text-sm text-[#5E6670]">{education.institution_name}</p>
-                                        <p className="mt-1 text-sm text-[#767F8C]">
-                                            {education.location}, {education.country}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-sm text-gray-600">
-                                {[favorite.education, favorite.experience].filter(Boolean).join(" · ")
-                                    || "Education details are not available."}
-                            </p>
-                        )}
+                        <div className="space-y-4">
+                            <h2 className="text-sm font-bold uppercase tracking-wider">Education</h2>
+                            {profile.educations && profile.educations.length > 0 ? (
+                                <div className="space-y-4">
+                                    {profile.educations.map((education) => (
+                                        <div
+                                            key={education.education_id}
+                                            className="rounded-lg border border-[#E4E5E8] bg-white p-4"
+                                        >
+                                            <p className="font-medium text-[#18191C]">
+                                                {[resolveLookupStoredValue(education.degree, educationOptions), education.area_of_study]
+                                                    .filter(Boolean)
+                                                    .join(" · ")}
+                                            </p>
+                                            <p className="text-sm text-[#5E6670]">{education.institution_name}</p>
+                                            <p className="mt-1 text-sm text-[#767F8C]">
+                                                {resolveLookupStoredValue(education.location, locationOptions)}
+                                                {education.country ? `, ${education.country}` : ""}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-600">Education details are not available.</p>
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-x-4 gap-y-6 rounded-lg border border-[#E8F1FC] bg-white p-6">
@@ -300,29 +313,22 @@ export default function SaveCandidateDetailPage() {
                         <div className="space-y-1">
                             <div className="text-[#0A65CC]"><Briefcase className="h-5 w-5 stroke-[1.8]" /></div>
                             <p className="pt-1 text-[11px] font-medium uppercase tracking-wide text-gray-600">Experience</p>
-                            <p className="text-sm font-medium">{favorite.experience ?? "Not provided"}</p>
+                            <p className="text-sm font-medium">
+                                {latestExperience
+                                    ? `${latestExperience.year_of_experience} Years`
+                                    : "Not provided"}
+                            </p>
                         </div>
                         <div className="space-y-1">
                             <div className="text-[#0A65CC]"><GraduationCap className="h-5 w-5 stroke-[1.8]" /></div>
                             <p className="pt-1 text-[11px] font-medium uppercase tracking-wide text-gray-600">Education</p>
-                            <p className="text-sm font-medium">{favorite.education ?? "Not provided"}</p>
+                            <p className="text-sm font-medium">
+                                {profile?.educations?.[0]?.degree
+                                    ? resolveLookupStoredValue(profile.educations[0].degree, educationOptions)
+                                    : "Not provided"}
+                            </p>
                         </div>
                     </div>
-
-                    {profile?.cv_resume && (
-                        <div className="space-y-3 rounded-lg border border-[#E8F1FC] bg-white p-6">
-                            <h3 className="text-sm font-semibold">Download Resume</h3>
-                            <a
-                                href={cvUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-2 text-sm font-medium text-[#0A65CC] hover:underline"
-                            >
-                                <Download className="h-4 w-4" />
-                                Download CV
-                            </a>
-                        </div>
-                    )}
 
                     <div className="space-y-5 rounded-lg border border-[#E8F1FC] bg-white p-6">
                         <h3 className="text-sm font-semibold">Contact Information</h3>

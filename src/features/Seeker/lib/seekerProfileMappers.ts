@@ -213,7 +213,7 @@ export function mapProfileApiToSettings(profile: SeekerProfileApi): SeekerSettin
         educationId: item.education_id,
         school: item.institution_name,
         degree: item.degree,
-        areaOfStudy: "",
+        areaOfStudy: item.area_of_study ?? "",
         location: item.location,
         country: item.country,
         from: dateToMonthYear(item.start_date),
@@ -361,14 +361,13 @@ export function mapNotifyFormToUpdatePayload(
 }
 
 export function mapEducationEntryToApi(entry: EducationEntry) {
-    const degree = entry.areaOfStudy
-        ? `${entry.degree} in ${entry.areaOfStudy}`
-        : entry.degree;
+    const areaOfStudy = entry.areaOfStudy?.trim();
 
     return {
         institution_name: entry.school?.trim() || "Institution",
-        degree: degree?.trim() || "Degree",
-        location: entry.location?.trim() || entry.country?.trim() || "N/A",
+        degree: entry.degree?.trim() || "Degree",
+        area_of_study: areaOfStudy || null,
+        location: entry.location?.trim() || "N/A",
         country: entry.country?.trim() || "N/A",
         start_date: monthYearToStartDate(entry.from ?? ""),
         end_date: monthYearToEndDate(entry.to ?? ""),
