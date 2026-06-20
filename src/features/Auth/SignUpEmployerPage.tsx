@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, ArrowLeft, Loader2, AlertCircle, Briefcase, Users, Zap, Building2, CheckCircle2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, Loader2, AlertCircle, Zap, Building2, CheckCircle2 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../routes/path";
 import { useAuth } from "../../contexts/AuthContext";

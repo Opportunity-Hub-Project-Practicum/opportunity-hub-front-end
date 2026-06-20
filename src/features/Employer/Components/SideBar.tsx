@@ -1,6 +1,6 @@
-import { Layers, PlusCircle, Briefcase, Bookmark, Settings, X, LayoutDashboard, Users, FolderOpen } from 'lucide-react';
+import { PlusCircle, Briefcase, Bookmark, Settings, X, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../routes/path';
 
 type SidebarProps = {
@@ -9,7 +9,6 @@ type SidebarProps = {
 };
 
 const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
-    const location = useLocation();
     const navigate = useNavigate();
 
     const menuItems = [
@@ -26,16 +25,6 @@ const Sidebar = ({ mobileOpen = false, onClose }: SidebarProps) => {
         setSection(itemName);
         navigate(path);
         if (onClose) onClose();
-    };
-
-    const getActiveItem = () => {
-        const pathname = location.pathname;
-        if (pathname.includes('/overview')) return 'Overview';
-        if (pathname.includes('/postApplication')) return 'Post a Job';
-        if (pathname.includes('/myJobs')) return 'My Jobs';
-        if (pathname.includes('/saveCandidate')) return 'Saved Candidate';
-        if (pathname.includes('/setting')) return 'Settings';
-        return 'Overview';
     };
 
     return (
